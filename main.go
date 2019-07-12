@@ -2,6 +2,7 @@ package main
 
 import (
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo"
 	"github.com/hichikaw/dosanco/handler"
@@ -41,8 +42,14 @@ func main() {
 	})
 	e.GET("/network/:id", handler.GetNetwork)
 	e.PUT("/network/:id", handler.UpdateNetwork)
-	e.DELETE("/network/:id", handler.DeleteNetwork)
-
+	e.DELETE("/network/:id", func(c echo.Context) error {
+		id, _ := strconv.Atoi(c.Param("id"))
+		if err := handler.DeleteNetwork(id); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		} else {
+			return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
+		}
+	})
 
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))

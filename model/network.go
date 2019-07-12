@@ -11,7 +11,7 @@ type IPv4Network struct {
 	CIDR 			string			`json:"cidr" validate:"required" gorm:"unique;not null"`
 	Description		string			`json:"description"`
 	//Supernetwork	*IPv4Network
-	SupernetworkID	int				`json:"supernet_id" validate:"required"`
+	SupernetworkID	uint			`json:"supernet_id" validate:"required"`
 	//Subnetwork		[]*IPv4Network	`gorm:"many2many:ipv4_subnetwork;association_jointable_foreignkey:subnet_id"`
 }
 

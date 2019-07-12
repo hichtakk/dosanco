@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+
 	"github.com/labstack/echo"
 	"github.com/hichikaw/dosanco/db"
 	"github.com/hichikaw/dosanco/model"
@@ -57,6 +58,23 @@ func UpdateNetwork(c echo.Context) error {
 	return nil
 }
 
-func DeleteNetwork(c echo.Context) error {
+func DeleteNetwork(id int) error {
+	db := db.GetDB()
+	var network model.IPv4Network
+	db.First(&network, "id=?", id)
+	if network.ID != 0 {
+		fmt.Println(network)
+	} else {
+		return fmt.Errorf("network not found")
+	}
+	// ensure the network does not have subnetworks
+	subnets := []model.IPv4Network{}
+	db.Where(&model.IPv4Network{SupernetworkID: network.ID}).Find(&subnets)
+	fmt.Println(subnets)
+	if len(subnets) > 0 {
+		return fmt.Errorf("network has subnets %v", subnets)
+	}
+	db.Delete(&network)
+
 	return nil
 }
