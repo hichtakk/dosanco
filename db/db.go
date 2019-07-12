@@ -5,6 +5,7 @@ import (
 	_ "github.com/jinzhu/gorm/dialects/sqlite"
 
 	"github.com/hichikaw/dosanco/model"
+	"github.com/hichikaw/dosanco/config"
 )
 
 var (
@@ -12,8 +13,8 @@ var (
 	err error
 )
 
-func init() {
-	db, err = gorm.Open("sqlite3", "dosanco.db")
+func Init(c config.DBConfig) {
+	db, err = gorm.Open("sqlite3", c.Path)
 	if err != nil {
 		panic("failed to connect database")
 	}

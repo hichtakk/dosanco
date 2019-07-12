@@ -5,9 +5,12 @@ import (
 	"strconv"
 
 	"github.com/labstack/echo"
+	validator "gopkg.in/go-playground/validator.v9"
+
+	"github.com/hichikaw/dosanco/config"
+	"github.com/hichikaw/dosanco/db"
 	"github.com/hichikaw/dosanco/handler"
 	"github.com/hichikaw/dosanco/model"
-	validator "gopkg.in/go-playground/validator.v9"
 )
 
 type Validator struct {
@@ -19,10 +22,21 @@ func (v *Validator) Validate(i interface{}) error {
 }
 
 func main() {
+	// read configuration
+	conf, err := config.NewConfig("./config.toml")
+	if err != nil {
+		panic(err.Error())
+	}
+
+	// initialize database
+	db.Init(conf.DB)
+
 	// initialize echo instance
 	e := echo.New()
 	e.HideBanner = true
 	e.Validator = &Validator{validator: validator.New()}
+	
+	// initialize logger middleware
 
 	// route requests
 	e.GET("/network", handler.GetNetwork)
