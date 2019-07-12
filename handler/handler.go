@@ -64,8 +64,18 @@ func CreateNetwork(network *model.IPv4Network) error {
 	return nil
 }
 
-func UpdateNetwork(id int) error {
-	return nil
+func UpdateNetwork(network *model.IPv4Network) (*model.IPv4Network, error) {
+	db := db.GetDB()
+
+	var net model.IPv4Network
+	if result := db.Take(&net, "id=?", network.ID); result.Error != nil {
+		return &model.IPv4Network{}, fmt.Errorf("network '%v' not found", network.ID)
+	}
+	if result := db.Model(&net).Update("description", network.Description); result.Error != nil {
+		return &model.IPv4Network{}, result.Error
+	}
+
+	return &net, nil
 }
 
 func DeleteNetwork(id int) error {

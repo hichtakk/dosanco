@@ -15,6 +15,8 @@ type IPv4Network struct {
 	//Subnetwork		[]*IPv4Network	`gorm:"many2many:ipv4_subnetwork;association_jointable_foreignkey:subnet_id"`
 }
 
+type IPv6Network struct {}
+
 func (n IPv4Network) GetNetwork() *net.IPNet {
 	_, ipv4Net, _ := net.ParseCIDR(n.CIDR)
 	return ipv4Net

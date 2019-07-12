@@ -66,7 +66,23 @@ func main() {
 			return c.JSON(http.StatusOK, network)
 		}
 	})
-	e.PUT("/network/:id", handler.UpdateNetwork)
+	e.PUT("/network/:id", func(c echo.Context) error {
+		// update only allow to update description
+		network := new(model.IPv4Network)
+		if err := c.Bind(network); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		}
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		}
+		network.ID = uint(id)
+		net, err := handler.UpdateNetwork(network)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		}
+		return c.JSON(http.StatusOK, net)
+	})
 	e.DELETE("/network/:id", func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
 		if err := handler.DeleteNetwork(id); err != nil {
