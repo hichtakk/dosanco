@@ -20,7 +20,7 @@ func NewConfig(path string) (Config, error) {
 	}
 
 	// override configuration with environmental variables
-	if env_dbpath := os.Getenv("DOSANCO_DB"); env_dbpath != "" {
+	if envPath := os.Getenv("DOSANCO_DB"); envPath != "" {
 		conf.DB.Path = os.Getenv("DOSANCO_DB")
 	}
 
