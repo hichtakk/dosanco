@@ -10,12 +10,22 @@ import (
 	"github.com/hichikaw/dosanco/model"
 )
 
-func GetNetwork(c echo.Context) error {
+func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
 	networks := []model.IPv4Network{}
 	db.Find(&networks)
 
 	return c.JSON(http.StatusOK, networks)
+}
+
+func GetNetwork(id int, network *model.IPv4Network) error {
+	db := db.GetDB()
+	if result := db.First(network, "id=?", id); result.Error != nil {
+		return fmt.Errorf("network '%v' not found", id)
+	}
+	fmt.Println(network)
+
+	return nil
 }
 
 func CreateNetwork(network *model.IPv4Network) error {
@@ -28,11 +38,11 @@ func CreateNetwork(network *model.IPv4Network) error {
 
 	ipv4Addr, _, err := net.ParseCIDR(network.CIDR)
 	if err != nil {
-		fmt.Println(err)
+		return err
 	}
 	fmt.Printf("request: %v\n", network)
 	if !supernetCIDR.Contains(ipv4Addr) {
-		return fmt.Errorf("%v is out of %v\n", ipv4Addr, supernet.CIDR)
+		return fmt.Errorf("%v is out of %v", ipv4Addr, supernet.CIDR)
 	}
 	if network.GetPrefixLength() <= supernet.GetPrefixLength() {
 		return fmt.Errorf("network '%v' is larger than supernetwork '%v'", network.CIDR, supernet.CIDR)
@@ -54,18 +64,15 @@ func CreateNetwork(network *model.IPv4Network) error {
 	return nil
 }
 
-func UpdateNetwork(c echo.Context) error {
+func UpdateNetwork(id int) error {
 	return nil
 }
 
 func DeleteNetwork(id int) error {
 	db := db.GetDB()
 	var network model.IPv4Network
-	db.First(&network, "id=?", id)
-	if network.ID != 0 {
-		fmt.Println(network)
-	} else {
-		return fmt.Errorf("network not found")
+	if result := db.First(&network, "id=?", id); result.Error != nil {
+		return fmt.Errorf("network '%v' not found", id)
 	}
 	// ensure the network does not have subnetworks
 	subnets := []model.IPv4Network{}

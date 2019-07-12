@@ -39,7 +39,7 @@ func main() {
 	// initialize logger middleware
 
 	// route requests
-	e.GET("/network", handler.GetNetwork)
+	e.GET("/network", handler.GetAllNetwork)
 	e.POST("/network", func(c echo.Context) error {
 		network := new(model.IPv4Network)
 		if err := c.Bind(network); err != nil {
@@ -54,7 +54,18 @@ func main() {
 			return c.JSON(http.StatusOK, network)
 		}
 	})
-	e.GET("/network/:id", handler.GetNetwork)
+	e.GET("/network/:id", func(c echo.Context) error {
+		var network model.IPv4Network
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		}
+		if err := handler.GetNetwork(id, &network); err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		} else {
+			return c.JSON(http.StatusOK, network)
+		}
+	})
 	e.PUT("/network/:id", handler.UpdateNetwork)
 	e.DELETE("/network/:id", func(c echo.Context) error {
 		id, _ := strconv.Atoi(c.Param("id"))
