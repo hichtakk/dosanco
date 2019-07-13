@@ -84,7 +84,10 @@ func main() {
 		return c.JSON(http.StatusOK, net)
 	})
 	e.DELETE("/network/:id", func(c echo.Context) error {
-		id, _ := strconv.Atoi(c.Param("id"))
+		id, err := strconv.Atoi(c.Param("id"))
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		}
 		if err := handler.DeleteNetwork(id); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 		} else {

@@ -28,7 +28,18 @@ func Init(c config.DBConfig) {
 	db.AutoMigrate(&model.PDU{})
 	db.AutoMigrate(&model.RackPDU{})
 	*/
+	initNetwork()
+}
+
+func initNetwork() {
 	db.AutoMigrate(&model.IPv4Network{})
+	var rootNetwork model.IPv4Network
+	if result := db.Take(&rootNetwork, "id=1"); result.Error != nil {
+		rootNetwork.ID = 1
+		rootNetwork.CIDR = "0.0.0.0/0"
+		rootNetwork.Description = "Root"
+		db.Create(&rootNetwork)
+	}
 }
 
 func GetDB() *gorm.DB {
