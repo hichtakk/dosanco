@@ -85,6 +85,9 @@ func UpdateNetwork(network *model.IPv4Network) (*model.IPv4Network, error) {
 
 // DeleteNetwork deletes specified network
 func DeleteNetwork(id int) error {
+	if id == 1 {
+		return fmt.Errorf("cannot delete root network")
+	}
 	db := db.GetDB()
 	var network model.IPv4Network
 	if result := db.First(&network, "id=?", id); result.Error != nil {
