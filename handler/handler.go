@@ -6,10 +6,12 @@ import (
 	"net/http"
 
 	"github.com/labstack/echo"
+
 	"github.com/hichikaw/dosanco/db"
 	"github.com/hichikaw/dosanco/model"
 )
 
+// GetAllNetwork returns all networks
 func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
 	networks := []model.IPv4Network{}
@@ -18,6 +20,7 @@ func GetAllNetwork(c echo.Context) error {
 	return c.JSON(http.StatusOK, networks)
 }
 
+// GetNetwork returns a specified network
 func GetNetwork(id int, network *model.IPv4Network) error {
 	db := db.GetDB()
 	if result := db.First(network, "id=?", id); result.Error != nil {
@@ -28,6 +31,7 @@ func GetNetwork(id int, network *model.IPv4Network) error {
 	return nil
 }
 
+// CreateNetwork creates a new network with given json data
 func CreateNetwork(network *model.IPv4Network) error {
 	db := db.GetDB()
 
@@ -64,6 +68,7 @@ func CreateNetwork(network *model.IPv4Network) error {
 	return nil
 }
 
+// UpdateNetwork updates only description for specified network
 func UpdateNetwork(network *model.IPv4Network) (*model.IPv4Network, error) {
 	db := db.GetDB()
 
@@ -78,6 +83,7 @@ func UpdateNetwork(network *model.IPv4Network) (*model.IPv4Network, error) {
 	return &net, nil
 }
 
+// DeleteNetwork deletes specified network
 func DeleteNetwork(id int) error {
 	db := db.GetDB()
 	var network model.IPv4Network

@@ -13,10 +13,12 @@ import (
 	"github.com/hichikaw/dosanco/model"
 )
 
+// Validator echo middleware
 type Validator struct {
 	validator *validator.Validate
 }
 
+// Validate function
 func (v *Validator) Validate(i interface{}) error {
 	return v.validator.Struct(i)
 }
@@ -35,7 +37,7 @@ func main() {
 	e := echo.New()
 	e.HideBanner = true
 	e.Validator = &Validator{validator: validator.New()}
-	
+
 	// initialize logger middleware
 
 	// route requests
@@ -50,9 +52,8 @@ func main() {
 		}
 		if err := handler.CreateNetwork(network); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		} else {
-			return c.JSON(http.StatusOK, network)
 		}
+		return c.JSON(http.StatusOK, network)
 	})
 	e.GET("/network/:id", func(c echo.Context) error {
 		var network model.IPv4Network
@@ -62,9 +63,8 @@ func main() {
 		}
 		if err := handler.GetNetwork(id, &network); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		} else {
-			return c.JSON(http.StatusOK, network)
 		}
+		return c.JSON(http.StatusOK, network)
 	})
 	e.PUT("/network/:id", func(c echo.Context) error {
 		// update only allow to update description
@@ -90,9 +90,8 @@ func main() {
 		}
 		if err := handler.DeleteNetwork(id); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		} else {
-			return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
 		}
+		return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
 	})
 
 	// Start dosanco server

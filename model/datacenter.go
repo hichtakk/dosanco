@@ -1,14 +1,11 @@
 package model
 
-import (
-	"github.com/jinzhu/gorm"
-)
-
-//DataCenter: hoge
+/*
+//DataCenter
 type DataCenter struct {
 	gorm.Model
-	Name    string `gorm:"type:varchar(10);unique_index" json:"name"`
-	Address string `gorm:"type:varchar(255)" json:"address"`
+	Name    string  `gorm:"type:varchar(10);unique_index" json:"name"`
+	Address string  `gorm:"type:varchar(255)" json:"address"`
 	Floors  []Floor `json:"floors"`
 }
 
@@ -56,6 +53,7 @@ type RackPDU struct {
 	Name       string
 	SourcePDUs []PDU
 }
+*/
 
 /*
 func main() {

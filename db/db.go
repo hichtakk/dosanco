@@ -2,31 +2,32 @@ package db
 
 import (
 	"github.com/jinzhu/gorm"
-	_ "github.com/jinzhu/gorm/dialects/sqlite"
+	_ "github.com/jinzhu/gorm/dialects/sqlite" // sqlite
 
-	"github.com/hichikaw/dosanco/model"
 	"github.com/hichikaw/dosanco/config"
+	"github.com/hichikaw/dosanco/model"
 )
 
 var (
-	db *gorm.DB
+	db  *gorm.DB
 	err error
 )
 
+// Init initializes database connection and ORM
 func Init(c config.DBConfig) {
 	db, err = gorm.Open("sqlite3", c.Path)
 	if err != nil {
 		panic("failed to connect database")
 	}
 	/*
-	db.AutoMigrate(&model.DataCenter{})
-	db.AutoMigrate(&model.Floor{})
-	db.AutoMigrate(&model.Hall{})
-	db.AutoMigrate(&model.RackRow{})
-	db.AutoMigrate(&model.Rack{})
-	db.AutoMigrate(&model.UPS{})
-	db.AutoMigrate(&model.PDU{})
-	db.AutoMigrate(&model.RackPDU{})
+		db.AutoMigrate(&model.DataCenter{})
+		db.AutoMigrate(&model.Floor{})
+		db.AutoMigrate(&model.Hall{})
+		db.AutoMigrate(&model.RackRow{})
+		db.AutoMigrate(&model.Rack{})
+		db.AutoMigrate(&model.UPS{})
+		db.AutoMigrate(&model.PDU{})
+		db.AutoMigrate(&model.RackPDU{})
 	*/
 	initNetwork()
 }
@@ -42,6 +43,7 @@ func initNetwork() {
 	}
 }
 
+// GetDB returns database pointer
 func GetDB() *gorm.DB {
 	return db
 }
