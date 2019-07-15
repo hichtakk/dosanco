@@ -21,15 +21,12 @@ func GetAllNetwork(c echo.Context) error {
 	if tree == true {
 		// 0: all, other: specified nubmer of depth
 		depth, _ := strconv.Atoi(c.QueryParam("depth"))
-		if depth < 0 {
-			depth = 0
+		if depth <= 0 {
+			depth = -1
 		}
-		//fmt.Printf("first depth: %v\n", uint(depth))
-
 		root := model.IPv4Network{}
 		db.Take(&root, "id=1")
 		subnets := getSubnetworks(root.ID, uint(depth), uint(0))
-
 		root.Subnetworks = *subnets
 		networks = append(networks, root)
 	} else {
