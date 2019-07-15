@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"strconv"
 
 	"github.com/labstack/echo"
 
@@ -15,7 +16,26 @@ import (
 func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
 	networks := []model.IPv4Network{}
-	db.Find(&networks)
+
+	tree, _ := strconv.ParseBool(c.QueryParam("tree"))
+	if tree == true {
+		// 0: all, other: specified nubmer of depth
+		depth, _ := strconv.Atoi(c.QueryParam("depth"))
+		if depth < 0 {
+			depth = 0
+		}
+		//fmt.Printf("first depth: %v\n", uint(depth))
+
+		root := model.IPv4Network{}
+		db.Take(&root, "id=1")
+		subnets := getSubnetworks(root.ID, uint(depth), uint(0))
+
+		root.Subnetworks = *subnets
+		networks = append(networks, root)
+	} else {
+		// return flat network list
+		db.Find(&networks)
+	}
 
 	return c.JSON(http.StatusOK, networks)
 }
@@ -103,4 +123,22 @@ func DeleteNetwork(id int) error {
 	db.Delete(&network)
 
 	return nil
+}
+
+func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
+	subnetworks := []model.IPv4Network{}
+	subnetworkList := []model.IPv4Network{}
+	db := db.GetDB()
+	db.Where(&model.IPv4Network{SupernetworkID: id}).Find(&subnetworkList)
+
+	if (len(subnetworkList) > 0) && (step < depth) {
+		//fmt.Printf("find more than one subnet for %v\n", id)
+		for _, sn := range subnetworkList {
+			gsn := getSubnetworks(sn.ID, depth, step+1)
+			sn.Subnetworks = append(sn.Subnetworks, *gsn...)
+			subnetworks = append(subnetworks, sn)
+		}
+	}
+
+	return &subnetworks
 }

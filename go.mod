@@ -18,6 +18,7 @@ require (
 	golang.org/x/sys v0.0.0-20190712062909-fae7ac547cb7 // indirect
 	golang.org/x/text v0.3.2 // indirect
 	golang.org/x/tools v0.0.0-20190712213246-8b927904ee0d // indirect
-	gopkg.in/go-playground/validator.v9 v9.29.1 // indirect
+	gopkg.in/go-playground/assert.v1 v1.2.1 // indirect
+	gopkg.in/go-playground/validator.v9 v9.29.1
 	rsc.io/quote v1.5.2
 )

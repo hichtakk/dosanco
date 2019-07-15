@@ -9,11 +9,10 @@ import (
 // IPv4Network represents network specification
 type IPv4Network struct {
 	Model
-	CIDR        string `json:"cidr" validate:"required" gorm:"unique;not null"`
-	Description string `json:"description"`
-	//Supernetwork	*IPv4Network
-	SupernetworkID uint `json:"supernet_id" validate:"required"`
-	//Subnetwork		[]*IPv4Network	`gorm:"many2many:ipv4_subnetwork;association_jointable_foreignkey:subnet_id"`
+	CIDR           string        `json:"cidr" validate:"required" gorm:"unique;not null"`
+	Description    string        `json:"description"`
+	SupernetworkID uint          `json:"supernet_id" validate:"required"`
+	Subnetworks    []IPv4Network `json:"subnets,omitempty"`
 }
 
 //type IPv6Network struct{}
