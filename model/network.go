@@ -17,6 +17,16 @@ type IPv4Network struct {
 
 //type IPv6Network struct{}
 
+// Vlan
+type Vlan struct {
+	Model
+	Description   string `json:"description"`
+	IPv4NetworkID uint
+	IPv4Network   IPv4Network
+	//IPv6NetworkID uint
+	//IPv6Network IPv6Network
+}
+
 // GetNetwork returns net.IPNet instance address of IPv4Network
 func (n IPv4Network) GetNetwork() *net.IPNet {
 	_, ipv4Net, _ := net.ParseCIDR(n.CIDR)
