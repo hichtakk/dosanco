@@ -1,6 +1,7 @@
 package model
 
-/*
+import "github.com/jinzhu/gorm"
+
 //DataCenter
 type DataCenter struct {
 	gorm.Model
@@ -53,7 +54,6 @@ type RackPDU struct {
 	Name       string
 	SourcePDUs []PDU
 }
-*/
 
 /*
 func main() {
