@@ -7,8 +7,7 @@ import (
 func NewCmdUpdate() *cobra.Command {
 	var updateCmd = &cobra.Command{
 		Use:   "update",
-		Short: "Print the version number of Hugo",
-		Long:  `All software has versions. This is Hugo's`,
+		Short: "Update a resource",
 	}
 	updateCmd.AddCommand(
 		NewCmdCreateNetwork(),

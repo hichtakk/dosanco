@@ -7,8 +7,7 @@ import (
 func NewCmdDelete() *cobra.Command {
 	var deleteCmd = &cobra.Command{
 		Use:   "delete",
-		Short: "Print the version number of Hugo",
-		Long:  `All software has versions. This is Hugo's`,
+		Short: "Delete a resource",
 	}
 	deleteCmd.AddCommand(
 		NewCmdCreateNetwork(),

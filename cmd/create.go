@@ -7,8 +7,7 @@ import (
 func NewCmdCreate() *cobra.Command {
 	var createCmd = &cobra.Command{
 		Use:   "create",
-		Short: "Print the version number of Hugo",
-		//Long:  `All software has versions. This is Hugo's`,
+		Short: "Create a resource",
 	}
 	createCmd.AddCommand(
 		NewCmdCreateNetwork(),
