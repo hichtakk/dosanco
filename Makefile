@@ -10,4 +10,4 @@ lint:
 	golint cmd
 
 dctl:
-	go build -o dctl cli/dctl.go
+	go build -o build/dctl cli/dctl.go

@@ -37,6 +37,7 @@ func main() {
 	// initialize echo instance
 	e := echo.New()
 	e.HideBanner = true
+	e.HidePort = true
 	e.Validator = &Validator{validator: validator.New()}
 
 	// initialize logger middleware
