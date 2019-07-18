@@ -1,6 +1,7 @@
 package main
 
 import (
+	"fmt"
 	"net/http"
 	"strconv"
 
@@ -56,7 +57,7 @@ func main() {
 		if err := handler.CreateNetwork(network); err != nil {
 			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 		}
-		return c.JSON(http.StatusOK, network)
+		return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network created. ID: %d,  CIDR: %s,  Description: %s", network.ID, network.CIDR, network.Description)})
 	})
 	e.GET("/network/:id", func(c echo.Context) error {
 		var network model.IPv4Network

@@ -54,14 +54,12 @@ func CreateNetwork(network *model.IPv4Network) error {
 
 	var supernet model.IPv4Network
 	db.First(&supernet, "id=?", network.SupernetworkID)
-	fmt.Printf("supernet: %v\n", supernet)
 	supernetCIDR := supernet.GetNetwork()
 
 	ipv4Addr, _, err := net.ParseCIDR(network.CIDR)
 	if err != nil {
 		return err
 	}
-	fmt.Printf("request: %v\n", network)
 	if !supernetCIDR.Contains(ipv4Addr) {
 		return fmt.Errorf("%v is out of %v", ipv4Addr, supernet.CIDR)
 	}
@@ -73,14 +71,14 @@ func CreateNetwork(network *model.IPv4Network) error {
 	subnets := []model.IPv4Network{}
 	db.Where(&model.IPv4Network{SupernetworkID: network.SupernetworkID}).Find(&subnets)
 	for _, s := range subnets {
-		fmt.Printf("subnet: %v\n", s)
 		n := s.GetNetwork()
 		if n.Contains(ipv4Addr) {
 			return fmt.Errorf("requested network '%v' is overwrapping with network '%v'", network.CIDR, n)
 		}
 	}
-
-	db.Create(&network)
+	if result := db.Create(&network); result.Error != nil {
+		return result.Error
+	}
 
 	return nil
 }
