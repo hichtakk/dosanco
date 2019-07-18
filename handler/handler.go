@@ -6,7 +6,7 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
 
 	"github.com/hichikaw/dosanco/db"
 	"github.com/hichikaw/dosanco/model"

@@ -4,7 +4,8 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/labstack/echo"
+	"github.com/labstack/echo/v4"
+	"github.com/labstack/echo/v4/middleware"
 	validator "gopkg.in/go-playground/validator.v9"
 
 	"github.com/hichikaw/dosanco/config"
@@ -39,6 +40,7 @@ func main() {
 	e.Validator = &Validator{validator: validator.New()}
 
 	// initialize logger middleware
+	e.Use(middleware.Logger())
 
 	// route requests
 	e.GET("/network", handler.GetAllNetwork)
