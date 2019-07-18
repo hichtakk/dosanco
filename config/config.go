@@ -8,7 +8,13 @@ import (
 
 // DBConfig is struct for database configuration
 type DBConfig struct {
-	Path string `toml:"path"`
+	Url  string `toml:"url"`
+	Type string `toml:"type"`
+	Host string `toml:"host"`
+	//User     string `toml:"user"`
+	//Password string `toml:"password"`
+	Port int    `toml:"port"`
+	Name string `toml:"name"`
 }
 
 // Config is struct for main configuration
@@ -25,7 +31,7 @@ func NewConfig(path string) (Config, error) {
 
 	// override configuration with environmental variables
 	if envPath := os.Getenv("DOSANCO_DB"); envPath != "" {
-		conf.DB.Path = envPath
+		conf.DB.Url = envPath
 	}
 
 	return conf, nil

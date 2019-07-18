@@ -1,6 +1,8 @@
 package db
 
 import (
+	"strings"
+
 	"github.com/jinzhu/gorm"
 	_ "github.com/jinzhu/gorm/dialects/sqlite" // sqlite
 
@@ -15,10 +17,14 @@ var (
 
 // Init initializes database connection and ORM
 func Init(c config.DBConfig) {
-	db, err = gorm.Open("sqlite3", c.Path)
-	if err != nil {
-		panic("failed to connect database")
+	schema := strings.Split(c.Url, "://")
+	if schema[0] == "sqlite" {
+		db, err = gorm.Open("sqlite3", schema[1])
+		if err != nil {
+			panic("failed to connect database")
+		}
 	}
+
 	initNetwork()
 	//initDataCenter()
 }

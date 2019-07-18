@@ -1,2 +1,3 @@
 [database]
-path = "./dosanco.db"
+#url = "sqlite://./dosanco.db"
+url = "sqlite://"
