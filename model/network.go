@@ -14,6 +14,7 @@ type IPv4Network struct {
 	SupernetworkID uint          `json:"supernet_id" validate:"required"`
 	Subnetworks    []IPv4Network `json:"subnets,omitempty"`
 	Reserved       bool          `gorm:"default:false"`
+	Allocations    []IPv4Allocation
 }
 
 //type IPv6Network struct{}
@@ -27,6 +28,18 @@ type Vlan struct {
 	//IPv6NetworkID uint
 	//IPv6Network IPv6Network
 }
+
+// IPAM
+type IPv4Allocation struct {
+	Model
+	Address       string `json:"address" gorm:"unique;not null"`
+	Name          string `json:"name" gorm:"not null"`
+	Description   string `json:"description"`
+	IPv4NetworkID uint   `gorm:"not null" sql:"type:integer REFERENCES ipv4_networks(id)"`
+	IPv4Network   IPv4Network
+}
+
+// type IPv6Allocation struct {}
 
 // GetNetwork returns net.IPNet instance address of IPv4Network
 func (n IPv4Network) GetNetwork() *net.IPNet {

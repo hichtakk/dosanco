@@ -11,21 +11,24 @@ import (
 )
 
 var (
-	db  *gorm.DB
-	err error
+	db     *gorm.DB
+	err    error
+	schema []string
 )
 
 // Init initializes database connection and ORM
 func Init(c config.DBConfig) {
-	schema := strings.Split(c.Url, "://")
+	schema = strings.Split(c.Url, "://")
 	if schema[0] == "sqlite" {
 		db, err = gorm.Open("sqlite3", schema[1])
 		if err != nil {
 			panic("failed to connect database")
 		}
+		db.Exec("PRAGMA foreign_keys = ON;")
 	}
 
 	initNetwork()
+	initIPAM()
 	//initDataCenter()
 }
 
@@ -114,6 +117,15 @@ func initNetwork() {
 		testNetwork3.Description = "RFC 5737,6890: TEST-NET-3"
 		testNetwork3.Reserved = true
 		db.Create(&testNetwork3)
+	}
+}
+
+func initIPAM() {
+	if schema[0] == "sqlite" {
+		// refer https://github.com/jinzhu/gorm/issues/765
+		db.AutoMigrate(&model.IPv4Allocation{})
+	} else {
+		db.AutoMigrate(&model.IPv4Allocation{}).AddForeignKey("ipv4_network_id", "ipv4_networks(id)", "CASCADE", "CASCADE")
 	}
 }
 
