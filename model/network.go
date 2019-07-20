@@ -24,7 +24,7 @@ type Vlan struct {
 	Model
 	Description   string `json:"description"`
 	IPv4NetworkID uint
-	IPv4Network   IPv4Network
+	//IPv4Network   IPv4Network
 	//IPv6NetworkID uint
 	//IPv6Network IPv6Network
 }
@@ -32,11 +32,10 @@ type Vlan struct {
 // IPAM
 type IPv4Allocation struct {
 	Model
-	Address       string `json:"address" gorm:"unique;not null"`
-	Name          string `json:"name" gorm:"not null"`
+	Address       string `json:"address" gorm:"unique;not null" validate:"required"`
+	Name          string `json:"name" gorm:"not null" validate:"required"`
 	Description   string `json:"description"`
-	IPv4NetworkID uint   `gorm:"not null" sql:"type:integer REFERENCES ipv4_networks(id)"`
-	IPv4Network   IPv4Network
+	IPv4NetworkID uint   `json:"ipv4_network_id" gorm:"not null" validate:"required" sql:"type:integer REFERENCES ipv4_networks(id)"`
 }
 
 // type IPv6Allocation struct {}

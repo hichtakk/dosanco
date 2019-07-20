@@ -120,6 +120,35 @@ func DeleteNetwork(id int) error {
 	return nil
 }
 
+func GetIPv4Allocations(c echo.Context) error {
+	nid, err := strconv.Atoi(c.Param("network_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+	addr := []model.IPv4Allocation{}
+	d := db.GetDB()
+	d.Find(&addr, "ipv4_network_id=?", nid)
+
+	return c.JSON(http.StatusOK, addr)
+}
+
+func CreateIPv4Allocation(c echo.Context) error {
+	addr := new(model.IPv4Allocation)
+	if err := c.Bind(addr); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+	}
+	if err := c.Validate(addr); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
+	}
+
+	db := db.GetDB()
+	if result := db.Create(addr); result.Error != nil {
+		return result.Error
+	}
+
+	return c.JSON(http.StatusOK, addr)
+}
+
 func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 	subnetworks := []model.IPv4Network{}
 	subnetworkList := []model.IPv4Network{}
@@ -127,7 +156,6 @@ func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 	db.Where(&model.IPv4Network{SupernetworkID: id}).Find(&subnetworkList)
 
 	if (len(subnetworkList) > 0) && (step < depth) {
-		//fmt.Printf("find more than one subnet for %v\n", id)
 		for _, sn := range subnetworkList {
 			gsn := getSubnetworks(sn.ID, depth, step+1)
 			sn.Subnetworks = append(sn.Subnetworks, *gsn...)
