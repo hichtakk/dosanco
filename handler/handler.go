@@ -149,6 +149,48 @@ func CreateIPv4Allocation(c echo.Context) error {
 	return c.JSON(http.StatusOK, addr)
 }
 
+func DeleteIPv4Allocation(c echo.Context) error {
+	allocId, err := strconv.Atoi(c.Param("allocation_id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+	addr := new(model.IPv4Allocation)
+	db := db.GetDB()
+	if result := db.Delete(addr, "id=?", allocId); result.Error != nil {
+		return result.Error
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "allocation deleted"})
+}
+
+func UpdateIPv4Allocation(c echo.Context) error {
+	addr := new(model.IPv4Allocation)
+	reqAddr := new(model.IPv4Allocation)
+	if err := c.Bind(reqAddr); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+	}
+
+	db := db.GetDB()
+	if result := db.Take(addr, "id=?", reqAddr.ID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "target not found"})
+	}
+
+	if result := db.Model(addr).Update("description", reqAddr.Description); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": "allocation update"})
+}
+
+func GetHostIPv4Allocations(c echo.Context) error {
+	hostname := c.Param("hostname")
+	addr := []model.IPv4Allocation{}
+	d := db.GetDB()
+	d.Find(&addr, "name=?", hostname)
+
+	return c.JSON(http.StatusOK, addr)
+}
+
 func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 	subnetworks := []model.IPv4Network{}
 	subnetworkList := []model.IPv4Network{}

@@ -98,7 +98,10 @@ func main() {
 		return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
 	})
 	e.POST("/ipam", handler.CreateIPv4Allocation)
-	e.GET("/ipam/:network_id", handler.GetIPv4Allocations)
+	e.PUT("/ipam", handler.UpdateIPv4Allocation)
+	e.DELETE("/ipam/:allocation_id", handler.DeleteIPv4Allocation)
+	e.GET("/ipam/network/:network_id", handler.GetIPv4Allocations)
+	e.GET("/ipam/host/:hostname", handler.GetHostIPv4Allocations)
 
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))
