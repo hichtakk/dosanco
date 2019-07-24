@@ -11,6 +11,7 @@ func NewCmdShow() *cobra.Command {
 	}
 	showCmd.AddCommand(
 		NewCmdShowNetwork(),
+		NewCmdShowIPAM(),
 	)
 
 	return showCmd

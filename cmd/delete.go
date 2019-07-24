@@ -11,6 +11,7 @@ func NewCmdDelete() *cobra.Command {
 	}
 	deleteCmd.AddCommand(
 		NewCmdCreateNetwork(),
+		NewCmdDeleteIPAllocation(),
 	)
 
 	return deleteCmd

@@ -146,7 +146,7 @@ func CreateIPv4Allocation(c echo.Context) error {
 		return result.Error
 	}
 
-	return c.JSON(http.StatusOK, addr)
+	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation created"})
 }
 
 func DeleteIPv4Allocation(c echo.Context) error {
@@ -160,7 +160,7 @@ func DeleteIPv4Allocation(c echo.Context) error {
 		return result.Error
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "allocation deleted"})
+	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation deleted"})
 }
 
 func UpdateIPv4Allocation(c echo.Context) error {

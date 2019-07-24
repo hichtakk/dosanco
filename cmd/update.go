@@ -10,7 +10,8 @@ func NewCmdUpdate() *cobra.Command {
 		Short: "Update a resource",
 	}
 	updateCmd.AddCommand(
-		NewCmdCreateNetwork(),
+		//NewCmdCreateNetwork(),
+		NewCmdUpdateIPAllocation(),
 	)
 
 	return updateCmd

@@ -161,7 +161,7 @@ func createNetwork(cmd *cobra.Command, args []string) error {
 	if resp.StatusCode != 200 {
 		return errors.New(resMsg.Message)
 	}
-	fmt.Println(resMsg.Message)
+
 
 	return nil
 }

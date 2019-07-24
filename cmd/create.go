@@ -11,6 +11,7 @@ func NewCmdCreate() *cobra.Command {
 	}
 	createCmd.AddCommand(
 		NewCmdCreateNetwork(),
+		NewCmdCreateIPAllocation(),
 	)
 
 	return createCmd
