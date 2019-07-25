@@ -1,10 +1,6 @@
 package main
 
 import (
-	"fmt"
-	"net/http"
-	"strconv"
-
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	validator "gopkg.in/go-playground/validator.v9"
@@ -12,7 +8,6 @@ import (
 	"github.com/hichikaw/dosanco/config"
 	"github.com/hichikaw/dosanco/db"
 	"github.com/hichikaw/dosanco/handler"
-	"github.com/hichikaw/dosanco/model"
 )
 
 // Validator echo middleware
@@ -46,59 +41,12 @@ func main() {
 
 	// route requests
 	e.GET("/network", handler.GetAllNetwork)
-	e.POST("/network", func(c echo.Context) error {
-		network := new(model.IPv4Network)
-		if err := c.Bind(network); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
-		}
-		if err := c.Validate(network); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
-		}
-		if err := handler.CreateNetwork(network); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network created. ID: %d,  CIDR: %s,  Description: %s", network.ID, network.CIDR, network.Description)})
-	})
-	e.GET("/network/:id", func(c echo.Context) error {
-		var network model.IPv4Network
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		if err := handler.GetNetwork(id, &network); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		return c.JSON(http.StatusOK, network)
-	})
-	e.PUT("/network/:id", func(c echo.Context) error {
-		// update only allow to update description
-		network := new(model.IPv4Network)
-		if err := c.Bind(network); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		network.ID = uint(id)
-		net, err := handler.UpdateNetwork(network)
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		return c.JSON(http.StatusOK, net)
-	})
-	e.DELETE("/network/:id", func(c echo.Context) error {
-		id, err := strconv.Atoi(c.Param("id"))
-		if err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		if err := handler.DeleteNetwork(id); err != nil {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
-		}
-		return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
-	})
+	e.POST("/network", handler.CreateIPv4Network)
+	e.GET("/network/:id", handler.GetIPv4Network)
+	e.PUT("/network/:id", handler.UpdateIPv4Network)
+	e.DELETE("/network/:id", handler.DeleteIPv4Network)
 	e.POST("/ipam", handler.CreateIPv4Allocation)
-	e.PUT("/ipam", handler.UpdateIPv4Allocation)
+	e.PUT("/ipam/:allocation_id", handler.UpdateIPv4Allocation)
 	e.DELETE("/ipam/:allocation_id", handler.DeleteIPv4Allocation)
 	e.GET("/ipam/network/:network_id", handler.GetIPv4Allocations)
 	e.GET("/ipam/host/:hostname", handler.GetHostIPv4Allocations)
