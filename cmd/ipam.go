@@ -25,7 +25,7 @@ var (
 	//description string
 	networkID int
 	address   string
-	hostname  string
+	hostFlag  bool
 )
 
 func NewCmdShowIPAM() *cobra.Command {
@@ -38,27 +38,9 @@ func NewCmdShowIPAM() *cobra.Command {
 			}
 			return nil
 		},
-		Run: func(cmd *cobra.Command, args []string) {
-			url := Conf.APIServer.Url + "/ipam"
-			_, err := strconv.Atoi(args[0])
-			if err != nil {
-			}
-			url = url + "/network/" + args[0]
-			resp, err := http.Get(url)
-			if err != nil {
-			}
-			body, err := ioutil.ReadAll(resp.Body)
-			if err != nil {
-			}
-			allocs := new([]model.IPv4Allocation)
-			if err := json.Unmarshal(body, allocs); err != nil {
-			}
-			fmt.Printf("%-15v  %-16v  %-v\n", "Address", "Name", "Description")
-			for _, alloc := range *allocs {
-				fmt.Printf("%-15v  %-16v  %-v\n", alloc.Address, alloc.Name, alloc.Description)
-			}
-		},
+		Run: showIPAllocation,
 	}
+	ipamCmd.Flags().BoolVarP(&hostFlag, "host", "", false, "use host name to get ip allocation")
 
 	return ipamCmd
 }
@@ -116,6 +98,31 @@ func NewCmdDeleteIPAllocation() *cobra.Command {
 	}
 
 	return ipamCmd
+}
+
+func showIPAllocation(cmd *cobra.Command, args []string) {
+	url := Conf.APIServer.Url + "/ipam"
+	//_, err := strconv.Atoi(args[0])
+	//if err != nil {
+	//}
+	if hostFlag == true {
+		url = url + "/host/" + args[0]
+	} else {
+		url = url + "/network/" + args[0]
+	}
+	resp, err := http.Get(url)
+	if err != nil {
+	}
+	body, err := ioutil.ReadAll(resp.Body)
+	if err != nil {
+	}
+	allocs := new([]model.IPv4Allocation)
+	if err := json.Unmarshal(body, allocs); err != nil {
+	}
+	fmt.Printf("%-15v  %-16v  %-v\n", "Address", "Name", "Description")
+	for _, alloc := range *allocs {
+		fmt.Printf("%-15v  %-16v  %-v\n", alloc.Address, alloc.Name, alloc.Description)
+	}
 }
 
 func createIPAllocation(cmd *cobra.Command, args []string) error {
