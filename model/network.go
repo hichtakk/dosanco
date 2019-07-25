@@ -13,8 +13,8 @@ type IPv4Network struct {
 	Description    string        `json:"description"`
 	SupernetworkID uint          `json:"supernet_id" validate:"required"`
 	Subnetworks    []IPv4Network `json:"subnets,omitempty"`
-	Reserved       bool          `gorm:"default:false"`
-	Allocations    []IPv4Allocation
+	Reserved       bool          `json:"reserved" gorm:"default:false"`
+	//Allocations    []IPv4Allocation
 }
 
 //type IPv6Network struct{}
