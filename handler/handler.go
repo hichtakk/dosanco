@@ -45,7 +45,7 @@ func GetIPv4Network(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 	db := db.GetDB()
-	if result := db.Take(network, "id=?", id); result.Error != nil {
+	if result := db.Take(&network, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
 	}
 	return c.JSON(http.StatusOK, network)
