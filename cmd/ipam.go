@@ -11,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/hichikaw/dosanco/handler"
 	"github.com/hichikaw/dosanco/model"
 )
 
@@ -99,6 +100,23 @@ func NewCmdDeleteIPAllocation() *cobra.Command {
 }
 
 func showIPAllocation(cmd *cobra.Command, args []string) {
+	// get network
+	nBody, err := sendRequest("GET", Conf.APIServer.Url+"/network", []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(nBody, errBody); err != nil {
+			fmt.Println("response parse error")
+			return
+		}
+		fmt.Println(errBody.Error.Message)
+		return
+	}
+	data := new([]model.IPv4Network)
+	if err := json.Unmarshal(nBody, data); err != nil {
+		fmt.Println("json unmarshal err:", err)
+		return
+	}
+
 	url := Conf.APIServer.Url + "/ipam"
 	//_, err := strconv.Atoi(args[0])
 	//if err != nil {
@@ -117,9 +135,10 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	allocs := new([]model.IPv4Allocation)
 	if err := json.Unmarshal(body, allocs); err != nil {
 	}
-	fmt.Printf("%-5s %-15v  %-16v  %-v\n", "ID", "Address", "Name", "Description")
+	fmt.Printf("%-5s %-15v  %-15v  %-16v  %-v\n", "ID", "Address", "Network", "Name", "Description")
 	for _, alloc := range *allocs {
-		fmt.Printf("%-5d %-15v  %-16v  %-v\n", alloc.ID, alloc.Address, alloc.Name, alloc.Description)
+		cidr := getNetworkCIDRfromID(data, alloc.IPv4NetworkID)
+		fmt.Printf("%-5d %-15v  %-15v  %-16v  %-v\n", alloc.ID, alloc.Address, cidr, alloc.Name, alloc.Description)
 	}
 }
 
@@ -152,7 +171,7 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
-		fmt.Errorf(err.Error())
+		return fmt.Errorf(err.Error())
 	}
 	if resp.StatusCode != 200 {
 		return errors.New(resMsg.Message)
@@ -238,4 +257,14 @@ func deleteIPAllocation(cmd *cobra.Command, args []string) error {
 	fmt.Println(resMsg.Message)
 
 	return nil
+}
+
+func getNetworkCIDRfromID(networks *[]model.IPv4Network, id uint) string {
+	for _, network := range *networks {
+		if network.ID == id {
+			return network.CIDR
+		}
+	}
+
+	return "?"
 }
