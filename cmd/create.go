@@ -12,6 +12,7 @@ func NewCmdCreate() *cobra.Command {
 	createCmd.AddCommand(
 		NewCmdCreateNetwork(),
 		NewCmdCreateIPAllocation(),
+		NewCmdCreateVlan(),
 	)
 
 	return createCmd

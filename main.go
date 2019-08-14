@@ -45,11 +45,17 @@ func main() {
 	e.GET("/network/:id", handler.GetIPv4Network)
 	e.PUT("/network/:id", handler.UpdateIPv4Network)
 	e.DELETE("/network/:id", handler.DeleteIPv4Network)
+
 	e.POST("/ipam", handler.CreateIPv4Allocation)
 	e.PUT("/ipam/:allocation_id", handler.UpdateIPv4Allocation)
 	e.DELETE("/ipam/:allocation_id", handler.DeleteIPv4Allocation)
 	e.GET("/ipam/network/:network_id", handler.GetIPv4Allocations)
 	e.GET("/ipam/host/:hostname", handler.GetHostIPv4Allocations)
+
+	e.GET("/vlan", handler.GetAllVlan)
+	e.POST("/vlan", handler.CreateVlan)
+	e.PUT("/vlan/:id", handler.UpdateVlan)
+	e.DELETE("/vlan/:id", handler.DeleteVlan)
 
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))

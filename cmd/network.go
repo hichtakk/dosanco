@@ -260,6 +260,168 @@ func sendRequest(method string, url string, reqJson []byte) ([]byte, error) {
 	return body, nil
 }
 
+func NewCmdShowVlan() *cobra.Command {
+	var vlanCmd = &cobra.Command{
+		Use:     "vlan",
+		Aliases: []string{"vlan"},
+		Short:   "show vlan",
+		Run: func(cmd *cobra.Command, args []string) {
+			url := Conf.APIServer.Url + "/vlan"
+			getVlans(url)
+		},
+	}
+
+	return vlanCmd
+}
+
+func getVlans(url string) {
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return
+		}
+		fmt.Println(errBody.Error.Message)
+		return
+	}
+	data := new([]model.Vlan)
+	if err := json.Unmarshal(body, data); err != nil {
+		fmt.Println("json unmarshal err:", err)
+		return
+	}
+
+	// write output
+	if output == "json" {
+		fmt.Println(string(body))
+		return
+	}
+	fmt.Printf("%-4s %-20s %-20s\n", "ID", "NetworkID", "Description")
+	for _, vlan := range *data {
+		fmt.Printf("%-4d %-20d %-20s\n", vlan.ID, vlan.IPv4NetworkID, vlan.Description)
+	}
+}
+
+func NewCmdCreateVlan() *cobra.Command {
+	var vlanCmd = &cobra.Command{
+		Use:     "vlan",
+		Aliases: []string{"vlan"},
+		Short:   "create new vlan",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires vlan id")
+			}
+			return nil
+		},
+		RunE: createVlan,
+	}
+	vlanCmd.Flags().IntVarP(&networkID, "network-id", "n", 0, "network id of the requested ip allocation")
+	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
+	vlanCmd.MarkFlagRequired("network-id")
+
+	return vlanCmd
+}
+
+func createVlan(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/vlan"
+	id, err := strconv.Atoi(args[0])
+	if err != nil {
+		return err
+	}
+	reqModel := model.Vlan{Description: description, IPv4NetworkID: uint(networkID)}
+	reqModel.ID = uint(id)
+	reqJson, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("POST", url, reqJson)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func NewCmdUpdateVlan() *cobra.Command {
+	var vlanCmd = &cobra.Command{
+		Use:     "vlan",
+		Aliases: []string{"vlan"},
+		Short:   "update vlan description",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires vlan id")
+			}
+			return nil
+		},
+		RunE: updateVlan,
+	}
+	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
+
+	return vlanCmd
+}
+
+func updateVlan(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/vlan"
+	url = url + "/" + args[0]
+	reqModel := model.Vlan{Description: description}
+	reqJson, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("PUT", url, reqJson)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func NewCmdDeleteVlan() *cobra.Command {
+	var vlanCmd = &cobra.Command{
+		Use:     "vlan",
+		Aliases: []string{"vlan"},
+		Short:   "delete vlan description",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires vlan id")
+			}
+			return nil
+		},
+		RunE: deleteVlan,
+	}
+
+	return vlanCmd
+}
+
+func deleteVlan(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/vlan"
+	url = url + "/" + args[0]
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
 type responseMessage struct {
 	Message string `json:"message"`
 }

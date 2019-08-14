@@ -12,6 +12,7 @@ func NewCmdDelete() *cobra.Command {
 	deleteCmd.AddCommand(
 		NewCmdDeleteNetwork(),
 		NewCmdDeleteIPAllocation(),
+		NewCmdDeleteVlan(),
 	)
 
 	return deleteCmd

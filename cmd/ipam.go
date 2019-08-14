@@ -17,11 +17,6 @@ import (
 
 // Flags
 var (
-	//tree        bool
-	//depth       int
-	//rfc         bool
-	//supernetID  int
-	//description string
 	networkID int
 	address   string
 	hostFlag  bool

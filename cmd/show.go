@@ -12,6 +12,7 @@ func NewCmdShow() *cobra.Command {
 	showCmd.AddCommand(
 		NewCmdShowNetwork(),
 		NewCmdShowIPAM(),
+		NewCmdShowVlan(),
 	)
 
 	return showCmd

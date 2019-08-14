@@ -12,6 +12,7 @@ func NewCmdUpdate() *cobra.Command {
 	updateCmd.AddCommand(
 		NewCmdUpdateNetwork(),
 		NewCmdUpdateIPAllocation(),
+		NewCmdUpdateVlan(),
 	)
 
 	return updateCmd

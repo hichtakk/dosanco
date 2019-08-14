@@ -232,3 +232,70 @@ func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 
 	return &subnetworks
 }
+
+// GetAllVlan returns all vlans
+func GetAllVlan(c echo.Context) error {
+	db := db.GetDB()
+	vlans := []model.Vlan{}
+	db.Find(&vlans)
+
+	return c.JSONPretty(http.StatusOK, vlans, "    ")
+}
+
+// CreateVlan creates a new vlan with given json data
+func CreateVlan(c echo.Context) error {
+	vlan := new(model.Vlan)
+	if err := c.Bind(vlan); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+	}
+	if err := c.Validate(vlan); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
+	}
+	if vlan.ID > 4094 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. Vlan ID should be the range of 1 - 4094."})
+	}
+	db := db.GetDB()
+	if result := db.Create(&vlan); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": fmt.Sprintf("%v", result.Error)})
+	}
+	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan created. ID: %d, Description: %s", vlan.ID, vlan.Description)})
+}
+
+// UpdateVlan updates only description for specified vlan
+func UpdateVlan(c echo.Context) error {
+	vlan := new(model.Vlan)
+	if err := c.Bind(vlan); err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+	vlan.ID = uint(id)
+	db := db.GetDB()
+	var v model.Vlan
+	if result := db.Take(&v, "id=?", vlan.ID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "vlan not found"})
+	}
+	if result := db.Model(&v).Update("description", vlan.Description); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
+	}
+
+	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan updated. ID: %d, Description: %s", v.ID, vlan.Description)})
+}
+
+// DeleteVlan deletes specified vlan
+func DeleteVlan(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+	}
+	db := db.GetDB()
+	var vlan model.Vlan
+	if result := db.Take(&vlan, "id=?", id); result.Error != nil {
+		return fmt.Errorf("vlan '%v' not found", id)
+	}
+	db.Delete(&vlan)
+
+	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan %d deleted\n", id)})
+}
