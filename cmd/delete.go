@@ -10,7 +10,7 @@ func NewCmdDelete() *cobra.Command {
 		Short: "Delete a resource",
 	}
 	deleteCmd.AddCommand(
-		NewCmdCreateNetwork(),
+		NewCmdDeleteNetwork(),
 		NewCmdDeleteIPAllocation(),
 	)
 

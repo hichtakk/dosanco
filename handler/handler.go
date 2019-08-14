@@ -5,6 +5,7 @@ import (
 	"net"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -16,7 +17,6 @@ import (
 func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
 	networks := []model.IPv4Network{}
-
 	tree, _ := strconv.ParseBool(c.QueryParam("tree"))
 	if tree == true {
 		// 0: all, other: specified nubmer of depth
@@ -34,7 +34,7 @@ func GetAllNetwork(c echo.Context) error {
 		db.Find(&networks)
 	}
 
-	return c.JSON(http.StatusOK, networks)
+	return c.JSONPretty(http.StatusOK, networks, "    ")
 }
 
 // GetNetwork returns a specified network
@@ -42,13 +42,13 @@ func GetIPv4Network(c echo.Context) error {
 	var network model.IPv4Network
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSONPretty(http.StatusBadRequest, ErrorResponse{Error: Error{Message: err.Error()}}, "    ")
 	}
 	db := db.GetDB()
 	if result := db.Take(&network, "id=?", id); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
+		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
 	}
-	return c.JSON(http.StatusOK, network)
+	return c.JSONPretty(http.StatusOK, network, "    ")
 }
 
 // CreateNetwork creates a new network with given json data
@@ -109,7 +109,7 @@ func UpdateIPv4Network(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
 	}
 
-	return c.JSON(http.StatusOK, net)
+	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network updated. ID: %d,  CIDR: %s,  Description: %s", net.ID, net.CIDR, network.Description)})
 }
 
 // DeleteNetwork deletes specified network
@@ -130,7 +130,11 @@ func DeleteIPv4Network(c echo.Context) error {
 	subnets := []model.IPv4Network{}
 	db.Where(&model.IPv4Network{SupernetworkID: network.ID}).Find(&subnets)
 	if len(subnets) > 0 {
-		return fmt.Errorf("network has subnets %v", subnets)
+		var subnetList []string
+		for _, s := range subnets {
+			subnetList = append(subnetList, s.CIDR)
+		}
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has subnets [%v]", strings.Join(subnetList, ", "))})
 	}
 	db.Delete(&network)
 
@@ -157,10 +161,10 @@ func CreateIPv4Allocation(c echo.Context) error {
 	if err := c.Validate(addr); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
 	}
-
 	db := db.GetDB()
 	if result := db.Create(addr); result.Error != nil {
-		return result.Error
+		//return result.Error
+		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database request failed. " + result.Error.Error()})
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation created"})

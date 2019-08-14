@@ -3,7 +3,6 @@ package cmd
 import (
 	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
 	"io/ioutil"
 	"net/http"
@@ -12,6 +11,7 @@ import (
 
 	"github.com/spf13/cobra"
 
+	"github.com/hichikaw/dosanco/handler"
 	"github.com/hichikaw/dosanco/model"
 )
 
@@ -73,11 +73,52 @@ func NewCmdCreateNetwork() *cobra.Command {
 	return networkCmd
 }
 
+func NewCmdUpdateNetwork() *cobra.Command {
+	var networkCmd = &cobra.Command{
+		Use:     "network",
+		Aliases: []string{"net"},
+		Short:   "update network description",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires one network id")
+			}
+			return nil
+		},
+		RunE: updateNetwork,
+	}
+	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
+
+	return networkCmd
+}
+
+func NewCmdDeleteNetwork() *cobra.Command {
+	var networkCmd = &cobra.Command{
+		Use:     "network",
+		Aliases: []string{"net"},
+		Short:   "delete network description",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires one network id")
+			}
+			return nil
+		},
+		RunE: deleteNetwork,
+	}
+
+	return networkCmd
+}
+
 func getNetwork(url string, id string) {
 	url = url + "/" + id
-	body, err := sendRequest(url)
+	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		fmt.Println(err.Error)
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return
+		}
+		fmt.Println(errBody.Error.Message)
+		return
 	}
 	nw := new(model.IPv4Network)
 	if err := json.Unmarshal(body, nw); err != nil {
@@ -92,9 +133,15 @@ func getNetworks(url string, query string) {
 	if query != "" {
 		url = url + query
 	}
-	body, err := sendRequest(url)
+	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		fmt.Println(err)
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return
+		}
+		fmt.Println(errBody.Error.Message)
+		return
 	}
 	data := new([]model.IPv4Network)
 	if err := json.Unmarshal(body, data); err != nil {
@@ -102,10 +149,9 @@ func getNetworks(url string, query string) {
 		return
 	}
 
+	// write output
 	if output == "json" {
-		out := new(bytes.Buffer)
-		json.Indent(out, body, "", "	")
-		fmt.Println(out.String())
+		fmt.Println(string(body))
 		return
 	}
 	if tree == true {
@@ -134,47 +180,81 @@ func createNetwork(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
+	body, reqErr := sendRequest("POST", url, reqJson)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func updateNetwork(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/network"
+	url = url + "/" + args[0]
+	reqModel := model.IPv4Network{Description: description}
+	reqJson, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("PUT", url, reqJson)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func deleteNetwork(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/network"
+	url = url + "/" + args[0]
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func sendRequest(method string, url string, reqJson []byte) ([]byte, error) {
 	req, err := http.NewRequest(
-		"POST",
+		method,
 		url,
 		bytes.NewBuffer(reqJson),
 	)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	req.Header.Set("Content-Type", "application/json")
 	client := &http.Client{}
 	resp, err := client.Do(req)
 	if err != nil {
-		return err
+		return []byte{}, err
 	}
 	defer resp.Body.Close()
-
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		//fmt.Errorf(err.Error())
-	}
-	var resMsg responseMessage
-	if err := json.Unmarshal(body, &resMsg); err != nil {
-		fmt.Errorf(err.Error())
+		return []byte{}, err
 	}
 	if resp.StatusCode != 200 {
-		return errors.New(resMsg.Message)
-	}
-
-
-	return nil
-}
-
-func sendRequest(url string) ([]byte, error) {
-	resp, err := http.Get(url)
-	if err != nil {
-		return []byte{}, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return []byte{}, err
+		return body, fmt.Errorf(string(resp.StatusCode))
 	}
 
 	return body, nil
