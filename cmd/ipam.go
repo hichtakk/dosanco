@@ -9,8 +9,6 @@ import (
 	"net/http"
 	"strconv"
 
-	//"strings"
-
 	"github.com/spf13/cobra"
 
 	"github.com/hichikaw/dosanco/model"
@@ -34,7 +32,7 @@ func NewCmdShowIPAM() *cobra.Command {
 		Short: "show ip allocation",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
-				return fmt.Errorf("requires one argument")
+				return fmt.Errorf("requires network id or hostname. In case of hostname, option '--host' is required.")
 			}
 			return nil
 		},
@@ -119,9 +117,9 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	allocs := new([]model.IPv4Allocation)
 	if err := json.Unmarshal(body, allocs); err != nil {
 	}
-	fmt.Printf("%-15v  %-16v  %-v\n", "Address", "Name", "Description")
+	fmt.Printf("%-5s %-15v  %-16v  %-v\n", "ID", "Address", "Name", "Description")
 	for _, alloc := range *allocs {
-		fmt.Printf("%-15v  %-16v  %-v\n", alloc.Address, alloc.Name, alloc.Description)
+		fmt.Printf("%-5d %-15v  %-16v  %-v\n", alloc.ID, alloc.Address, alloc.Name, alloc.Description)
 	}
 }
 
@@ -165,9 +163,10 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func updateIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/ipam"
+	url := Conf.APIServer.Url + "/ipam/" + args[0]
 	aid, err := strconv.Atoi(args[0])
 	if err != nil {
+		return fmt.Errorf("invalid id. integer is required for argument")
 	}
 	reqModel := model.IPv4Allocation{Description: description}
 	reqModel.ID = uint(aid)
@@ -197,7 +196,7 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
-		fmt.Errorf(err.Error())
+		return fmt.Errorf(err.Error())
 	}
 	if resp.StatusCode != 200 {
 		return errors.New(resMsg.Message)
@@ -231,7 +230,7 @@ func deleteIPAllocation(cmd *cobra.Command, args []string) error {
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
-		fmt.Errorf(err.Error())
+		return fmt.Errorf(err.Error())
 	}
 	if resp.StatusCode != 200 {
 		return errors.New(resMsg.Message)
