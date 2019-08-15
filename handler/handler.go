@@ -295,7 +295,7 @@ func DeleteVlan(c echo.Context) error {
 	if result := db.Take(&vlan, "id=?", id); result.Error != nil {
 		return fmt.Errorf("vlan '%v' not found", id)
 	}
-	db.Delete(&vlan)
+	db.Unscoped().Delete(&vlan)
 
 	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan %d deleted\n", id)})
 }
