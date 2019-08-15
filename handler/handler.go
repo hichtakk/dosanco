@@ -297,5 +297,5 @@ func DeleteVlan(c echo.Context) error {
 	}
 	db.Unscoped().Delete(&vlan)
 
-	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan %d deleted\n", id)})
+	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan %d deleted", id)})
 }

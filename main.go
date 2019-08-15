@@ -59,6 +59,8 @@ func main() {
 
 	e.GET("/datacenter", handler.GetAllDataCenters)
 	e.POST("/datacenter", handler.CreateDataCenter)
+	e.PUT("/datacenter/:id", handler.UpdateDataCenter)
+	e.DELETE("/datacenter/:id", handler.DeleteDataCenter)
 
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))

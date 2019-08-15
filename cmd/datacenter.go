@@ -15,7 +15,7 @@ func NewCmdShowDataCenter() *cobra.Command {
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
 		Short:   "show datacenter",
-		Run: getDataCenter,
+		Run:     getDataCenter,
 	}
 
 	return dcCmd
@@ -38,7 +38,7 @@ func getDataCenter(cmd *cobra.Command, args []string) {
 		fmt.Println("json unmarshall error:", err)
 		return
 	}
-	fmt.Printf("ID	Name	Address\n")
+	fmt.Printf("%2s	%-10s	%s\n", "ID", "Name", "Address")
 	for _, dc := range *data {
 		fmt.Printf("%2d	%-10s	%s\n", dc.ID, dc.Name, dc.Address)
 	}
@@ -72,6 +72,80 @@ func createDataCenter(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", url, reqJson)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func NewCmdUpdateDataCenter() *cobra.Command {
+	var dcCmd = &cobra.Command{
+		Use:     "datacenter",
+		Aliases: []string{"dc"},
+		Short:   "update datacenter address",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires datacenter id")
+			}
+			return nil
+		},
+		RunE: updateDataCenter,
+	}
+	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of the datacenter")
+	dcCmd.MarkFlagRequired("address")
+
+	return dcCmd
+}
+
+func updateDataCenter(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/datacenter"
+	url = url + "/" + args[0]
+	reqModel := model.DataCenter{Address: address}
+	reqJson, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("PUT", url, reqJson)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return fmt.Errorf(resMsg.Message)
+	} else {
+		fmt.Println(resMsg.Message)
+	}
+
+	return nil
+}
+
+func NewCmdDeleteDataCenter() *cobra.Command {
+	var dcCmd = &cobra.Command{
+		Use:     "datacenter",
+		Aliases: []string{"dc"},
+		Short:   "delete datacenter",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) != 1 {
+				return fmt.Errorf("requires datacenter id")
+			}
+			return nil
+		},
+		RunE: deleteDataCenter,
+	}
+
+	return dcCmd
+}
+
+func deleteDataCenter(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.Url + "/datacenter/" + args[0]
+	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err

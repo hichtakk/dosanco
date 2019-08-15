@@ -13,6 +13,7 @@ func NewCmdUpdate() *cobra.Command {
 		NewCmdUpdateNetwork(),
 		NewCmdUpdateIPAllocation(),
 		NewCmdUpdateVlan(),
+		NewCmdUpdateDataCenter(),
 	)
 
 	return updateCmd
