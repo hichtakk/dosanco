@@ -13,6 +13,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateNetwork(),
 		NewCmdCreateIPAllocation(),
 		NewCmdCreateVlan(),
+		NewCmdCreateDataCenter(),
 	)
 
 	return createCmd

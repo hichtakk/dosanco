@@ -57,6 +57,9 @@ func main() {
 	e.PUT("/vlan/:id", handler.UpdateVlan)
 	e.DELETE("/vlan/:id", handler.DeleteVlan)
 
+	e.GET("/datacenter", handler.GetAllDataCenters)
+	e.POST("/datacenter", handler.CreateDataCenter)
+
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))
 }

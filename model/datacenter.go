@@ -1,56 +1,57 @@
 package model
 
-import "github.com/jinzhu/gorm"
-
 //DataCenter
 type DataCenter struct {
-	gorm.Model
+	Model
 	Name    string  `gorm:"type:varchar(10);unique_index" json:"name"`
 	Address string  `gorm:"type:varchar(255)" json:"address"`
-	Floors  []Floor `json:"floors"`
+	Floors  []Floor `json:"floors,omitempty"`
 }
 
 type Floor struct {
-	gorm.Model
-	Name    string
-	Address string
-	Halls   []Hall
+	Model
+	Name  string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Halls []Hall `json:"halls,omitempty"`
 }
 
 type Hall struct {
-	gorm.Model
-	Name    string
-	Type    string // Data or Network
-	RackRow []RackRow
+	Model
+	Name     string    `gorm:"type:varchar(16);unique_index" json:"name"`
+	Type     string    `gorm:"type:varchar(10)" json:"type"`
+	RackRows []RackRow `json:"rows,omitempty"`
 }
 
 type RackRow struct {
-	gorm.Model
-	Name  string
-	Racks []Rack
+	Model
+	Name  string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Racks []Rack `json:"racks,omitempty"`
 }
 
 type Rack struct {
-	gorm.Model
-	Name     string
-	RackPDUs []RackPDU
+	Model
+	Name        string    `gorm:"type:varchar(16);unique_index" json:"name"`
+	RackPDUs    []RackPDU `json:"rack_pdus,omitempty"`
+	Description string    `gorm:"type:varchar(255)" json:"description"`
 }
 
 type UPS struct {
-	gorm.Model
-	Name string
+	Model
+	Name        string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Description string `gorm:"type:varchar(255)" json:"description"`
 }
 
 type PDU struct {
-	gorm.Model
-	Name         string
-	Address      string
-	PrimaryUPS   UPS
-	SecondaryUPS UPS
+	Model
+	Name         string `gorm:"type:varchar(16);unique_index" json:"name"`
+	PrimaryUPS   UPS    `json:"primary_ups,omitempty"`
+	SecondaryUPS UPS    `json:"secondary_ups,omitempty"`
+	Description  string `gorm:"type:varchar(255)" json:"description"`
 }
 
 type RackPDU struct {
-	gorm.Model
-	Name       string
-	SourcePDUs []PDU
+	Model
+	Name        string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Address     string `gorm:"type:varchar(15)" json:"address"`
+	Description string `gorm:"type:varchar(255)" json:"description"`
+	SourcePDUs  []PDU  `json:"source_pdus,omitempty"`
 }
