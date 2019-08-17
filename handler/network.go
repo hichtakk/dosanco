@@ -51,6 +51,17 @@ func GetIPv4Network(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, network, "    ")
 }
 
+// GetNetworkByCIDR returns a specified CIDR network
+func GetIPv4NetworkByCIDR(c echo.Context) error {
+	var network model.IPv4Network
+	cidr := strings.Replace(c.Param("cidr"), "-", "/", 1)
+	db := db.GetDB()
+	if result := db.Take(&network, "c_id_r=?", cidr); result.Error != nil {
+		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
+	}
+	return c.JSONPretty(http.StatusOK, network, "    ")
+}
+
 // CreateNetwork creates a new network with given json data
 func CreateIPv4Network(c echo.Context) error {
 	network := new(model.IPv4Network)
