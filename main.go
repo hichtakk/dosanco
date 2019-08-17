@@ -45,6 +45,7 @@ func main() {
 	e.GET("/network/:id", handler.GetIPv4Network)
 	e.PUT("/network/:id", handler.UpdateIPv4Network)
 	e.DELETE("/network/:id", handler.DeleteIPv4Network)
+	e.GET("/network/cidr/:cidr", handler.GetIPv4NetworkByCIDR)
 
 	e.POST("/ipam", handler.CreateIPv4Allocation)
 	e.PUT("/ipam/:allocation_id", handler.UpdateIPv4Allocation)

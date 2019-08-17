@@ -42,6 +42,27 @@ func getNetwork(url string, id string) {
 	fmt.Printf("%2v %-20s	%s\n", nw.ID, nw.CIDR, nw.Description)
 }
 
+func getNetworkByCIDR(url string, cidr string) {
+	url = url + "/cidr/" + strings.Replace(cidr, "/", "-", 1)
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return
+		}
+		fmt.Println(errBody.Error.Message)
+		return
+	}
+	nw := new(model.IPv4Network)
+	if err := json.Unmarshal(body, nw); err != nil {
+		fmt.Println("json unmarshal error:", err)
+		return
+	}
+
+	fmt.Printf("%2v %-20s	%s\n", nw.ID, nw.CIDR, nw.Description)
+}
+
 func getNetworks(url string, query string) {
 	if query != "" {
 		url = url + query
