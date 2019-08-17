@@ -52,3 +52,22 @@ func (n IPv4Network) GetPrefixLength() int {
 	len, _ := strconv.Atoi(slice[1])
 	return len
 }
+
+func (n IPv4Network) HasAddress(addr string) bool {
+	/*
+	binaryIP := ""
+	octets := strings.Split(addr, ".")
+	for _, octet := range octets {
+		i, _ := strconv.Atoi(octet)
+		binaryIP := binaryIP + fmt.Sprintf("%08b", i)
+	}
+	u64, _ := strconv.ParseUint(binaryIP, 2, 32)
+	plen := n.GetPrefixLength()
+
+	u64 = u64 >> plen
+	u64 = u64 << plen
+	*/
+	ip := net.ParseIP(addr)
+	_, ipnet, _ := net.ParseCIDR(n.CIDR)
+	return ipnet.Contains(ip)
+}

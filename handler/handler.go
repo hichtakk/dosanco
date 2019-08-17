@@ -162,6 +162,14 @@ func CreateIPv4Allocation(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
 	}
 	db := db.GetDB()
+	network := new(model.IPv4Network)
+	if result := db.Take(network, "id=?", addr.IPv4NetworkID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
+	}
+	if network.HasAddress(addr.Address) != true {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "requested address is not an address of specified network"})
+	}
+
 	if result := db.Create(addr); result.Error != nil {
 		//return result.Error
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database request failed. " + result.Error.Error()})
