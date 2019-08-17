@@ -21,90 +21,6 @@ var (
 	description string
 )
 
-func NewCmdShowNetwork() *cobra.Command {
-	var networkCmd = &cobra.Command{
-		Use:     "network",
-		Aliases: []string{"net", "nw"},
-		Short:   "show network",
-		Run: func(cmd *cobra.Command, args []string) {
-			url := Conf.APIServer.Url + "/network"
-			query := ""
-			if tree == true {
-				query = query + "?tree=true"
-				if depth > 0 {
-					query = query + "&depth=" + strconv.Itoa(depth)
-				}
-			}
-			if len(args) > 0 {
-				getNetwork(url, args[0])
-			} else {
-				getNetworks(url, query)
-			}
-		},
-	}
-	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
-	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-defined", "", false, "show networks defined and reserved in RFC")
-	networkCmd.Flags().IntVarP(&depth, "depth", "d", 0, "depth for network tree. this option only work with --tree,-t option")
-
-	return networkCmd
-}
-
-func NewCmdCreateNetwork() *cobra.Command {
-	var networkCmd = &cobra.Command{
-		Use:     "network",
-		Aliases: []string{"net", "nw"},
-		Short:   "create new network",
-		Long:    "create new network",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires one network cidr")
-			}
-			return nil
-		},
-		RunE: createNetwork,
-	}
-	networkCmd.Flags().IntVarP(&supernetID, "supernet-id", "s", 0, "supernetwork id of the requested network")
-	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
-	networkCmd.MarkFlagRequired("supernet-id")
-
-	return networkCmd
-}
-
-func NewCmdUpdateNetwork() *cobra.Command {
-	var networkCmd = &cobra.Command{
-		Use:     "network",
-		Aliases: []string{"net", "nw"},
-		Short:   "update network description",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires one network id")
-			}
-			return nil
-		},
-		RunE: updateNetwork,
-	}
-	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
-
-	return networkCmd
-}
-
-func NewCmdDeleteNetwork() *cobra.Command {
-	var networkCmd = &cobra.Command{
-		Use:     "network",
-		Aliases: []string{"net", "nw"},
-		Short:   "delete network description",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires one network id")
-			}
-			return nil
-		},
-		RunE: deleteNetwork,
-	}
-
-	return networkCmd
-}
-
 func getNetwork(url string, id string) {
 	url = url + "/" + id
 	body, err := sendRequest("GET", url, []byte{})
@@ -230,20 +146,6 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewCmdShowVlan() *cobra.Command {
-	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
-		Aliases: []string{"vlan"},
-		Short:   "show vlan",
-		Run: func(cmd *cobra.Command, args []string) {
-			url := Conf.APIServer.Url + "/vlan"
-			getVlans(url)
-		},
-	}
-
-	return vlanCmd
-}
-
 func getVlans(url string) {
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
@@ -272,26 +174,6 @@ func getVlans(url string) {
 	}
 }
 
-func NewCmdCreateVlan() *cobra.Command {
-	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
-		Aliases: []string{"vlan"},
-		Short:   "create new vlan",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires vlan id")
-			}
-			return nil
-		},
-		RunE: createVlan,
-	}
-	vlanCmd.Flags().IntVarP(&networkID, "network-id", "n", 0, "network id of the requested ip allocation")
-	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
-	vlanCmd.MarkFlagRequired("network-id")
-
-	return vlanCmd
-}
-
 func createVlan(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.Url + "/vlan"
 	id, err := strconv.Atoi(args[0])
@@ -318,24 +200,6 @@ func createVlan(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
-func NewCmdUpdateVlan() *cobra.Command {
-	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
-		Aliases: []string{"vlan"},
-		Short:   "update vlan description",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires vlan id")
-			}
-			return nil
-		},
-		RunE: updateVlan,
-	}
-	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
-
-	return vlanCmd
-}
-
 func updateVlan(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.Url + "/vlan"
 	url = url + "/" + args[0]
@@ -356,23 +220,6 @@ func updateVlan(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func NewCmdDeleteVlan() *cobra.Command {
-	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
-		Aliases: []string{"vlan"},
-		Short:   "delete vlan description",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires vlan id")
-			}
-			return nil
-		},
-		RunE: deleteVlan,
-	}
-
-	return vlanCmd
 }
 
 func deleteVlan(cmd *cobra.Command, args []string) error {
