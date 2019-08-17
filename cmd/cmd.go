@@ -46,8 +46,8 @@ func init() {
 
 func newRootCmd() *cobra.Command {
 	return &cobra.Command{
-		Use:   "dctl",
+		Use:   "dosanco",
 		Short: "dosanco command-line client",
-		Long:  "dctl controls Dosanco infrastructure database",
+		Long:  "dosanco controls Dosanco infrastructure database",
 	}
 }
