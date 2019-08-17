@@ -17,8 +17,8 @@ var (
 )
 
 // Init initializes database connection and ORM
-func Init(c config.DBConfig) {
-	schema = strings.Split(c.Url, "://")
+func Init(c config.Config) {
+	schema = strings.Split(c.DB.Url, "://")
 	if schema[0] == "sqlite" {
 		db, err = gorm.Open("sqlite3", schema[1])
 		if err != nil {
@@ -27,9 +27,13 @@ func Init(c config.DBConfig) {
 		db.Exec("PRAGMA foreign_keys = ON;")
 	}
 
-	initNetwork()
-	initIPAM()
-	//initDataCenter()
+	if c.Feature.Network {
+		initNetwork()
+		initIPAM()
+	}
+	if c.Feature.DataCenter {
+		initDataCenter()
+	}
 }
 
 func initDataCenter() {

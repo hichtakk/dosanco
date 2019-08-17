@@ -1,3 +1,7 @@
 [database]
-#url = "sqlite://./dosanco.db"
-url = "sqlite://"
+url = "sqlite://./dosanco.db"
+#url = "sqlite://"
+
+[feature]
+network = true
+datacenter = false

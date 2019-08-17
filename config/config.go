@@ -17,9 +17,15 @@ type DBConfig struct {
 	Name string `toml:"name"`
 }
 
+type Feature struct {
+	Network bool `toml:"network"`
+	DataCenter bool `toml:"datacenter"`
+}
+
 // Config is struct for main configuration
 type Config struct {
 	DB DBConfig `toml:"database"`
+	Feature Feature `toml:"feature"`
 }
 
 // NewConfig returns configuration instance
