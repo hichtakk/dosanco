@@ -1,11 +1,8 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 	"strings"
 
@@ -27,7 +24,7 @@ var (
 func NewCmdShowNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network",
-		Aliases: []string{"net"},
+		Aliases: []string{"net", "nw"},
 		Short:   "show network",
 		Run: func(cmd *cobra.Command, args []string) {
 			url := Conf.APIServer.Url + "/network"
@@ -55,7 +52,7 @@ func NewCmdShowNetwork() *cobra.Command {
 func NewCmdCreateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network",
-		Aliases: []string{"net"},
+		Aliases: []string{"net", "nw"},
 		Short:   "create new network",
 		Long:    "create new network",
 		Args: func(cmd *cobra.Command, args []string) error {
@@ -76,7 +73,7 @@ func NewCmdCreateNetwork() *cobra.Command {
 func NewCmdUpdateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network",
-		Aliases: []string{"net"},
+		Aliases: []string{"net", "nw"},
 		Short:   "update network description",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
@@ -94,7 +91,7 @@ func NewCmdUpdateNetwork() *cobra.Command {
 func NewCmdDeleteNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network",
-		Aliases: []string{"net"},
+		Aliases: []string{"net", "nw"},
 		Short:   "delete network description",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
@@ -231,33 +228,6 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-func sendRequest(method string, url string, reqJson []byte) ([]byte, error) {
-	req, err := http.NewRequest(
-		method,
-		url,
-		bytes.NewBuffer(reqJson),
-	)
-	if err != nil {
-		return []byte{}, err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return []byte{}, err
-	}
-	defer resp.Body.Close()
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-		return []byte{}, err
-	}
-	if resp.StatusCode != 200 {
-		return body, fmt.Errorf(string(resp.StatusCode))
-	}
-
-	return body, nil
 }
 
 func NewCmdShowVlan() *cobra.Command {
@@ -420,8 +390,4 @@ func deleteVlan(cmd *cobra.Command, args []string) error {
 	}
 
 	return nil
-}
-
-type responseMessage struct {
-	Message string `json:"message"`
 }
