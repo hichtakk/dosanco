@@ -28,7 +28,7 @@ func main() {
 	}
 
 	// initialize database
-	db.Init(conf.DB)
+	db.Init(conf)
 
 	// initialize echo instance
 	e := echo.New()

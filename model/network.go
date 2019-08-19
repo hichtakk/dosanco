@@ -14,7 +14,7 @@ type IPv4Network struct {
 	SupernetworkID uint          `json:"supernet_id" validate:"required"`
 	Subnetworks    []IPv4Network `json:"subnets,omitempty"`
 	Reserved       bool          `json:"reserved" gorm:"default:false"`
-	//Allocations    []IPv4Allocation
+	Allocations    []IPv4Allocation `json:"allocations,omitempty"`
 }
 
 //type IPv6Network struct{}
@@ -68,6 +68,7 @@ func (n IPv4Network) HasAddress(addr string) bool {
 	u64 = u64 << plen
 	*/
 	ip := net.ParseIP(addr)
-	_, ipnet, _ := net.ParseCIDR(n.CIDR)
+	//_, ipnet, _ := net.ParseCIDR(n.CIDR)
+	ipnet := n.GetNetwork()
 	return ipnet.Contains(ip)
 }

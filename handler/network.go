@@ -48,6 +48,14 @@ func GetIPv4Network(c echo.Context) error {
 	if result := db.Take(&network, "id=?", id); result.Error != nil {
 		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
 	}
+	subnets := getSubnetworks(network.ID, 1, uint(0))
+	if len(*subnets) > 0 {
+		network.Subnetworks = *subnets
+	}
+	allocs := getIPAllocations(network.ID)
+	if len(*allocs) > 0 {
+		network.Allocations = *allocs
+	}
 	return c.JSONPretty(http.StatusOK, network, "    ")
 }
 
@@ -59,6 +67,14 @@ func GetIPv4NetworkByCIDR(c echo.Context) error {
 	if result := db.Take(&network, "c_id_r=?", cidr); result.Error != nil {
 		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
 	}
+	subnets := getSubnetworks(network.ID, 1, uint(0))
+	if len(*subnets) > 0 {
+		network.Subnetworks = *subnets
+	}
+	allocs := getIPAllocations(network.ID)
+	if len(*allocs) > 0 {
+		network.Allocations = *allocs
+	}
 	return c.JSONPretty(http.StatusOK, network, "    ")
 }
 
@@ -69,7 +85,8 @@ func CreateIPv4Network(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
 	}
 	if err := c.Validate(network); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
+		//return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnBusinessError("request validation failed. " + err.Error()))
 	}
 	db := db.GetDB()
 	var supernet model.IPv4Network
@@ -250,6 +267,13 @@ func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 	}
 
 	return &subnetworks
+}
+
+func getIPAllocations(id uint) *[]model.IPv4Allocation {
+	var allocs []model.IPv4Allocation
+	db := db.GetDB()
+	db.Where(&model.IPv4Allocation{IPv4NetworkID: id}).Find(&allocs)
+	return &allocs
 }
 
 // GetAllVlan returns all vlans
