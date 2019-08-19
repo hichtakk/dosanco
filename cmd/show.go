@@ -30,12 +30,15 @@ func NewCmdShowNetwork() *cobra.Command {
 		Short:   "show network",
 		Run: func(cmd *cobra.Command, args []string) {
 			url := Conf.APIServer.Url + "/network"
-			query := ""
+			query := "?"
 			if tree == true {
-				query = query + "?tree=true"
+				query = query + "&tree=true"
 				if depth > 0 {
 					query = query + "&depth=" + strconv.Itoa(depth)
 				}
+			}
+			if rfc == true {
+				query = query + "&show-rfc-reserved=true"
 			}
 			if len(args) > 0 {
 				if cidr {
@@ -49,7 +52,7 @@ func NewCmdShowNetwork() *cobra.Command {
 		},
 	}
 	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
-	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-defined", "", false, "show networks defined and reserved in RFC")
+	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-reserved", "", false, "show networks defined and reserved in RFC")
 	networkCmd.Flags().IntVarP(&depth, "depth", "d", 0, "depth for network tree. this option only work with --tree,-t option")
 	networkCmd.Flags().BoolVarP(&cidr, "cidr", "", false, "get network by cidr")
 

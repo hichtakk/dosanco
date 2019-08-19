@@ -19,6 +19,7 @@ func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
 	networks := model.IPv4Networks{}
 	tree, _ := strconv.ParseBool(c.QueryParam("tree"))
+	rfc, _ := strconv.ParseBool(c.QueryParam("show-rfc-reserved"))
 	if tree == true {
 		// 0: all, other: specified nubmer of depth
 		depth, _ := strconv.Atoi(c.QueryParam("depth"))
@@ -32,7 +33,11 @@ func GetAllNetwork(c echo.Context) error {
 		networks = append(networks, root)
 	} else {
 		// return flat network list
-		db.Find(&networks)
+		if rfc == true {
+			db.Find(&networks)
+		} else {
+			db.Where("reserved=?", false).Find(&networks)
+		}
 		sort.Sort(networks)
 	}
 
