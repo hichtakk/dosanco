@@ -17,7 +17,7 @@ import (
 // GetAllNetwork returns all networks
 func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
-	networks := []model.IPv4Network{}
+	networks := model.IPv4Networks{}
 	tree, _ := strconv.ParseBool(c.QueryParam("tree"))
 	if tree == true {
 		// 0: all, other: specified nubmer of depth
@@ -33,6 +33,7 @@ func GetAllNetwork(c echo.Context) error {
 	} else {
 		// return flat network list
 		db.Find(&networks)
+		sort.Sort(networks)
 	}
 
 	return c.JSONPretty(http.StatusOK, networks, "    ")
@@ -253,8 +254,8 @@ func GetHostIPv4Allocations(c echo.Context) error {
 	return c.JSON(http.StatusOK, addr)
 }
 
-func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
-	subnetworks := []model.IPv4Network{}
+func getSubnetworks(id uint, depth uint, step uint) *model.IPv4Networks {
+	var subnetworks model.IPv4Networks
 	subnetworkList := []model.IPv4Network{}
 	db := db.GetDB()
 	db.Where(&model.IPv4Network{SupernetworkID: id}).Find(&subnetworkList)
@@ -266,6 +267,7 @@ func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 			subnetworks = append(subnetworks, sn)
 		}
 	}
+	sort.Sort(subnetworks)
 
 	return &subnetworks
 }

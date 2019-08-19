@@ -13,7 +13,7 @@ type IPv4Network struct {
 	CIDR           string        `json:"cidr" validate:"required" gorm:"unique;not null"`
 	Description    string        `json:"description"`
 	SupernetworkID uint          `json:"supernet_id" validate:"required"`
-	Subnetworks    []IPv4Network `json:"subnets,omitempty"`
+	Subnetworks    IPv4Networks `json:"subnets,omitempty"`
 	Reserved       bool          `json:"reserved" gorm:"default:false"`
 	Allocations    []IPv4Allocation `json:"allocations,omitempty"`
 }
@@ -47,6 +47,11 @@ func (n IPv4Network) GetNetwork() *net.IPNet {
 	return ipv4Net
 }
 
+func (n IPv4Network) GetNetworkAddress() string {
+	ipNet := n.GetNetwork()
+	return ipNet.IP.String()
+}
+
 // GetPrefixLength returns prefix size of the network
 func (n IPv4Network) GetPrefixLength() int {
 	slice := strings.Split(n.CIDR, "/")
@@ -72,6 +77,40 @@ func (a IPv4Allocation) GetAddressInteger() uint32 {
 	return uint32(u64)
 }
 
+
+// 
+type IPv4Networks []IPv4Network
+func (n IPv4Networks) Len() int {
+	return len(n)
+}
+
+func (n IPv4Networks) Less(i, j int) bool {
+	iIP := n[i].GetNetworkAddress()
+	jIP := n[j].GetNetworkAddress()
+	ipCompStr := []string{iIP, jIP}
+	ipComp := []uint32{}
+	for _, i := range ipCompStr {
+		binAddress := ""
+		octets := strings.Split(i, ".")
+		for _, octet := range octets {
+			i, _ := strconv.Atoi(octet)
+			binAddress = binAddress + fmt.Sprintf("%08b", i)
+		}
+		u64, _ := strconv.ParseUint(binAddress, 2, 32)
+		ipComp = append(ipComp, uint32(u64))
+	}
+	if ipComp[0] < ipComp[1] {
+		return true
+	} else {
+		return false
+	}
+}
+
+func (n IPv4Networks) Swap(i, j int) {
+	n[i], n[j] = n[j], n[i]
+}
+
+//
 type IPv4Allocations []IPv4Allocation
 
 func (a IPv4Allocations) Len() int {

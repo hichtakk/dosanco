@@ -40,8 +40,14 @@ func getNetwork(url string, id string) {
 	}
 
 	fmt.Printf("%2v %-20s	%s\n", nw.ID, nw.CIDR, nw.Description)
+	if len(nw.Subnetworks) > 0 {
+		fmt.Println("# Subnetworks")
+		for _, s := range nw.Subnetworks {
+			fmt.Printf("  %-15v %v\n", s.CIDR, s.Description)
+		}
+	}
 	if len(nw.Allocations) > 0 {
-		fmt.Printf("\nIP allocations\n")
+		fmt.Println("# IP allocations")
 		for _, a := range nw.Allocations {
 			fmt.Printf("  %-15v %v, %v\n", a.Address, a.Name, a.Description)
 		}
@@ -67,6 +73,12 @@ func getNetworkByCIDR(url string, cidr string) {
 	}
 
 	fmt.Printf("%2v %-20s	%s\n", nw.ID, nw.CIDR, nw.Description)
+	if len(nw.Subnetworks) > 0 {
+		fmt.Println("# Subnetworks")
+		for _, s := range nw.Subnetworks {
+			fmt.Printf("  %-15v %v\n", s.CIDR, s.Description)
+		}
+	}
 	if len(nw.Allocations) > 0 {
 		fmt.Printf("\nIP allocations\n")
 		for _, a := range nw.Allocations {
@@ -89,7 +101,7 @@ func getNetworks(url string, query string) {
 		fmt.Println(errBody.Error.Message)
 		return
 	}
-	data := new([]model.IPv4Network)
+	data := new(model.IPv4Networks)
 	if err := json.Unmarshal(body, data); err != nil {
 		fmt.Println("json unmarshal err:", err)
 		return
@@ -110,7 +122,7 @@ func getNetworks(url string, query string) {
 	}
 }
 
-func printNetworkTree(networks *[]model.IPv4Network, depth int) {
+func printNetworkTree(networks *model.IPv4Networks, depth int) {
 	for _, network := range *networks {
 		fmt.Printf("%v%v:%v\n", strings.Repeat("   ", depth), network.ID, network.CIDR)
 		if len(network.Subnetworks) > 0 {
