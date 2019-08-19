@@ -101,6 +101,10 @@ func (n IPv4Networks) Less(i, j int) bool {
 	}
 	if ipComp[0] < ipComp[1] {
 		return true
+	} else if ipComp[0] == ipComp[1] {
+		iLen := n[i].GetPrefixLength()
+		jLen := n[j].GetPrefixLength()
+		return iLen < jLen
 	} else {
 		return false
 	}
