@@ -40,6 +40,12 @@ func getNetwork(url string, id string) {
 	}
 
 	fmt.Printf("%2v %-20s	%s\n", nw.ID, nw.CIDR, nw.Description)
+	if len(nw.Allocations) > 0 {
+		fmt.Printf("\nIP allocations\n")
+		for _, a := range nw.Allocations {
+			fmt.Printf("  %-15v %v, %v\n", a.Address, a.Name, a.Description)
+		}
+	}
 }
 
 func getNetworkByCIDR(url string, cidr string) {
@@ -61,6 +67,12 @@ func getNetworkByCIDR(url string, cidr string) {
 	}
 
 	fmt.Printf("%2v %-20s	%s\n", nw.ID, nw.CIDR, nw.Description)
+	if len(nw.Allocations) > 0 {
+		fmt.Printf("\nIP allocations\n")
+		for _, a := range nw.Allocations {
+			fmt.Printf("  %-15v %v, %v\n", a.Address, a.Name, a.Description)
+		}
+	}
 }
 
 func getNetworks(url string, query string) {

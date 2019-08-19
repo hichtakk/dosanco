@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net"
 	"net/http"
+	"sort"
 	"strconv"
 	"strings"
 
@@ -194,7 +195,7 @@ func CreateIPv4Allocation(c echo.Context) error {
 	if result := db.Take(network, "id=?", addr.IPv4NetworkID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
 	}
-	if network.HasAddress(addr.Address) != true {
+	if network.Contains(addr.Address) != true {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "requested address is not an address of specified network"})
 	}
 
@@ -269,10 +270,11 @@ func getSubnetworks(id uint, depth uint, step uint) *[]model.IPv4Network {
 	return &subnetworks
 }
 
-func getIPAllocations(id uint) *[]model.IPv4Allocation {
-	var allocs []model.IPv4Allocation
+func getIPAllocations(id uint) *model.IPv4Allocations {
+	var allocs model.IPv4Allocations
 	db := db.GetDB()
 	db.Where(&model.IPv4Allocation{IPv4NetworkID: id}).Find(&allocs)
+	sort.Sort(allocs)
 	return &allocs
 }
 
@@ -298,6 +300,10 @@ func CreateVlan(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. Vlan ID should be the range of 1 - 4094."})
 	}
 	db := db.GetDB()
+	var network model.IPv4Network
+	if result := db.Take(&network, "id=?", vlan.IPv4NetworkID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
+	}
 	if result := db.Create(&vlan); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": fmt.Sprintf("%v", result.Error)})
 	}

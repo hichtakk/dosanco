@@ -1,6 +1,7 @@
 package model
 
 import (
+	"fmt"
 	"net"
 	"strconv"
 	"strings"
@@ -23,7 +24,7 @@ type IPv4Network struct {
 type Vlan struct {
 	Model
 	Description   string `json:"description"`
-	IPv4NetworkID uint
+	IPv4NetworkID uint	`json:"ipv4_network_id" gorm:"not null"`
 	//IPv4Network   IPv4Network
 	//IPv6NetworkID uint
 	//IPv6Network IPv6Network
@@ -53,22 +54,34 @@ func (n IPv4Network) GetPrefixLength() int {
 	return len
 }
 
-func (n IPv4Network) HasAddress(addr string) bool {
-	/*
-	binaryIP := ""
-	octets := strings.Split(addr, ".")
-	for _, octet := range octets {
-		i, _ := strconv.Atoi(octet)
-		binaryIP := binaryIP + fmt.Sprintf("%08b", i)
-	}
-	u64, _ := strconv.ParseUint(binaryIP, 2, 32)
-	plen := n.GetPrefixLength()
-
-	u64 = u64 >> plen
-	u64 = u64 << plen
-	*/
+func (n IPv4Network) Contains(addr string) bool {
 	ip := net.ParseIP(addr)
-	//_, ipnet, _ := net.ParseCIDR(n.CIDR)
 	ipnet := n.GetNetwork()
 	return ipnet.Contains(ip)
+}
+
+func (a IPv4Allocation) GetAddressInteger() uint32 {
+	binAddress := ""
+	octets := strings.Split(a.Address, ".")
+	for _, octet := range octets {
+		i, _ := strconv.Atoi(octet)
+		binAddress = binAddress + fmt.Sprintf("%08b", i)
+	}
+	u64, _ := strconv.ParseUint(binAddress, 2, 32)
+
+	return uint32(u64)
+}
+
+type IPv4Allocations []IPv4Allocation
+
+func (a IPv4Allocations) Len() int {
+	return len(a)
+}
+
+func (a IPv4Allocations) Less(i, j int) bool {
+	return a[i].GetAddressInteger() < a[j].GetAddressInteger()
+}
+
+func (a IPv4Allocations) Swap(i, j int) {
+	a[i], a[j] = a[j], a[i]
 }
