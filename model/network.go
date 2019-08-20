@@ -18,6 +18,26 @@ type IPv4Network struct {
 	Allocations    []IPv4Allocation `json:"allocations,omitempty"`
 }
 
+func (n IPv4Network) Write() {
+	fmt.Printf("# Network Data\n")
+	fmt.Printf(" ID:             %-3d\n", n.ID)
+	fmt.Printf(" CIDR:           %v\n", n.CIDR)
+	fmt.Printf(" Description:    %v\n", n.Description)
+	fmt.Printf(" SupernetworkID: %d\n\n", n.SupernetworkID)
+	if len(n.Subnetworks) > 0 {
+		fmt.Println("# Subnetworks")
+		for _, s := range n.Subnetworks {
+			fmt.Printf(" %-15v %v\n", s.CIDR, s.Description)
+		}
+	}
+	if len(n.Allocations) > 0 {
+		fmt.Println("# IP Allocations")
+		for _, a := range n.Allocations {
+			fmt.Printf(" %-15v %v, %v\n", a.Address, a.Name, a.Description)
+		}
+	}
+}
+
 //type IPv6Network struct{}
 
 // Vlan

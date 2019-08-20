@@ -39,23 +39,7 @@ func getNetwork(url string, id string) {
 		return
 	}
 
-	fmt.Printf("# Network Data\n")
-	fmt.Printf(" ID:             %-3d\n", nw.ID)
-	fmt.Printf(" CIDR:           %v\n", nw.CIDR)
-	fmt.Printf(" Description:    %v\n", nw.Description)
-	fmt.Printf(" SupernetworkID: %d\n\n", nw.SupernetworkID)
-	if len(nw.Subnetworks) > 0 {
-		fmt.Println("# Subnetworks")
-		for _, s := range nw.Subnetworks {
-			fmt.Printf(" %-15v %v\n", s.CIDR, s.Description)
-		}
-	}
-	if len(nw.Allocations) > 0 {
-		fmt.Println("# IP Allocations")
-		for _, a := range nw.Allocations {
-			fmt.Printf(" %-15v %v, %v\n", a.Address, a.Name, a.Description)
-		}
-	}
+	nw.Write()
 }
 
 func getNetworkByCIDR(url string, cidr string) {
@@ -76,23 +60,7 @@ func getNetworkByCIDR(url string, cidr string) {
 		return
 	}
 
-	fmt.Printf("# Network Data\n")
-	fmt.Printf(" ID:             %-3d\n", nw.ID)
-	fmt.Printf(" CIDR:           %v\n", nw.CIDR)
-	fmt.Printf(" Description:    %v\n", nw.Description)
-	fmt.Printf(" SupernetworkID: %d\n\n", nw.SupernetworkID)
-	if len(nw.Subnetworks) > 0 {
-		fmt.Println("# Subnetworks")
-		for _, s := range nw.Subnetworks {
-			fmt.Printf(" %-15v %v\n", s.CIDR, s.Description)
-		}
-	}
-	if len(nw.Allocations) > 0 {
-		fmt.Printf("# IP Allocations\n")
-		for _, a := range nw.Allocations {
-			fmt.Printf(" %-15v %v, %v\n", a.Address, a.Name, a.Description)
-		}
-	}
+	nw.Write()
 }
 
 func getNetworks(url string, query string) {
