@@ -28,7 +28,7 @@ func GetAllNetwork(c echo.Context) error {
 		}
 		root := model.IPv4Network{}
 		db.Take(&root, "id=1")
-		subnets := getSubnetworks(root.ID, uint(depth), uint(0))
+		subnets := getSubnetworks(root.ID, uint(depth), uint(0), rfc)
 		root.Subnetworks = *subnets
 		networks = append(networks, root)
 	} else {
@@ -55,7 +55,7 @@ func GetIPv4Network(c echo.Context) error {
 	if result := db.Take(&network, "id=?", id); result.Error != nil {
 		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
 	}
-	subnets := getSubnetworks(network.ID, 1, uint(0))
+	subnets := getSubnetworks(network.ID, 1, uint(0), false)
 	if len(*subnets) > 0 {
 		network.Subnetworks = *subnets
 	}
@@ -74,7 +74,7 @@ func GetIPv4NetworkByCIDR(c echo.Context) error {
 	if result := db.Take(&network, "c_id_r=?", cidr); result.Error != nil {
 		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
 	}
-	subnets := getSubnetworks(network.ID, 1, uint(0))
+	subnets := getSubnetworks(network.ID, 1, uint(0), false)
 	if len(*subnets) > 0 {
 		network.Subnetworks = *subnets
 	}
@@ -259,15 +259,18 @@ func GetHostIPv4Allocations(c echo.Context) error {
 	return c.JSON(http.StatusOK, addr)
 }
 
-func getSubnetworks(id uint, depth uint, step uint) *model.IPv4Networks {
+func getSubnetworks(id uint, depth uint, step uint, rfc bool) *model.IPv4Networks {
 	var subnetworks model.IPv4Networks
 	subnetworkList := []model.IPv4Network{}
 	db := db.GetDB()
-	db.Where(&model.IPv4Network{SupernetworkID: id}).Find(&subnetworkList)
-
+	if rfc == true {
+		db.Where(&model.IPv4Network{SupernetworkID: id}).Find(&subnetworkList)
+	} else {
+		db.Where("supernetwork_id=? and reserved=?", id, false).Find(&subnetworkList)
+	}
 	if (len(subnetworkList) > 0) && (step < depth) {
 		for _, sn := range subnetworkList {
-			gsn := getSubnetworks(sn.ID, depth, step+1)
+			gsn := getSubnetworks(sn.ID, depth, step+1, rfc)
 			sn.Subnetworks = append(sn.Subnetworks, *gsn...)
 			subnetworks = append(subnetworks, sn)
 		}
