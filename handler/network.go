@@ -204,6 +204,10 @@ func CreateIPv4Allocation(c echo.Context) error {
 	if network.Contains(addr.Address) != true {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "requested address is not an address of specified network"})
 	}
+	subnets := getSubnetworks(network.ID, uint(1), uint(0), true)
+	if len(*subnets) != 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "requested network is subnetted"})
+	}
 
 	if result := db.Create(addr); result.Error != nil {
 		//return result.Error
@@ -264,7 +268,7 @@ func getSubnetworks(id uint, depth uint, step uint, rfc bool) *model.IPv4Network
 	subnetworkList := []model.IPv4Network{}
 	db := db.GetDB()
 	if rfc == true {
-		db.Where(&model.IPv4Network{SupernetworkID: id}).Find(&subnetworkList)
+		db.Where("supernetwork_id=?", id).Find(&subnetworkList)
 	} else {
 		db.Where("supernetwork_id=? and reserved=?", id, false).Find(&subnetworkList)
 	}
