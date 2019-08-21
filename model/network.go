@@ -134,6 +134,13 @@ func (n IPv4Networks) Swap(i, j int) {
 	n[i], n[j] = n[j], n[i]
 }
 
+func (n IPv4Networks) Write() {
+	fmt.Printf("ID	CIDR			Description\n")
+	for _, network := range n {
+		fmt.Printf("%2d	%-20s	%s\n", network.ID, network.CIDR, network.Description)
+	}
+}
+
 //
 type IPv4Allocations []IPv4Allocation
 

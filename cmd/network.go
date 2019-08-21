@@ -92,10 +92,8 @@ func getNetworks(url string, query string) {
 		printNetworkTree(data, 0)
 		return
 	}
-	fmt.Printf("ID	CIDR			Description\n")
-	for _, network := range *data {
-		fmt.Printf("%2d	%-20s	%s\n", network.ID, network.CIDR, network.Description)
-	}
+
+	data.Write()
 }
 
 func printNetworkTree(networks *model.IPv4Networks, depth int) {
