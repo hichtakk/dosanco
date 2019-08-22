@@ -92,9 +92,9 @@ func CreateIPv4Network(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
 	}
 	if err := c.Validate(network); err != nil {
-		//return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
-		return c.JSON(http.StatusBadRequest, returnBusinessError("request validation failed. " + err.Error()))
+		return c.JSON(http.StatusBadRequest, returnBusinessError("request validation failed. "+err.Error()))
 	}
+
 	db := db.GetDB()
 	var supernet model.IPv4Network
 	db.Take(&supernet, "id=?", network.SupernetworkID)
@@ -108,6 +108,9 @@ func CreateIPv4Network(c echo.Context) error {
 	}
 	if network.GetPrefixLength() <= supernet.GetPrefixLength() {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network '%v' is larger than supernetwork '%v'", network.CIDR, supernet.CIDR)})
+	}
+	if ipv4Addr.String() != network.GetNetworkAddress() {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("request '%v' is not network address", network.CIDR)})
 	}
 	// ensure the network is not overwrapped other subnets.
 	subnets := []model.IPv4Network{}
@@ -171,6 +174,18 @@ func DeleteIPv4Network(c echo.Context) error {
 		}
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has subnets [%v]", strings.Join(subnetList, ", "))})
 	}
+	// ensure the network does not have ip allocations
+	allocations := []model.IPv4Allocation{}
+	db.Where(&model.IPv4Allocation{IPv4NetworkID: network.ID}).Find(&allocations)
+	if len(allocations) > 0 {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has ip allocations")})
+	}
+	// ensure the network does not have vlan
+	vlan := model.Vlan{}
+	if db.Where(&model.Vlan{IPv4NetworkID: network.ID}).Take(&vlan).RecordNotFound() == false {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has vlan %v", vlan.ID)})
+	}
+
 	db.Delete(&network)
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
@@ -210,7 +225,6 @@ func CreateIPv4Allocation(c echo.Context) error {
 	}
 
 	if result := db.Create(addr); result.Error != nil {
-		//return result.Error
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database request failed. " + result.Error.Error()})
 	}
 

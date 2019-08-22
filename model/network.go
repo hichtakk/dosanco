@@ -10,11 +10,11 @@ import (
 // IPv4Network represents network specification
 type IPv4Network struct {
 	Model
-	CIDR           string        `json:"cidr" validate:"required" gorm:"unique;not null"`
-	Description    string        `json:"description"`
-	SupernetworkID uint          `json:"supernet_id" validate:"required"`
-	Subnetworks    IPv4Networks `json:"subnets,omitempty"`
-	Reserved       bool          `json:"reserved" gorm:"default:false"`
+	CIDR           string           `json:"cidr" validate:"required" gorm:"unique;not null"`
+	Description    string           `json:"description"`
+	SupernetworkID uint             `json:"supernet_id" validate:"required"`
+	Subnetworks    IPv4Networks     `json:"subnets,omitempty"`
+	Reserved       bool             `json:"reserved" gorm:"default:false"`
 	Allocations    []IPv4Allocation `json:"allocations,omitempty"`
 }
 
@@ -33,7 +33,7 @@ func (n IPv4Network) Write() {
 	if len(n.Allocations) > 0 {
 		fmt.Println("# IP Allocations")
 		for _, a := range n.Allocations {
-			fmt.Printf(" %-15v %v, %v\n", a.Address, a.Name, a.Description)
+			fmt.Printf(" %-15v %-20v\t%v\n", a.Address, a.Name, a.Description)
 		}
 	}
 }
@@ -44,7 +44,7 @@ func (n IPv4Network) Write() {
 type Vlan struct {
 	Model
 	Description   string `json:"description"`
-	IPv4NetworkID uint	`json:"ipv4_network_id" gorm:"not null"`
+	IPv4NetworkID uint   `json:"ipv4_network_id" gorm:"unique;not null"`
 	//IPv4Network   IPv4Network
 	//IPv6NetworkID uint
 	//IPv6Network IPv6Network
@@ -53,6 +53,7 @@ type Vlan struct {
 // IPAM
 type IPv4Allocation struct {
 	Model
+	Type          string `json:"type" gorm:"default:host"` // network or host
 	Address       string `json:"address" gorm:"unique;not null" validate:"required"`
 	Name          string `json:"name" gorm:"not null" validate:"required"`
 	Description   string `json:"description"`
@@ -97,9 +98,9 @@ func (a IPv4Allocation) GetAddressInteger() uint32 {
 	return uint32(u64)
 }
 
-
-// 
+//
 type IPv4Networks []IPv4Network
+
 func (n IPv4Networks) Len() int {
 	return len(n)
 }
