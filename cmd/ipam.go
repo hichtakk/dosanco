@@ -41,9 +41,6 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	}
 
 	url := Conf.APIServer.Url + "/ipam"
-	//_, err := strconv.Atoi(args[0])
-	//if err != nil {
-	//}
 	if hostFlag == true {
 		url = url + "/host/" + args[0]
 	} else {

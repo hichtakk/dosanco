@@ -12,7 +12,7 @@ type IPv4Network struct {
 	Model
 	CIDR           string           `json:"cidr" validate:"required" gorm:"unique;not null"`
 	Description    string           `json:"description"`
-	SupernetworkID uint             `json:"supernet_id" validate:"required"`
+	SupernetworkID uint             `json:"supernet_id"`
 	Subnetworks    IPv4Networks     `json:"subnets,omitempty"`
 	Reserved       bool             `json:"reserved" gorm:"default:false"`
 	Allocations    []IPv4Allocation `json:"allocations,omitempty"`

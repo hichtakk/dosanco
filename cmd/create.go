@@ -30,9 +30,9 @@ func NewCmdCreateNetwork() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE:    createNetwork,
 	}
-	networkCmd.Flags().IntVarP(&supernetID, "supernet-id", "s", 0, "supernetwork id of the requested network")
+	//networkCmd.Flags().IntVarP(&supernetID, "supernet-id", "s", 0, "supernetwork id of the requested network")
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
-	networkCmd.MarkFlagRequired("supernet-id")
+	//networkCmd.MarkFlagRequired("supernet-id")
 
 	return networkCmd
 }

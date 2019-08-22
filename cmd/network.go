@@ -107,7 +107,8 @@ func printNetworkTree(networks *model.IPv4Networks, depth int) {
 
 func createNetwork(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.Url + "/network"
-	reqModel := model.IPv4Network{CIDR: args[0], SupernetworkID: uint(supernetID), Description: description}
+	//reqModel := model.IPv4Network{CIDR: args[0], SupernetworkID: uint(supernetID), Description: description}
+	reqModel := model.IPv4Network{CIDR: args[0], Description: description}
 	reqJson, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
