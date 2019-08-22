@@ -1,8 +1,8 @@
 package cmd
 
 import (
-	"strconv"
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 )
@@ -23,11 +23,12 @@ func NewCmdShow() *cobra.Command {
 }
 
 func NewCmdShowNetwork() *cobra.Command {
-	var cidr bool
+	//var cidr bool
 	var networkCmd = &cobra.Command{
-		Use:     "network",
+		Use:     "network [network-id]",
 		Aliases: []string{"net", "nw"},
 		Short:   "show network",
+		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
 			url := Conf.APIServer.Url + "/network"
 			query := "?"
@@ -41,11 +42,14 @@ func NewCmdShowNetwork() *cobra.Command {
 				query = query + "&show-rfc-reserved=true"
 			}
 			if len(args) > 0 {
-				if cidr {
-					getNetworkByCIDR(url, args[0])
-				} else {
-					getNetwork(url, args[0])
-				}
+				/*
+					if cidr {
+						getNetworkByCIDR(url, args[0])
+					} else {
+						getNetwork(url, args[0])
+					}
+				*/
+				getNetworkByCIDR(url, args[0])
 			} else {
 				getNetworks(url, query)
 			}
@@ -54,7 +58,7 @@ func NewCmdShowNetwork() *cobra.Command {
 	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
 	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-reserved", "", false, "show networks defined and reserved in RFC")
 	networkCmd.Flags().IntVarP(&depth, "depth", "d", 0, "depth for network tree. this option only work with --tree,-t option")
-	networkCmd.Flags().BoolVarP(&cidr, "cidr", "", false, "get network by cidr")
+	//networkCmd.Flags().BoolVarP(&cidr, "cidr", "", false, "get network by cidr")
 
 	return networkCmd
 }

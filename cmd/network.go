@@ -128,7 +128,24 @@ func createNetwork(cmd *cobra.Command, args []string) error {
 
 func updateNetwork(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.Url + "/network"
-	url = url + "/" + args[0]
+	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return err
+		}
+		fmt.Println(errBody.Error.Message)
+		return err
+	}
+	nw := new(model.IPv4Network)
+	if err := json.Unmarshal(body, nw); err != nil {
+		fmt.Println("json unmarshal error:", err)
+		return err
+	}
+
+	url = Conf.APIServer.Url + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
 	reqModel := model.IPv4Network{Description: description}
 	reqJson, err := json.Marshal(reqModel)
 	if err != nil {
@@ -150,7 +167,24 @@ func updateNetwork(cmd *cobra.Command, args []string) error {
 
 func deleteNetwork(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.Url + "/network"
-	url = url + "/" + args[0]
+	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return err
+		}
+		fmt.Println(errBody.Error.Message)
+		return err
+	}
+	nw := new(model.IPv4Network)
+	if err := json.Unmarshal(body, nw); err != nil {
+		fmt.Println("json unmarshal error:", err)
+		return err
+	}
+
+	url = Conf.APIServer.Url + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {

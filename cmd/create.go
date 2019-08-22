@@ -2,13 +2,13 @@ package cmd
 
 import (
 	"fmt"
-	
+
 	"github.com/spf13/cobra"
 )
 
 func NewCmdCreate() *cobra.Command {
 	var createCmd = &cobra.Command{
-		Use:   "create",
+		Use:   "create [RESOURCE]",
 		Short: "Create a resource",
 	}
 	createCmd.AddCommand(
@@ -23,17 +23,12 @@ func NewCmdCreate() *cobra.Command {
 
 func NewCmdCreateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
-		Use:     "network",
+		Use:     "network [CIDR]",
 		Aliases: []string{"net", "nw"},
 		Short:   "create new network",
 		Long:    "create new network",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires one network cidr")
-			}
-			return nil
-		},
-		RunE: createNetwork,
+		Args:    cobra.ExactArgs(1),
+		RunE:    createNetwork,
 	}
 	networkCmd.Flags().IntVarP(&supernetID, "supernet-id", "s", 0, "supernetwork id of the requested network")
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")

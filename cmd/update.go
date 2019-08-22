@@ -23,16 +23,11 @@ func NewCmdUpdate() *cobra.Command {
 
 func NewCmdUpdateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
-		Use:     "network",
+		Use:     "network [CIDR]",
 		Aliases: []string{"net", "nw"},
 		Short:   "update network description",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires one network id")
-			}
-			return nil
-		},
-		RunE: updateNetwork,
+		Args:    cobra.ExactArgs(1),
+		RunE:    updateNetwork,
 	}
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
 
