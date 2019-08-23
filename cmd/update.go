@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdUpdate is subcommand to update resources.
 func NewCmdUpdate() *cobra.Command {
 	var updateCmd = &cobra.Command{
 		Use:   "update",
@@ -21,6 +22,7 @@ func NewCmdUpdate() *cobra.Command {
 	return updateCmd
 }
 
+// NewCmdUpdateNetwork is subcommand represents update network resource.
 func NewCmdUpdateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network [CIDR]",
@@ -34,6 +36,7 @@ func NewCmdUpdateNetwork() *cobra.Command {
 	return networkCmd
 }
 
+// NewCmdUpdateIPAllocation is subcommand represents update ip allocation resource.
 func NewCmdUpdateIPAllocation() *cobra.Command {
 	var ipamCmd = &cobra.Command{
 		Use:   "ipam",
@@ -52,6 +55,7 @@ func NewCmdUpdateIPAllocation() *cobra.Command {
 	return ipamCmd
 }
 
+// NewCmdUpdateVlan is subcommand represents update vlan resource.
 func NewCmdUpdateVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
@@ -70,6 +74,7 @@ func NewCmdUpdateVlan() *cobra.Command {
 	return vlanCmd
 }
 
+// NewCmdUpdateDataCenter is subcommand represents update datacenter resource.
 func NewCmdUpdateDataCenter() *cobra.Command {
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",

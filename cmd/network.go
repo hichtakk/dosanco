@@ -106,29 +106,28 @@ func printNetworkTree(networks *model.IPv4Networks, depth int) {
 }
 
 func createNetwork(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/network"
+	url := Conf.APIServer.URL + "/network"
 	//reqModel := model.IPv4Network{CIDR: args[0], SupernetworkID: uint(supernetID), Description: description}
 	reqModel := model.IPv4Network{CIDR: args[0], Description: description}
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	body, reqErr := sendRequest("POST", url, reqJson)
+	body, reqErr := sendRequest("POST", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
 
 func updateNetwork(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/network"
+	url := Conf.APIServer.URL + "/network"
 	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
@@ -146,28 +145,27 @@ func updateNetwork(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	url = Conf.APIServer.Url + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
+	url = Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
 	reqModel := model.IPv4Network{Description: description}
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	body, reqErr := sendRequest("PUT", url, reqJson)
+	body, reqErr := sendRequest("PUT", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
 
 func deleteNetwork(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/network"
+	url := Conf.APIServer.URL + "/network"
 	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
@@ -185,7 +183,7 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 		return err
 	}
 
-	url = Conf.APIServer.Url + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
+	url = Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
@@ -193,9 +191,8 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
@@ -229,55 +226,53 @@ func getVlans(url string) {
 }
 
 func createVlan(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/vlan"
+	url := Conf.APIServer.URL + "/vlan"
 	id, err := strconv.Atoi(args[0])
 	if err != nil {
 		return err
 	}
 	reqModel := model.Vlan{Description: description, IPv4NetworkID: uint(networkID)}
 	reqModel.ID = uint(id)
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	body, reqErr := sendRequest("POST", url, reqJson)
+	body, reqErr := sendRequest("POST", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
 
 func updateVlan(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/vlan"
+	url := Conf.APIServer.URL + "/vlan"
 	url = url + "/" + args[0]
 	reqModel := model.Vlan{Description: description}
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	body, reqErr := sendRequest("PUT", url, reqJson)
+	body, reqErr := sendRequest("PUT", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
 
 func deleteVlan(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/vlan"
+	url := Conf.APIServer.URL + "/vlan"
 	url = url + "/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
@@ -286,9 +281,8 @@ func deleteVlan(cmd *cobra.Command, args []string) error {
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }

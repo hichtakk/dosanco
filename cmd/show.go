@@ -1,12 +1,12 @@
 package cmd
 
 import (
-	"fmt"
 	"strconv"
 
 	"github.com/spf13/cobra"
 )
 
+// NewCmdShow is subcommand to show resources.
 func NewCmdShow() *cobra.Command {
 	var showCmd = &cobra.Command{
 		Use:   "show",
@@ -22,15 +22,15 @@ func NewCmdShow() *cobra.Command {
 	return showCmd
 }
 
+// NewCmdShowNetwork is subcommand represents show network resource.
 func NewCmdShowNetwork() *cobra.Command {
-	//var cidr bool
 	var networkCmd = &cobra.Command{
-		Use:     "network [network-id]",
+		Use:     "network [NETWORK_ID]",
 		Aliases: []string{"net", "nw"},
 		Short:   "show network",
 		Args:    cobra.MaximumNArgs(1),
 		Run: func(cmd *cobra.Command, args []string) {
-			url := Conf.APIServer.Url + "/network"
+			url := Conf.APIServer.URL + "/network"
 			query := "?"
 			if tree == true {
 				query = query + "&tree=true"
@@ -42,13 +42,6 @@ func NewCmdShowNetwork() *cobra.Command {
 				query = query + "&show-rfc-reserved=true"
 			}
 			if len(args) > 0 {
-				/*
-					if cidr {
-						getNetworkByCIDR(url, args[0])
-					} else {
-						getNetwork(url, args[0])
-					}
-				*/
 				getNetworkByCIDR(url, args[0])
 			} else {
 				getNetworks(url, query)
@@ -58,35 +51,31 @@ func NewCmdShowNetwork() *cobra.Command {
 	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
 	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-reserved", "", false, "show networks defined and reserved in RFC")
 	networkCmd.Flags().IntVarP(&depth, "depth", "d", 0, "depth for network tree. this option only work with --tree,-t option")
-	//networkCmd.Flags().BoolVarP(&cidr, "cidr", "", false, "get network by cidr")
 
 	return networkCmd
 }
 
+// NewCmdShowIPAM is subcommand represents show ip allocation resource.
 func NewCmdShowIPAM() *cobra.Command {
 	var ipamCmd = &cobra.Command{
-		Use:   "ipam",
+		Use:   "ipam [NETWORK_ID]",
 		Short: "show ip allocation",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires network id or hostname. In case of hostname, option '--host' is required.")
-			}
-			return nil
-		},
-		Run: showIPAllocation,
+		Args:  cobra.MaximumNArgs(1),
+		Run:   showIPAllocation,
 	}
 	ipamCmd.Flags().BoolVarP(&hostFlag, "host", "", false, "use host name to get ip allocation")
 
 	return ipamCmd
 }
 
+// NewCmdShowVlan is subcommand represents show vlan resource.
 func NewCmdShowVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
 		Aliases: []string{"vlan"},
 		Short:   "show vlan",
 		Run: func(cmd *cobra.Command, args []string) {
-			url := Conf.APIServer.Url + "/vlan"
+			url := Conf.APIServer.URL + "/vlan"
 			getVlans(url)
 		},
 	}
@@ -94,6 +83,7 @@ func NewCmdShowVlan() *cobra.Command {
 	return vlanCmd
 }
 
+// NewCmdShowDataCenter is subcommand represents show datacenter resource.
 func NewCmdShowDataCenter() *cobra.Command {
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",

@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdVersion is subcommand to show version information.
 func NewCmdVersion() *cobra.Command {
 	var versionCmd = &cobra.Command{
 		Use:   "version",

@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdCreate is subcommand to create resources.
 func NewCmdCreate() *cobra.Command {
 	var createCmd = &cobra.Command{
 		Use:   "create [RESOURCE]",
@@ -21,6 +22,7 @@ func NewCmdCreate() *cobra.Command {
 	return createCmd
 }
 
+// NewCmdCreateNetwork is subcommand represents network resource.
 func NewCmdCreateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network [CIDR]",
@@ -30,13 +32,12 @@ func NewCmdCreateNetwork() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE:    createNetwork,
 	}
-	//networkCmd.Flags().IntVarP(&supernetID, "supernet-id", "s", 0, "supernetwork id of the requested network")
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
-	//networkCmd.MarkFlagRequired("supernet-id")
 
 	return networkCmd
 }
 
+// NewCmdCreateIPAllocation is subcommand represents ip allocation resource.
 func NewCmdCreateIPAllocation() *cobra.Command {
 	var ipamCmd = &cobra.Command{
 		Use:   "ipam",
@@ -58,6 +59,7 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 	return ipamCmd
 }
 
+// NewCmdCreateVlan is subcommand represents vlan resource.
 func NewCmdCreateVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
@@ -78,12 +80,12 @@ func NewCmdCreateVlan() *cobra.Command {
 	return vlanCmd
 }
 
+// NewCmdCreateDataCenter is subcommand represents datacenter resource.
 func NewCmdCreateDataCenter() *cobra.Command {
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
 		Short:   "create new datacenter",
-		//Long:    "create new network",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return fmt.Errorf("requires data center name")

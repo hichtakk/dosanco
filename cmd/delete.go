@@ -6,6 +6,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
+// NewCmdDelete is subcommand to delete resources.
 func NewCmdDelete() *cobra.Command {
 	var deleteCmd = &cobra.Command{
 		Use:   "delete",
@@ -21,6 +22,7 @@ func NewCmdDelete() *cobra.Command {
 	return deleteCmd
 }
 
+// NewCmdDeleteNetwork is subcommand represents delete network resource.
 func NewCmdDeleteNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
 		Use:     "network [CIDR]",
@@ -33,6 +35,7 @@ func NewCmdDeleteNetwork() *cobra.Command {
 	return networkCmd
 }
 
+// NewCmdDeleteIPAllocation is subcommand represents delete ip allocation resource.
 func NewCmdDeleteIPAllocation() *cobra.Command {
 	var ipamCmd = &cobra.Command{
 		Use:   "ipam",
@@ -49,6 +52,7 @@ func NewCmdDeleteIPAllocation() *cobra.Command {
 	return ipamCmd
 }
 
+// NewCmdDeleteVlan is subcommand represents delete vlan resource.
 func NewCmdDeleteVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
@@ -66,6 +70,7 @@ func NewCmdDeleteVlan() *cobra.Command {
 	return vlanCmd
 }
 
+// NewCmdDeleteDataCenter is subcommand represents delete datacenter resource.
 func NewCmdDeleteDataCenter() *cobra.Command {
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",

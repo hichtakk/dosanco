@@ -7,7 +7,7 @@ import (
 	"strings"
 )
 
-// IPv4Network represents network specification
+// IPv4Network represents network specification.
 type IPv4Network struct {
 	Model
 	CIDR           string           `json:"cidr" validate:"required" gorm:"unique;not null"`
@@ -40,7 +40,7 @@ func (n IPv4Network) Write() {
 
 //type IPv6Network struct{}
 
-// Vlan
+// Vlan represents vlan specification.
 type Vlan struct {
 	Model
 	Description   string `json:"description"`
@@ -50,7 +50,7 @@ type Vlan struct {
 	//IPv6Network IPv6Network
 }
 
-// IPAM
+// IPv4Allocation represents allocated ip address specification.
 type IPv4Allocation struct {
 	Model
 	Type          string `json:"type" gorm:"default:host"` // network or host
@@ -62,30 +62,33 @@ type IPv4Allocation struct {
 
 // type IPv6Allocation struct {}
 
-// GetNetwork returns net.IPNet instance address of IPv4Network
+// GetNetwork returns net.IPNet instance address of IPv4Network.
 func (n IPv4Network) GetNetwork() *net.IPNet {
 	_, ipv4Net, _ := net.ParseCIDR(n.CIDR)
 	return ipv4Net
 }
 
+// GetNetworkAddress returns network address string for the network.
 func (n IPv4Network) GetNetworkAddress() string {
 	ipNet := n.GetNetwork()
 	return ipNet.IP.String()
 }
 
-// GetPrefixLength returns prefix size of the network
+// GetPrefixLength returns prefix size of the network.
 func (n IPv4Network) GetPrefixLength() int {
 	slice := strings.Split(n.CIDR, "/")
 	len, _ := strconv.Atoi(slice[1])
 	return len
 }
 
+// Contains return whether passed address is included the network or not.
 func (n IPv4Network) Contains(addr string) bool {
 	ip := net.ParseIP(addr)
 	ipnet := n.GetNetwork()
 	return ipnet.Contains(ip)
 }
 
+// GetAddressInteger returns Uint32 value represents its ip address.
 func (a IPv4Allocation) GetAddressInteger() uint32 {
 	binAddress := ""
 	octets := strings.Split(a.Address, ".")
@@ -98,7 +101,7 @@ func (a IPv4Allocation) GetAddressInteger() uint32 {
 	return uint32(u64)
 }
 
-//
+// IPv4Networks is slice of IPv4Network
 type IPv4Networks []IPv4Network
 
 func (n IPv4Networks) Len() int {
@@ -142,7 +145,7 @@ func (n IPv4Networks) Write() {
 	}
 }
 
-//
+// IPv4Allocations is slice of IPv4Allocation
 type IPv4Allocations []IPv4Allocation
 
 func (a IPv4Allocations) Len() int {

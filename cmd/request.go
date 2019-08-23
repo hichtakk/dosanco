@@ -1,21 +1,21 @@
 package cmd
 
 import (
-	"net/http"
 	"bytes"
 	"fmt"
 	"io/ioutil"
+	"net/http"
 )
 
 type responseMessage struct {
 	Message string `json:"message"`
 }
 
-func sendRequest(method string, url string, reqJson []byte) ([]byte, error) {
+func sendRequest(method string, url string, reqJSON []byte) ([]byte, error) {
 	req, err := http.NewRequest(
 		method,
 		url,
-		bytes.NewBuffer(reqJson),
+		bytes.NewBuffer(reqJSON),
 	)
 	if err != nil {
 		return []byte{}, err

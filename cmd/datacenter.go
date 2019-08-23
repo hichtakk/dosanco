@@ -11,7 +11,7 @@ import (
 )
 
 func getDataCenter(cmd *cobra.Command, args []string) {
-	url := Conf.APIServer.Url + "/datacenter"
+	url := Conf.APIServer.URL + "/datacenter"
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
 		errBody := new(handler.ErrorResponse)
@@ -34,50 +34,48 @@ func getDataCenter(cmd *cobra.Command, args []string) {
 }
 
 func createDataCenter(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/datacenter"
+	url := Conf.APIServer.URL + "/datacenter"
 	reqModel := model.DataCenter{Name: args[0], Address: address}
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	body, reqErr := sendRequest("POST", url, reqJson)
+	body, reqErr := sendRequest("POST", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
 
 func updateDataCenter(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/datacenter"
+	url := Conf.APIServer.URL + "/datacenter"
 	url = url + "/" + args[0]
 	reqModel := model.DataCenter{Address: address}
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	body, reqErr := sendRequest("PUT", url, reqJson)
+	body, reqErr := sendRequest("PUT", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }
 
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/datacenter/" + args[0]
+	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
@@ -85,9 +83,8 @@ func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	}
 	if reqErr != nil {
 		return fmt.Errorf(resMsg.Message)
-	} else {
-		fmt.Println(resMsg.Message)
 	}
+	fmt.Println(resMsg.Message)
 
 	return nil
 }

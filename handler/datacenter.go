@@ -11,6 +11,7 @@ import (
 	"github.com/hichikaw/dosanco/model"
 )
 
+// GetAllDataCenters returns all data center information.
 func GetAllDataCenters(c echo.Context) error {
 	db := db.GetDB()
 	dcs := []model.DataCenter{}
@@ -19,6 +20,7 @@ func GetAllDataCenters(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, dcs, "    ")
 }
 
+// CreateDataCenter creates a new data center.
 func CreateDataCenter(c echo.Context) error {
 	dc := new(model.DataCenter)
 	if err := c.Bind(dc); err != nil {

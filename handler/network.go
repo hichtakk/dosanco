@@ -14,7 +14,7 @@ import (
 	"github.com/hichikaw/dosanco/model"
 )
 
-// GetAllNetwork returns all networks
+// GetAllNetwork returns all network information.
 func GetAllNetwork(c echo.Context) error {
 	db := db.GetDB()
 	networks := model.IPv4Networks{}
@@ -44,7 +44,7 @@ func GetAllNetwork(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, networks, "    ")
 }
 
-// GetNetwork returns a specified network
+// GetIPv4Network returns a specified network information.
 func GetIPv4Network(c echo.Context) error {
 	var network model.IPv4Network
 	id, err := strconv.Atoi(c.Param("id"))
@@ -66,7 +66,7 @@ func GetIPv4Network(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, network, "    ")
 }
 
-// GetNetworkByCIDR returns a specified CIDR network
+// GetIPv4NetworkByCIDR returns a specified CIDR network information.
 func GetIPv4NetworkByCIDR(c echo.Context) error {
 	var network model.IPv4Network
 	cidr := strings.Replace(c.Param("cidr"), "-", "/", 1)
@@ -85,7 +85,7 @@ func GetIPv4NetworkByCIDR(c echo.Context) error {
 	return c.JSONPretty(http.StatusOK, network, "    ")
 }
 
-// CreateNetwork creates a new network with given json data
+// CreateIPv4Network creates a new network with given json data.
 func CreateIPv4Network(c echo.Context) error {
 	network := new(model.IPv4Network)
 	if err := c.Bind(network); err != nil {
@@ -105,7 +105,7 @@ func CreateIPv4Network(c echo.Context) error {
 	db := db.GetDB()
 	var root model.IPv4Network
 	db.Take(&root, "c_id_r=?", "0.0.0.0/0")
-	supernet := SearchNetworkRelation(&root, network)
+	supernet := GetSupernetwork(&root, network)
 
 	// ensure the network is not overwrapped other subnets.
 	subnets := []model.IPv4Network{}
@@ -129,7 +129,8 @@ func CreateIPv4Network(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network created. ID: %d,  CIDR: %s,  Description: %s", network.ID, network.CIDR, network.Description)})
 }
 
-func SearchNetworkRelation(seed *model.IPv4Network, nw *model.IPv4Network) *model.IPv4Network {
+// GetSupernetwork returns supernetwork for network passed to argument.
+func GetSupernetwork(seed *model.IPv4Network, nw *model.IPv4Network) *model.IPv4Network {
 	//fmt.Printf("Search Network for %v: seed: %v\n", nw.CIDR, seed.CIDR)
 	subnets := getSubnetworks(seed.ID, uint(1), uint(0), true)
 	for _, subnet := range *subnets {
@@ -139,14 +140,14 @@ func SearchNetworkRelation(seed *model.IPv4Network, nw *model.IPv4Network) *mode
 			}
 		}
 		if subnet.Contains(nw.GetNetworkAddress()) {
-			return SearchNetworkRelation(&subnet, nw)
+			return GetSupernetwork(&subnet, nw)
 		}
 	}
 
 	return seed
 }
 
-// UpdateNetwork updates only description for specified network
+// UpdateIPv4Network updates only description for specified network.
 func UpdateIPv4Network(c echo.Context) error {
 	network := new(model.IPv4Network)
 	if err := c.Bind(network); err != nil {
@@ -169,7 +170,7 @@ func UpdateIPv4Network(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network updated. ID: %d,  CIDR: %s,  Description: %s", net.ID, net.CIDR, network.Description)})
 }
 
-// DeleteNetwork deletes specified network
+// DeleteIPv4Network deletes specified network
 func DeleteIPv4Network(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
@@ -210,6 +211,7 @@ func DeleteIPv4Network(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
 }
 
+// GetIPv4Allocations returns ip allocation data for specified network.
 func GetIPv4Allocations(c echo.Context) error {
 	nid, err := strconv.Atoi(c.Param("network_id"))
 	if err != nil {
@@ -222,6 +224,7 @@ func GetIPv4Allocations(c echo.Context) error {
 	return c.JSON(http.StatusOK, addr)
 }
 
+// CreateIPv4Allocation creates a new ipv4 allocation to specified network.
 func CreateIPv4Allocation(c echo.Context) error {
 	addr := new(model.IPv4Allocation)
 	if err := c.Bind(addr); err != nil {
@@ -250,22 +253,24 @@ func CreateIPv4Allocation(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation created"})
 }
 
+// DeleteIPv4Allocation deletes specified ipv4 allocation.
 func DeleteIPv4Allocation(c echo.Context) error {
-	allocId, err := strconv.Atoi(c.Param("allocation_id"))
+	allocID, err := strconv.Atoi(c.Param("allocation_id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
 	addr := new(model.IPv4Allocation)
 	db := db.GetDB()
-	if result := db.Delete(addr, "id=?", allocId); result.Error != nil {
+	if result := db.Delete(addr, "id=?", allocID); result.Error != nil {
 		return result.Error
 	}
 
 	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation deleted"})
 }
 
+// UpdateIPv4Allocation updates only description of specified ipv4 allocation.
 func UpdateIPv4Allocation(c echo.Context) error {
-	allocId, err := strconv.Atoi(c.Param("allocation_id"))
+	allocID, err := strconv.Atoi(c.Param("allocation_id"))
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
@@ -274,12 +279,10 @@ func UpdateIPv4Allocation(c echo.Context) error {
 	if err := c.Bind(reqAddr); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
 	}
-
 	db := db.GetDB()
-	if result := db.Take(addr, "id=?", allocId); result.Error != nil {
+	if result := db.Take(addr, "id=?", allocID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "target not found"})
 	}
-
 	if result := db.Model(addr).Update("description", reqAddr.Description); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
 	}
@@ -287,6 +290,7 @@ func UpdateIPv4Allocation(c echo.Context) error {
 	return c.JSON(http.StatusOK, map[string]string{"message": "allocation update"})
 }
 
+// GetHostIPv4Allocations returns ipv4 allocations associated with specified hostname.
 func GetHostIPv4Allocations(c echo.Context) error {
 	hostname := c.Param("hostname")
 	addr := []model.IPv4Allocation{}

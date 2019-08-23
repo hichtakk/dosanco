@@ -18,7 +18,7 @@ var (
 
 // Init initializes database connection and ORM
 func Init(c config.Config) {
-	schema = strings.Split(c.DB.Url, "://")
+	schema = strings.Split(c.DB.URL, "://")
 	if schema[0] == "sqlite" {
 		db, err = gorm.Open("sqlite3", schema[1])
 		if err != nil {

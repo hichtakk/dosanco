@@ -7,12 +7,12 @@ import (
 	"github.com/spf13/viper"
 )
 
-// DBConfig is struct for database configuration
+// APIServerConfig represents api server endpoint.
 type APIServerConfig struct {
-	Url string `toml:"url"`
+	URL string `toml:"url"`
 }
 
-// Config is struct for main configuration
+// Config is struct for main configuration.
 type Config struct {
 	APIServer APIServerConfig `toml:"apiserver"`
 }

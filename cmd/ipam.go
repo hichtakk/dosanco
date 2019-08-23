@@ -24,7 +24,7 @@ var (
 
 func showIPAllocation(cmd *cobra.Command, args []string) {
 	// get network
-	nBody, err := sendRequest("GET", Conf.APIServer.Url+"/network", []byte{})
+	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network", []byte{})
 	if err != nil {
 		errBody := new(handler.ErrorResponse)
 		if err := json.Unmarshal(nBody, errBody); err != nil {
@@ -40,7 +40,7 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	url := Conf.APIServer.Url + "/ipam"
+	url := Conf.APIServer.URL + "/ipam"
 	if hostFlag == true {
 		url = url + "/host/" + args[0]
 	} else {
@@ -63,16 +63,16 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 }
 
 func createIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/ipam"
+	url := Conf.APIServer.URL + "/ipam"
 	reqModel := model.IPv4Allocation{Name: args[0], IPv4NetworkID: uint(networkID), Address: address, Description: description}
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	req, err := http.NewRequest(
 		"POST",
 		url,
-		bytes.NewBuffer(reqJson),
+		bytes.NewBuffer(reqJSON),
 	)
 	if err != nil {
 		return err
@@ -102,21 +102,21 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func updateIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/ipam/" + args[0]
+	url := Conf.APIServer.URL + "/ipam/" + args[0]
 	aid, err := strconv.Atoi(args[0])
 	if err != nil {
 		return fmt.Errorf("invalid id. integer is required for argument")
 	}
 	reqModel := model.IPv4Allocation{Description: description}
 	reqModel.ID = uint(aid)
-	reqJson, err := json.Marshal(reqModel)
+	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	req, err := http.NewRequest(
 		"PUT",
 		url,
-		bytes.NewBuffer(reqJson),
+		bytes.NewBuffer(reqJSON),
 	)
 	if err != nil {
 		return err
@@ -146,7 +146,7 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func deleteIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.Url + "/ipam/" + args[0]
+	url := Conf.APIServer.URL + "/ipam/" + args[0]
 	req, err := http.NewRequest(
 		"DELETE",
 		url,

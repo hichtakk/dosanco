@@ -15,7 +15,7 @@ var (
 	flagConfig string
 )
 
-// Viper config
+// Conf is global variable for configuration data.
 var Conf Config
 
 // Execute adds all child commands to the root command and sets flags appropriately.
