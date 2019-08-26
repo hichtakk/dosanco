@@ -32,9 +32,9 @@ func (n IPv4Network) Write() {
 	}
 	if len(n.Allocations) > 0 {
 		fmt.Println("# IP Allocations")
-		for _, a := range n.Allocations {
-			fmt.Printf(" %-15v %-20v\t%v\n", a.Address, a.Name, a.Description)
-		}
+		length := n.GetPrefixLength()
+		addrSpace := 1 << uint(32-length)
+		fmt.Printf(" %v / %v allocated\n", len(n.Allocations), addrSpace)
 	}
 }
 
