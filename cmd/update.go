@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -55,16 +53,11 @@ func NewCmdUpdateIPAllocation() *cobra.Command {
 // NewCmdUpdateVlan is subcommand represents update vlan resource.
 func NewCmdUpdateVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
+		Use:     "vlan [VLAN_ID]",
 		Aliases: []string{"vlan"},
 		Short:   "update vlan description",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires vlan id")
-			}
-			return nil
-		},
-		RunE: updateVlan,
+		Args:    cobra.ExactArgs(1),
+		RunE:    updateVlan,
 	}
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
 
@@ -77,13 +70,8 @@ func NewCmdUpdateDataCenter() *cobra.Command {
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
 		Short:   "update datacenter address",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires datacenter id")
-			}
-			return nil
-		},
-		RunE: updateDataCenter,
+		Args:    cobra.ExactArgs(1),
+		RunE:    updateDataCenter,
 	}
 	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of the datacenter")
 	dcCmd.MarkFlagRequired("address")

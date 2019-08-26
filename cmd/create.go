@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"fmt"
-
 	"github.com/spf13/cobra"
 )
 
@@ -45,13 +43,8 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 		Use:     "ipam [ADDRESS]",
 		Aliases: []string{"ip"},
 		Short:   "create new ip allocation",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires hostname")
-			}
-			return nil
-		},
-		RunE: createIPAllocation,
+		Args:    cobra.ExactArgs(1),
+		RunE:    createIPAllocation,
 	}
 	ipamCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested ip allocation")
 	ipamCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address")
@@ -67,13 +60,8 @@ func NewCmdCreateVlan() *cobra.Command {
 		Use:     "vlan",
 		Aliases: []string{"vlan"},
 		Short:   "create new vlan",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires vlan id")
-			}
-			return nil
-		},
-		RunE: createVlan,
+		Args:    cobra.ExactArgs(1),
+		RunE:    createVlan,
 	}
 	vlanCmd.Flags().IntVarP(&networkID, "network-id", "n", 0, "network id of the requested ip allocation")
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
@@ -88,13 +76,8 @@ func NewCmdCreateDataCenter() *cobra.Command {
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
 		Short:   "create new datacenter",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires data center name")
-			}
-			return nil
-		},
-		RunE: createDataCenter,
+		Args:    cobra.ExactArgs(1),
+		RunE:    createDataCenter,
 	}
 	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of data center")
 	dcCmd.MarkFlagRequired("address")
