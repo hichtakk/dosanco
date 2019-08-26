@@ -35,7 +35,7 @@ func getDataCenter(cmd *cobra.Command, args []string) {
 
 func createDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
-	reqModel := model.DataCenter{Name: args[0], Address: address}
+	reqModel := model.DataCenter{Name: args[0], Address: cmd.Flag("address").Value.String()}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
@@ -56,7 +56,7 @@ func createDataCenter(cmd *cobra.Command, args []string) error {
 func updateDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	url = url + "/" + args[0]
-	reqModel := model.DataCenter{Address: address}
+	reqModel := model.DataCenter{Address: cmd.Flag("address").Value.String()}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)

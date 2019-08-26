@@ -18,9 +18,7 @@ import (
 
 // Flags
 var (
-	networkID int
-	address   string
-	hostFlag  bool
+//address string
 )
 
 func showIPAllocation(cmd *cobra.Command, args []string) {
@@ -42,7 +40,7 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	}
 
 	url := Conf.APIServer.URL + "/ipam"
-	if hostFlag == true {
+	if cmd.Flag("host").Value.String() == "true" {
 		url = url + "/host/" + args[0]
 	} else {
 		targetNW := model.IPv4Network{}

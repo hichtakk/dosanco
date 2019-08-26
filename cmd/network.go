@@ -14,10 +14,6 @@ import (
 
 // Flags
 var (
-	tree        bool
-	depth       int
-	rfc         bool
-	supernetID  int
 	description string
 )
 
@@ -63,7 +59,7 @@ func getNetworkByCIDR(url string, cidr string) {
 	nw.Write()
 }
 
-func getNetworks(url string, query string) {
+func getNetworks(cmd *cobra.Command, url string, query string) {
 	if query != "" {
 		url = url + query
 	}
@@ -88,7 +84,7 @@ func getNetworks(url string, query string) {
 		fmt.Println(string(body))
 		return
 	}
-	if tree == true {
+	if cmd.Flag("tree").Value.String() == "true" {
 		printNetworkTree(data, 0)
 		return
 	}
@@ -107,7 +103,6 @@ func printNetworkTree(networks *model.IPv4Networks, depth int) {
 
 func createNetwork(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/network"
-	//reqModel := model.IPv4Network{CIDR: args[0], SupernetworkID: uint(supernetID), Description: description}
 	reqModel := model.IPv4Network{CIDR: args[0], Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
@@ -231,7 +226,8 @@ func createVlan(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	reqModel := model.Vlan{Description: description, IPv4NetworkID: uint(networkID)}
+	vlanID, _ := strconv.ParseUint(cmd.Flag("network-id").Value.String(), 10, 32)
+	reqModel := model.Vlan{Description: description, IPv4NetworkID: uint(vlanID)}
 	reqModel.ID = uint(id)
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {

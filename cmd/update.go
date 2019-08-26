@@ -66,6 +66,7 @@ func NewCmdUpdateVlan() *cobra.Command {
 
 // NewCmdUpdateDataCenter is subcommand represents update datacenter resource.
 func NewCmdUpdateDataCenter() *cobra.Command {
+	var address string
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",
 		Aliases: []string{"dc"},

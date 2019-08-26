@@ -56,6 +56,7 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 
 // NewCmdCreateVlan is subcommand represents vlan resource.
 func NewCmdCreateVlan() *cobra.Command {
+	var networkID int
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
 		Aliases: []string{"vlan"},
@@ -72,6 +73,7 @@ func NewCmdCreateVlan() *cobra.Command {
 
 // NewCmdCreateDataCenter is subcommand represents datacenter resource.
 func NewCmdCreateDataCenter() *cobra.Command {
+	var address string
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
