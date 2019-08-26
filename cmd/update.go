@@ -38,19 +38,16 @@ func NewCmdUpdateNetwork() *cobra.Command {
 
 // NewCmdUpdateIPAllocation is subcommand represents update ip allocation resource.
 func NewCmdUpdateIPAllocation() *cobra.Command {
+	//var name string
 	var ipamCmd = &cobra.Command{
-		Use:   "ipam",
-		Short: "update ip allocation data",
-		Args: func(cmd *cobra.Command, args []string) error {
-			if len(args) != 1 {
-				return fmt.Errorf("requires allocation ID")
-			}
-			return nil
-		},
-		RunE: updateIPAllocation,
+		Use:     "ipam [ADDRESS]",
+		Aliases: []string{"ip"},
+		Short:   "update ip allocation data",
+		Args:    cobra.ExactArgs(1),
+		RunE:    updateIPAllocation,
 	}
-	ipamCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested ip allocation")
-	//ipamCmd.Flags().StringVarP(&hostname, "hostname", "name", "", "ip address of the requested allocation")
+	ipamCmd.Flags().StringVarP(&description, "description", "d", "", "new description of the requested ip allocation")
+	//ipamCmd.Flags().StringVarP(&name, "name", "", "", "new hostname of the requested allocation")
 
 	return ipamCmd
 }

@@ -52,6 +52,7 @@ func main() {
 	e.DELETE("/ipam/:allocation_id", handler.DeleteIPv4Allocation)
 	e.GET("/ipam/network/:network_id", handler.GetIPv4Allocations)
 	e.GET("/ipam/host/:hostname", handler.GetHostIPv4Allocations)
+	e.GET("/ip/v4/:address", handler.GetIPv4AllocationByAddress)
 
 	e.GET("/vlan", handler.GetAllVlan)
 	e.POST("/vlan", handler.CreateVlan)

@@ -8,6 +8,7 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -44,7 +45,17 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	if hostFlag == true {
 		url = url + "/host/" + args[0]
 	} else {
-		url = url + "/network/" + args[0]
+		targetNW := model.IPv4Network{}
+		for _, n := range *data {
+			if n.CIDR == args[0] {
+				targetNW = n
+			}
+		}
+		if targetNW.ID == 0 {
+			fmt.Printf("network %v not found\n", args[0])
+			return
+		}
+		url = url + "/network/" + strconv.Itoa(int(targetNW.ID))
 	}
 	resp, err := http.Get(url)
 	if err != nil {
@@ -63,8 +74,25 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 }
 
 func createIPAllocation(cmd *cobra.Command, args []string) error {
+	hostname := cmd.Flag("name").Value.String()
+	cidr := cmd.Flag("network").Value.String()
+	// get network
+	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network/cidr/"+strings.Replace(cidr, "/", "-", 1), []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(nBody, errBody); err != nil {
+			return fmt.Errorf("response parse error")
+		}
+		return fmt.Errorf(errBody.Error.Message)
+	}
+	data := new(model.IPv4Network)
+	if err := json.Unmarshal(nBody, data); err != nil {
+		return fmt.Errorf("json unmarshal err: %v", err)
+	}
+	// validation
+	addr := args[0]
 	url := Conf.APIServer.URL + "/ipam"
-	reqModel := model.IPv4Allocation{Name: args[0], IPv4NetworkID: uint(networkID), Address: address, Description: description}
+	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: data.ID, Address: addr, Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
@@ -87,7 +115,6 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		//fmt.Errorf(err.Error())
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
@@ -102,16 +129,27 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func updateIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/ipam/" + args[0]
-	aid, err := strconv.Atoi(args[0])
+	url := Conf.APIServer.URL + "/ip/v4/" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		return fmt.Errorf("invalid id. integer is required for argument")
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return err
+		}
+		fmt.Println(errBody.Error.Message)
+		return err
 	}
-	reqModel := model.IPv4Allocation{Description: description}
-	reqModel.ID = uint(aid)
-	reqJSON, err := json.Marshal(reqModel)
+	alloc := new(model.IPv4Allocation)
+	if err := json.Unmarshal(body, alloc); err != nil {
+		fmt.Println("json unmarshal error:", err)
+		return err
+	}
+	url = Conf.APIServer.URL + "/ipam/" + strconv.Itoa(int(alloc.ID))
+	alloc.Description = description
+	reqJSON, err := json.Marshal(alloc)
 	if err != nil {
-		return fmt.Errorf("json marshal error: %v", reqModel)
+		return fmt.Errorf("json marshal error: %v", alloc)
 	}
 	req, err := http.NewRequest(
 		"PUT",
@@ -129,7 +167,7 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//fmt.Errorf(err.Error())
 	}
@@ -146,7 +184,23 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func deleteIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/ipam/" + args[0]
+	url := Conf.APIServer.URL + "/ip/v4/" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		errBody := new(handler.ErrorResponse)
+		if err := json.Unmarshal(body, errBody); err != nil {
+			fmt.Println("response parse error")
+			return err
+		}
+		fmt.Println(errBody.Error.Message)
+		return err
+	}
+	alloc := new(model.IPv4Allocation)
+	if err := json.Unmarshal(body, alloc); err != nil {
+		fmt.Println("json unmarshal error:", err)
+		return err
+	}
+	url = Conf.APIServer.URL + "/ipam/" + strconv.Itoa(int(alloc.ID))
 	req, err := http.NewRequest(
 		"DELETE",
 		url,
@@ -163,7 +217,7 @@ func deleteIPAllocation(cmd *cobra.Command, args []string) error {
 	}
 	defer resp.Body.Close()
 
-	body, err := ioutil.ReadAll(resp.Body)
+	body, err = ioutil.ReadAll(resp.Body)
 	if err != nil {
 		//fmt.Errorf(err.Error())
 	}

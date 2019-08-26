@@ -39,9 +39,12 @@ func NewCmdCreateNetwork() *cobra.Command {
 
 // NewCmdCreateIPAllocation is subcommand represents ip allocation resource.
 func NewCmdCreateIPAllocation() *cobra.Command {
+	var name string
+	var network string
 	var ipamCmd = &cobra.Command{
-		Use:   "ipam",
-		Short: "create new ip allocation",
+		Use:     "ipam [ADDRESS]",
+		Aliases: []string{"ip"},
+		Short:   "create new ip allocation",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) != 1 {
 				return fmt.Errorf("requires hostname")
@@ -50,11 +53,10 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 		},
 		RunE: createIPAllocation,
 	}
-	ipamCmd.Flags().IntVarP(&networkID, "network-id", "n", 0, "network id of the requested ip allocation")
 	ipamCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested ip allocation")
-	ipamCmd.Flags().StringVarP(&address, "address", "a", "", "ip address of the requested allocation")
-	ipamCmd.MarkFlagRequired("network-id")
-	ipamCmd.MarkFlagRequired("address")
+	ipamCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address")
+	ipamCmd.Flags().StringVarP(&network, "network", "", "", "network CIDR for the ip address")
+	ipamCmd.MarkFlagRequired("network")
 
 	return ipamCmd
 }

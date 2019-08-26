@@ -217,9 +217,7 @@ func GetIPv4Allocations(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
 	}
-	addr := []model.IPv4Allocation{}
-	d := db.GetDB()
-	d.Find(&addr, "ipv4_network_id=?", nid)
+	addr := getIPAllocations(uint(nid))
 
 	return c.JSON(http.StatusOK, addr)
 }
@@ -296,6 +294,16 @@ func GetHostIPv4Allocations(c echo.Context) error {
 	addr := []model.IPv4Allocation{}
 	d := db.GetDB()
 	d.Find(&addr, "name=?", hostname)
+
+	return c.JSON(http.StatusOK, addr)
+}
+
+// GetHostIPv4Allocations returns ipv4 allocations associated with specified hostname.
+func GetIPv4AllocationByAddress(c echo.Context) error {
+	ipv4 := c.Param("address")
+	addr := model.IPv4Allocation{}
+	d := db.GetDB()
+	d.Find(&addr, "address=?", ipv4)
 
 	return c.JSON(http.StatusOK, addr)
 }
