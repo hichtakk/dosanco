@@ -16,11 +16,6 @@ import (
 	"github.com/hichikaw/dosanco/model"
 )
 
-// Flags
-var (
-//address string
-)
-
 func showIPAllocation(cmd *cobra.Command, args []string) {
 	// get network
 	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network", []byte{})
