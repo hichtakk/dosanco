@@ -47,12 +47,12 @@ func main() {
 	e.DELETE("/network/:id", handler.DeleteIPv4Network)
 	e.GET("/network/cidr/:cidr", handler.GetIPv4NetworkByCIDR)
 
-	e.POST("/ipam", handler.CreateIPv4Allocation)
-	e.PUT("/ipam/:allocation_id", handler.UpdateIPv4Allocation)
-	e.DELETE("/ipam/:allocation_id", handler.DeleteIPv4Allocation)
-	e.GET("/ipam/network/:network_id", handler.GetIPv4Allocations)
-	e.GET("/ipam/host/:hostname", handler.GetHostIPv4Allocations)
-	e.GET("/ip/v4/:address", handler.GetIPv4AllocationByAddress)
+	e.POST("/ip/v4", handler.CreateIPv4Allocation)
+	e.PUT("/ip/v4/:allocation_id", handler.UpdateIPv4Allocation)
+	e.DELETE("/ip/v4/:allocation_id", handler.DeleteIPv4Allocation)
+	e.GET("/ip/v4/network/:network_id", handler.GetIPv4Allocations)
+	e.GET("/ip/v4/host/:hostname", handler.GetHostIPv4Allocations)
+	e.GET("/ip/v4/addr/:address", handler.GetIPv4AllocationByAddress)
 
 	e.GET("/vlan", handler.GetAllVlan)
 	e.POST("/vlan", handler.CreateVlan)

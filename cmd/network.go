@@ -305,7 +305,7 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 		return
 	}
 
-	url := Conf.APIServer.URL + "/ipam"
+	url := Conf.APIServer.URL + "/ip/v4"
 	if cmd.Flag("host").Value.String() == "true" {
 		url = url + "/host/" + args[0]
 	} else {
@@ -359,7 +359,7 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 	}
 	// validation
 	addr := args[0]
-	url := Conf.APIServer.URL + "/ipam"
+	url := Conf.APIServer.URL + "/ip/v4"
 	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: data.ID, Address: addr, Type: allocType, Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
@@ -397,7 +397,7 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func updateIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/ip/v4/" + args[0]
+	url := Conf.APIServer.URL + "/ip/v4/addr/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
 		errBody := new(handler.ErrorResponse)
@@ -413,7 +413,7 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 		fmt.Println("json unmarshal error:", err)
 		return err
 	}
-	url = Conf.APIServer.URL + "/ipam/" + strconv.Itoa(int(alloc.ID))
+	url = Conf.APIServer.URL + "/ip/v4/" + strconv.Itoa(int(alloc.ID))
 	name := cmd.Flag("name").Value.String()
 	description := cmd.Flag("description").Value.String()
 	if name != "-" && name != alloc.Name {
@@ -462,7 +462,7 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func deleteIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/ip/v4/" + args[0]
+	url := Conf.APIServer.URL + "/ip/v4/addr/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
 		errBody := new(handler.ErrorResponse)
@@ -478,7 +478,7 @@ func deleteIPAllocation(cmd *cobra.Command, args []string) error {
 		fmt.Println("json unmarshal error:", err)
 		return err
 	}
-	url = Conf.APIServer.URL + "/ipam/" + strconv.Itoa(int(alloc.ID))
+	url = Conf.APIServer.URL + "/ip/v4/" + strconv.Itoa(int(alloc.ID))
 	req, err := http.NewRequest(
 		"DELETE",
 		url,
