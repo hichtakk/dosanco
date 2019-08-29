@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/json"
 	"fmt"
 	"net"
 	"strconv"
@@ -18,23 +19,28 @@ type IPv4Network struct {
 	Allocations    []IPv4Allocation `json:"allocations,omitempty"`
 }
 
-func (n IPv4Network) Write() {
-	fmt.Printf("# Network Data\n")
-	fmt.Printf(" ID:             %-3d\n", n.ID)
-	fmt.Printf(" CIDR:           %v\n", n.CIDR)
-	fmt.Printf(" Description:    %v\n", n.Description)
-	fmt.Printf(" SupernetworkID: %d\n\n", n.SupernetworkID)
-	if len(n.Subnetworks) > 0 {
-		fmt.Println("# Subnetworks")
-		for _, s := range n.Subnetworks {
-			fmt.Printf(" %-15v %v\n", s.CIDR, s.Description)
+func (n IPv4Network) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(n, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# Network Data\n")
+		fmt.Printf(" ID:             %-3d\n", n.ID)
+		fmt.Printf(" CIDR:           %v\n", n.CIDR)
+		fmt.Printf(" Description:    %v\n", n.Description)
+		fmt.Printf(" SupernetworkID: %d\n\n", n.SupernetworkID)
+		if len(n.Subnetworks) > 0 {
+			fmt.Println("# Subnetworks")
+			for _, s := range n.Subnetworks {
+				fmt.Printf(" %-15v %v\n", s.CIDR, s.Description)
+			}
 		}
-	}
-	if len(n.Allocations) > 0 {
-		fmt.Println("# IP Allocations")
-		length := n.GetPrefixLength()
-		addrSpace := 1 << uint(32-length)
-		fmt.Printf(" %v / %v allocated\n", len(n.Allocations), addrSpace)
+		if len(n.Allocations) > 0 {
+			fmt.Println("# IP Allocations")
+			length := n.GetPrefixLength()
+			addrSpace := 1 << uint(32-length)
+			fmt.Printf(" %v / %v allocated\n", len(n.Allocations), addrSpace)
+		}
 	}
 }
 
@@ -53,7 +59,7 @@ type Vlan struct {
 // IPv4Allocation represents allocated ip address specification.
 type IPv4Allocation struct {
 	Model
-	Type          string `json:"type" gorm:"default:host"` // network or host
+	Type          string `json:"type" gorm:"default:host"` // generic or reserved
 	Address       string `json:"address" gorm:"unique;not null" validate:"required"`
 	Name          string `json:"name"`
 	Description   string `json:"description"`
@@ -138,10 +144,33 @@ func (n IPv4Networks) Swap(i, j int) {
 	n[i], n[j] = n[j], n[i]
 }
 
-func (n IPv4Networks) Write() {
-	fmt.Printf("ID	CIDR			Description\n")
-	for _, network := range n {
-		fmt.Printf("%2d	%-20s	%s\n", network.ID, network.CIDR, network.Description)
+func (n IPv4Networks) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(n, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else if output == "wide" {
+		fmt.Printf("ID	CIDR			Description\n")
+		for _, network := range n {
+			fmt.Printf("%2d	%-20s	%s\n", network.ID, network.CIDR, network.Description)
+		}
+	} else {
+		if len(n[0].Subnetworks) > 0 {
+			var writeNetworkTree func(networks IPv4Networks, depth int)
+			writeNetworkTree = func(networks IPv4Networks, d int) {
+				for _, n := range networks {
+					fmt.Printf("%v%v:%v\n", strings.Repeat("   ", d), n.ID, n.CIDR)
+					if len(n.Subnetworks) > 0 {
+						writeNetworkTree(n.Subnetworks, d+1)
+					}
+				}
+			}
+			writeNetworkTree(n, 0)
+		} else {
+			fmt.Printf("%-20s	%s\n", "CIDR", "Description")
+			for _, network := range n {
+				fmt.Printf("%-20s	%s\n", network.CIDR, network.Description)
+			}
+		}
 	}
 }
 
@@ -160,12 +189,19 @@ func (a IPv4Allocations) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
 }
 
-func (a IPv4Allocations) Write() {
-	/*
-		fmt.Printf("%-5s %-15v  %-15v  %-16v  %-v\n", "ID", "Address", "Network", "Name", "Description")
+func (a IPv4Allocations) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(a, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else if output == "wide" {
+		fmt.Printf("%-5s %-15v  %-10v %-16v  %-v\n", "ID", "Address", "Type", "Name", "Description")
 		for _, alloc := range a {
-			cidr := getNetworkCIDRfromID(data, alloc.IPv4NetworkID)
-			fmt.Printf("%-5d %-15v  %-15v  %-16v  %-v\n", alloc.ID, alloc.Address, cidr, alloc.Name, alloc.Description)
+			fmt.Printf("%-5d %-15v  %-10v %-16v  %-v\n", alloc.ID, alloc.Address, alloc.Type, alloc.Name, alloc.Description)
 		}
-	*/
+	} else {
+		fmt.Printf("%-15v   %-9v   %-16v   %-v\n", "Address", "Type", "Name", "Description")
+		for _, alloc := range a {
+			fmt.Printf("%-15v   %-9v   %-16v   %-v\n", alloc.Address, alloc.Type, alloc.Name, alloc.Description)
+		}
+	}
 }

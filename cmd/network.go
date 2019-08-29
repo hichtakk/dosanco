@@ -21,6 +21,60 @@ var (
 	description string
 )
 
+func showNetwork(cmd *cobra.Command, args []string) {
+	url := Conf.APIServer.URL + "/network"
+	tree, _ := strconv.ParseBool(cmd.Flag("tree").Value.String())
+	depth, _ := strconv.Atoi(cmd.Flag("depth").Value.String())
+	rfc, _ := strconv.ParseBool(cmd.Flag("show-rfc-reserved").Value.String())
+	if len(args) > 0 {
+		url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			errBody := new(handler.ErrorResponse)
+			if err := json.Unmarshal(body, errBody); err != nil {
+				fmt.Println("response parse error")
+				return
+			}
+			fmt.Println(errBody.Error.Message)
+			return
+		}
+		nw := new(model.IPv4Network)
+		if err := json.Unmarshal(body, nw); err != nil {
+			fmt.Println("json unmarshal error:", err)
+			return
+		}
+		nw.Write(cmd.Flag("output").Value.String())
+	} else {
+		query := "?"
+		if tree == true {
+			query = query + "&tree=true"
+			if depth > 0 {
+				query = query + "&depth=" + cmd.Flag("depth").Value.String()
+			}
+		}
+		if rfc == true {
+			query = query + "&show-rfc-reserved=true"
+		}
+		url = url + query
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			errBody := new(handler.ErrorResponse)
+			if err := json.Unmarshal(body, errBody); err != nil {
+				fmt.Println("response parse error")
+				return
+			}
+			fmt.Println(errBody.Error.Message)
+			return
+		}
+		data := new(model.IPv4Networks)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("json unmarshal err:", err)
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	}
+}
+
 func getNetwork(url string, id string) {
 	url = url + "/" + id
 	body, err := sendRequest("GET", url, []byte{})
@@ -39,70 +93,7 @@ func getNetwork(url string, id string) {
 		return
 	}
 
-	nw.Write()
-}
-
-func getNetworkByCIDR(url string, cidr string) {
-	url = url + "/cidr/" + strings.Replace(cidr, "/", "-", 1)
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
-		return
-	}
-	nw := new(model.IPv4Network)
-	if err := json.Unmarshal(body, nw); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return
-	}
-
-	nw.Write()
-}
-
-func getNetworks(cmd *cobra.Command, url string, query string) {
-	if query != "" {
-		url = url + query
-	}
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
-		return
-	}
-	data := new(model.IPv4Networks)
-	if err := json.Unmarshal(body, data); err != nil {
-		fmt.Println("json unmarshal err:", err)
-		return
-	}
-
-	// write output
-	if output == "json" {
-		fmt.Println(string(body))
-		return
-	}
-	if cmd.Flag("tree").Value.String() == "true" {
-		printNetworkTree(data, 0)
-		return
-	}
-
-	data.Write()
-}
-
-func printNetworkTree(networks *model.IPv4Networks, depth int) {
-	for _, network := range *networks {
-		fmt.Printf("%v%v:%v\n", strings.Repeat("   ", depth), network.ID, network.CIDR)
-		if len(network.Subnetworks) > 0 {
-			printNetworkTree(&network.Subnetworks, depth+1)
-		}
-	}
+	nw.Write("default")
 }
 
 func createNetwork(cmd *cobra.Command, args []string) error {
@@ -327,14 +318,11 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	body, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
 	}
-	allocs := new([]model.IPv4Allocation)
+	allocs := new(model.IPv4Allocations)
 	if err := json.Unmarshal(body, allocs); err != nil {
 	}
-	fmt.Printf("%-5s %-15v  %-15v   %-10v %-16v  %-v\n", "ID", "Address", "Network", "Type", "Name", "Description")
-	for _, alloc := range *allocs {
-		cidr := getNetworkCIDRfromID(data, alloc.IPv4NetworkID)
-		fmt.Printf("%-5d %-15v  %-15v  %-10v %-16v  %-v\n", alloc.ID, alloc.Address, cidr, alloc.Type, alloc.Name, alloc.Description)
-	}
+
+	allocs.Write(cmd.Flag("output").Value.String())
 }
 
 func createIPAllocation(cmd *cobra.Command, args []string) error {

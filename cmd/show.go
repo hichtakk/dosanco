@@ -1,8 +1,6 @@
 package cmd
 
 import (
-	"strconv"
-
 	"github.com/spf13/cobra"
 )
 
@@ -32,24 +30,7 @@ func NewCmdShowNetwork() *cobra.Command {
 		Aliases: []string{"net", "nw"},
 		Short:   "show network",
 		Args:    cobra.MaximumNArgs(1),
-		Run: func(cmd *cobra.Command, args []string) {
-			url := Conf.APIServer.URL + "/network"
-			query := "?"
-			if tree == true {
-				query = query + "&tree=true"
-				if depth > 0 {
-					query = query + "&depth=" + strconv.Itoa(depth)
-				}
-			}
-			if rfc == true {
-				query = query + "&show-rfc-reserved=true"
-			}
-			if len(args) > 0 {
-				getNetworkByCIDR(url, args[0])
-			} else {
-				getNetworks(cmd, url, query)
-			}
-		},
+		Run:     showNetwork,
 	}
 	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
 	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-reserved", "", false, "show networks defined and reserved in RFC")
@@ -77,7 +58,7 @@ func NewCmdShowIPAM() *cobra.Command {
 func NewCmdShowVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
-		Aliases: []string{"vlan"},
+		Aliases: []string{"vl"},
 		Short:   "show vlan",
 		Run: func(cmd *cobra.Command, args []string) {
 			url := Conf.APIServer.URL + "/vlan"
