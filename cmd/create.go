@@ -39,19 +39,21 @@ func NewCmdCreateNetwork() *cobra.Command {
 func NewCmdCreateIPAllocation() *cobra.Command {
 	var name string
 	var network string
-	var ipamCmd = &cobra.Command{
-		Use:     "ipam [ADDRESS]",
-		Aliases: []string{"ip"},
+	var allocType string
+	var ipCmd = &cobra.Command{
+		Use:     "ip [ADDRESS]",
+		Aliases: []string{"ip-alloc"},
 		Short:   "create new ip allocation",
 		Args:    cobra.ExactArgs(1),
 		RunE:    createIPAllocation,
 	}
-	ipamCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested ip allocation")
-	ipamCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address")
-	ipamCmd.Flags().StringVarP(&network, "network", "", "", "network CIDR for the ip address")
-	ipamCmd.MarkFlagRequired("network")
+	ipCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested ip allocation")
+	ipCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address")
+	ipCmd.Flags().StringVarP(&network, "network", "", "", "network CIDR for the ip address")
+	ipCmd.Flags().StringVarP(&allocType, "type", "t", "generic", "type of address. use 'reserved' or 'generic'")
+	ipCmd.MarkFlagRequired("network")
 
-	return ipamCmd
+	return ipCmd
 }
 
 // NewCmdCreateVlan is subcommand represents vlan resource.

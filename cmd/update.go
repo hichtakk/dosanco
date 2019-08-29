@@ -36,28 +36,28 @@ func NewCmdUpdateNetwork() *cobra.Command {
 
 // NewCmdUpdateIPAllocation is subcommand represents update ip allocation resource.
 func NewCmdUpdateIPAllocation() *cobra.Command {
-	//var name string
-	var ipamCmd = &cobra.Command{
-		Use:     "ipam [ADDRESS]",
-		Aliases: []string{"ip"},
+	var name string
+	var description string
+	var ipCmd = &cobra.Command{
+		Use:     "ip [ADDRESS]",
+		Aliases: []string{"ip-alloc"},
 		Short:   "update ip allocation data",
 		Args:    cobra.ExactArgs(1),
 		RunE:    updateIPAllocation,
 	}
-	ipamCmd.Flags().StringVarP(&description, "description", "d", "", "new description of the requested ip allocation")
-	//ipamCmd.Flags().StringVarP(&name, "name", "", "", "new hostname of the requested allocation")
+	ipCmd.Flags().StringVarP(&description, "description", "d", "-", "new description of the requested ip allocation")
+	ipCmd.Flags().StringVarP(&name, "name", "n", "-", "new hostname of the allocation")
 
-	return ipamCmd
+	return ipCmd
 }
 
 // NewCmdUpdateVlan is subcommand represents update vlan resource.
 func NewCmdUpdateVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
-		Use:     "vlan [VLAN_ID]",
-		Aliases: []string{"vlan"},
-		Short:   "update vlan description",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateVlan,
+		Use:   "vlan [VLAN_ID]",
+		Short: "update vlan description",
+		Args:  cobra.ExactArgs(1),
+		RunE:  updateVlan,
 	}
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
 

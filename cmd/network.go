@@ -330,16 +330,20 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	allocs := new([]model.IPv4Allocation)
 	if err := json.Unmarshal(body, allocs); err != nil {
 	}
-	fmt.Printf("%-5s %-15v  %-15v  %-16v  %-v\n", "ID", "Address", "Network", "Name", "Description")
+	fmt.Printf("%-5s %-15v  %-15v   %-10v %-16v  %-v\n", "ID", "Address", "Network", "Type", "Name", "Description")
 	for _, alloc := range *allocs {
 		cidr := getNetworkCIDRfromID(data, alloc.IPv4NetworkID)
-		fmt.Printf("%-5d %-15v  %-15v  %-16v  %-v\n", alloc.ID, alloc.Address, cidr, alloc.Name, alloc.Description)
+		fmt.Printf("%-5d %-15v  %-15v  %-10v %-16v  %-v\n", alloc.ID, alloc.Address, cidr, alloc.Type, alloc.Name, alloc.Description)
 	}
 }
 
 func createIPAllocation(cmd *cobra.Command, args []string) error {
 	hostname := cmd.Flag("name").Value.String()
 	cidr := cmd.Flag("network").Value.String()
+	allocType := cmd.Flag("type").Value.String()
+	if (allocType != "reserved") && (allocType != "generic") {
+		return fmt.Errorf("ip allocation type error")
+	}
 	// get network
 	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network/cidr/"+strings.Replace(cidr, "/", "-", 1), []byte{})
 	if err != nil {
@@ -356,7 +360,7 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 	// validation
 	addr := args[0]
 	url := Conf.APIServer.URL + "/ipam"
-	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: data.ID, Address: addr, Description: description}
+	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: data.ID, Address: addr, Type: allocType, Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
@@ -410,7 +414,17 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	url = Conf.APIServer.URL + "/ipam/" + strconv.Itoa(int(alloc.ID))
-	alloc.Description = description
+	name := cmd.Flag("name").Value.String()
+	description := cmd.Flag("description").Value.String()
+	if name != "-" && name != alloc.Name {
+		alloc.Name = name
+	}
+	if description != "-" && description != alloc.Description {
+		alloc.Description = description
+	}
+	if name == "-" && description == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
 	reqJSON, err := json.Marshal(alloc)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", alloc)

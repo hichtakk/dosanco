@@ -231,6 +231,10 @@ func CreateIPv4Allocation(c echo.Context) error {
 	if err := c.Validate(addr); err != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
 	}
+	if (addr.Type == "generic") && (addr.Name == "") {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "hostname is required for type: generic"})
+	}
+
 	db := db.GetDB()
 	network := new(model.IPv4Network)
 	if result := db.Take(network, "id=?", addr.IPv4NetworkID); result.Error != nil {
@@ -281,7 +285,13 @@ func UpdateIPv4Allocation(c echo.Context) error {
 	if result := db.Take(addr, "id=?", allocID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "target not found"})
 	}
-	if result := db.Model(addr).Update("description", reqAddr.Description); result.Error != nil {
+	if addr.Type == "generic" && reqAddr.Name == "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "hostname is required for generic ip allocation"})
+	}
+	if addr.Type == "reserved" && reqAddr.Name != "" {
+		return c.JSON(http.StatusBadRequest, map[string]string{"message": "cannot be set hostname to reserved ip allocation"})
+	}
+	if result := db.Model(addr).Update("description", reqAddr.Description).Update("name", reqAddr.Name); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
 	}
 

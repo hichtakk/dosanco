@@ -36,8 +36,8 @@ func NewCmdDeleteNetwork() *cobra.Command {
 // NewCmdDeleteIPAllocation is subcommand represents delete ip allocation resource.
 func NewCmdDeleteIPAllocation() *cobra.Command {
 	var ipCmd = &cobra.Command{
-		Use:     "ipam [ADDRESS]",
-		Aliases: []string{"ip"},
+		Use:     "ip [ADDRESS]",
+		Aliases: []string{"ip-alloc"},
 		Short:   "delete new ip allocation",
 		Args:    cobra.ExactArgs(1),
 		RunE:    deleteIPAllocation,

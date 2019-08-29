@@ -61,16 +61,16 @@ func NewCmdShowNetwork() *cobra.Command {
 // NewCmdShowIPAM is subcommand represents show ip allocation resource.
 func NewCmdShowIPAM() *cobra.Command {
 	var host bool
-	var ipamCmd = &cobra.Command{
-		Use:     "ipam [CIDR]",
-		Aliases: []string{"ip"},
+	var ipCmd = &cobra.Command{
+		Use:     "ip [CIDR]",
+		Aliases: []string{"ip-alloc"},
 		Short:   "show ip allocation",
 		Args:    cobra.ExactArgs(1),
 		Run:     showIPAllocation,
 	}
-	ipamCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
+	ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
 
-	return ipamCmd
+	return ipCmd
 }
 
 // NewCmdShowVlan is subcommand represents show vlan resource.

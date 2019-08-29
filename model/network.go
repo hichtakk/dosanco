@@ -43,9 +43,9 @@ func (n IPv4Network) Write() {
 // Vlan represents vlan specification.
 type Vlan struct {
 	Model
-	Description   string `json:"description"`
-	IPv4NetworkID uint   `json:"ipv4_network_id" gorm:"unique;not null"`
-	//IPv4Network   IPv4Network
+	Description   string      `json:"description"`
+	IPv4NetworkID uint        `json:"ipv4_network_id" gorm:"unique;not null"`
+	IPv4Network   IPv4Network `json:"ipvr_network"`
 	//IPv6NetworkID uint
 	//IPv6Network IPv6Network
 }
@@ -55,7 +55,7 @@ type IPv4Allocation struct {
 	Model
 	Type          string `json:"type" gorm:"default:host"` // network or host
 	Address       string `json:"address" gorm:"unique;not null" validate:"required"`
-	Name          string `json:"name" gorm:"not null" validate:"required"`
+	Name          string `json:"name"`
 	Description   string `json:"description"`
 	IPv4NetworkID uint   `json:"ipv4_network_id" gorm:"not null" validate:"required" sql:"type:integer REFERENCES ipv4_networks(id)"`
 }
@@ -158,4 +158,14 @@ func (a IPv4Allocations) Less(i, j int) bool {
 
 func (a IPv4Allocations) Swap(i, j int) {
 	a[i], a[j] = a[j], a[i]
+}
+
+func (a IPv4Allocations) Write() {
+	/*
+		fmt.Printf("%-5s %-15v  %-15v  %-16v  %-v\n", "ID", "Address", "Network", "Name", "Description")
+		for _, alloc := range a {
+			cidr := getNetworkCIDRfromID(data, alloc.IPv4NetworkID)
+			fmt.Printf("%-5d %-15v  %-15v  %-16v  %-v\n", alloc.ID, alloc.Address, cidr, alloc.Name, alloc.Description)
+		}
+	*/
 }
