@@ -308,7 +308,7 @@ func GetHostIPv4Allocations(c echo.Context) error {
 	return c.JSON(http.StatusOK, addr)
 }
 
-// GetHostIPv4Allocations returns ipv4 allocations associated with specified hostname.
+// GetIPv4AllocationByAddress returns ipv4 allocation associated with specified address.
 func GetIPv4AllocationByAddress(c echo.Context) error {
 	ipv4 := c.Param("address")
 	addr := model.IPv4Allocation{}
