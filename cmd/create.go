@@ -14,6 +14,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateNetwork(),
 		NewCmdCreateIPAllocation(),
 		NewCmdCreateVlan(),
+		NewCmdCreateHost(),
 		NewCmdCreateDataCenter(),
 	)
 
@@ -71,6 +72,22 @@ func NewCmdCreateVlan() *cobra.Command {
 	vlanCmd.MarkFlagRequired("network-id")
 
 	return vlanCmd
+}
+
+// NewCmdCreateHost is subcommand represents vlan resource.
+func NewCmdCreateHost() *cobra.Command {
+	var location string
+	var hostCmd = &cobra.Command{
+		Use:     "host",
+		Aliases: []string{"server"},
+		Short:   "create new host",
+		Args:    cobra.ExactArgs(1),
+		RunE:    createHost,
+	}
+	hostCmd.Flags().StringVarP(&location, "location", "l", "", "location of the requested host")
+	hostCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
+
+	return hostCmd
 }
 
 // NewCmdCreateDataCenter is subcommand represents datacenter resource.

@@ -14,6 +14,7 @@ func NewCmdShow() *cobra.Command {
 		NewCmdShowNetwork(),
 		NewCmdShowIPAM(),
 		NewCmdShowVlan(),
+		NewCmdShowHost(),
 		NewCmdShowDataCenter(),
 	)
 
@@ -67,6 +68,19 @@ func NewCmdShowVlan() *cobra.Command {
 	}
 
 	return vlanCmd
+}
+
+// NewCmdShowHost is subcommand represents show host resource.
+func NewCmdShowHost() *cobra.Command {
+	var hostCmd = &cobra.Command{
+		Use:     "host",
+		Aliases: []string{"server"},
+		Short:   "show host",
+		Args:    cobra.ExactArgs(1),
+		Run:     showHost,
+	}
+
+	return hostCmd
 }
 
 // NewCmdShowDataCenter is subcommand represents show datacenter resource.

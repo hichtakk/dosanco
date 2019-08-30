@@ -10,6 +10,15 @@ type ErrorResponse struct {
 	Error Error `json:"error"`
 }
 
-func returnBusinessError(msg string) ErrorResponse {
-	return ErrorResponse{Error: Error{Message: msg}}
+func returnError(msg string) *ErrorResponse {
+	return &ErrorResponse{Error: Error{Message: msg}}
+}
+
+// ResponseMessage is struct for representing error response message.
+type ResponseMessage struct {
+	Message string `json:"message"`
+}
+
+func returnMessage(msg string) *ResponseMessage {
+	return &ResponseMessage{Message: msg}
 }

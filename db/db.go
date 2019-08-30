@@ -29,7 +29,10 @@ func Init(c config.Config) {
 
 	if c.Feature.Network {
 		initNetwork()
-		initIPAM()
+		initIPAllocation()
+	}
+	if c.Feature.Host {
+		initHost()
 	}
 	if c.Feature.DataCenter {
 		initDataCenter()
@@ -124,13 +127,17 @@ func initNetwork() {
 	}
 }
 
-func initIPAM() {
+func initIPAllocation() {
 	if schema[0] == "sqlite" {
 		// refer https://github.com/jinzhu/gorm/issues/765
 		db.AutoMigrate(&model.IPv4Allocation{})
 	} else {
 		db.AutoMigrate(&model.IPv4Allocation{}).AddForeignKey("ipv4_network_id", "ipv4_networks(id)", "CASCADE", "CASCADE")
 	}
+}
+
+func initHost() {
+	db.AutoMigrate(&model.Host{})
 }
 
 // GetDB returns database pointer

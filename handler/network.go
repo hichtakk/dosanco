@@ -41,7 +41,7 @@ func GetAllNetwork(c echo.Context) error {
 		sort.Sort(networks)
 	}
 
-	return c.JSONPretty(http.StatusOK, networks, "    ")
+	return c.JSON(http.StatusOK, networks)
 }
 
 // GetIPv4Network returns a specified network information.
@@ -49,11 +49,11 @@ func GetIPv4Network(c echo.Context) error {
 	var network model.IPv4Network
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSONPretty(http.StatusBadRequest, ErrorResponse{Error: Error{Message: err.Error()}}, "    ")
+		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: Error{Message: err.Error()}})
 	}
 	db := db.GetDB()
 	if result := db.Take(&network, "id=?", id); result.Error != nil {
-		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
+		return c.JSON(http.StatusBadRequest, returnError("network not found"))
 	}
 	subnets := getSubnetworks(network.ID, 1, uint(0), false)
 	if len(*subnets) > 0 {
@@ -63,7 +63,7 @@ func GetIPv4Network(c echo.Context) error {
 	if len(*allocs) > 0 {
 		network.Allocations = *allocs
 	}
-	return c.JSONPretty(http.StatusOK, network, "    ")
+	return c.JSON(http.StatusOK, network)
 }
 
 // GetIPv4NetworkByCIDR returns a specified CIDR network information.
@@ -72,7 +72,7 @@ func GetIPv4NetworkByCIDR(c echo.Context) error {
 	cidr := strings.Replace(c.Param("cidr"), "-", "/", 1)
 	db := db.GetDB()
 	if result := db.Take(&network, "c_id_r=?", cidr); result.Error != nil {
-		return c.JSONPretty(http.StatusBadRequest, returnBusinessError("network not found"), "    ")
+		return c.JSON(http.StatusBadRequest, returnError("network not found"))
 	}
 	subnets := getSubnetworks(network.ID, 1, uint(0), false)
 	if len(*subnets) > 0 {
@@ -82,7 +82,7 @@ func GetIPv4NetworkByCIDR(c echo.Context) error {
 	if len(*allocs) > 0 {
 		network.Allocations = *allocs
 	}
-	return c.JSONPretty(http.StatusOK, network, "    ")
+	return c.JSON(http.StatusOK, network)
 }
 
 // CreateIPv4Network creates a new network with given json data.
@@ -92,7 +92,7 @@ func CreateIPv4Network(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
 	}
 	if err := c.Validate(network); err != nil {
-		return c.JSON(http.StatusBadRequest, returnBusinessError("request validation failed. "+err.Error()))
+		return c.JSON(http.StatusBadRequest, returnError("request validation failed. "+err.Error()))
 	}
 	ipv4Addr, _, err := net.ParseCIDR(network.CIDR)
 	if err != nil {
@@ -343,6 +343,14 @@ func getIPAllocations(id uint) *model.IPv4Allocations {
 	var allocs model.IPv4Allocations
 	db := db.GetDB()
 	db.Where(&model.IPv4Allocation{IPv4NetworkID: id}).Find(&allocs)
+	sort.Sort(allocs)
+	return &allocs
+}
+
+func getIPv4AllocationsByHostname(name string) *model.IPv4Allocations {
+	var allocs model.IPv4Allocations
+	db := db.GetDB()
+	db.Where(&model.IPv4Allocation{Name: name}).Find(&allocs)
 	sort.Sort(allocs)
 	return &allocs
 }

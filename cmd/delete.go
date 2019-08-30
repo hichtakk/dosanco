@@ -14,6 +14,7 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteNetwork(),
 		NewCmdDeleteIPAllocation(),
 		NewCmdDeleteVlan(),
+		NewCmdDeleteHost(),
 		NewCmdDeleteDataCenter(),
 	)
 
@@ -51,12 +52,25 @@ func NewCmdDeleteVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
 		Aliases: []string{"vlan"},
-		Short:   "delete vlan description",
+		Short:   "delete vlan",
 		Args:    cobra.ExactArgs(1),
 		RunE:    deleteVlan,
 	}
 
 	return vlanCmd
+}
+
+// NewCmdDeleteHost is subcommand represents delete vlan resource.
+func NewCmdDeleteHost() *cobra.Command {
+	var hostCmd = &cobra.Command{
+		Use:     "host [HOST_ID]",
+		Aliases: []string{"server"},
+		Short:   "delete host",
+		Args:    cobra.ExactArgs(1),
+		RunE:    deleteHost,
+	}
+
+	return hostCmd
 }
 
 // NewCmdDeleteDataCenter is subcommand represents delete datacenter resource.

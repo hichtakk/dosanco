@@ -4,4 +4,5 @@ url = "sqlite://./dosanco.db"
 
 [feature]
 network = true
+host = true
 datacenter = false

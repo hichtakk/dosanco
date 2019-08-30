@@ -39,7 +39,10 @@ func main() {
 	// initialize logger middleware
 	e.Use(middleware.Logger())
 
-	// route requests
+	/*
+		Routing Definition
+	*/
+	// routing network
 	e.GET("/network", handler.GetAllNetwork)
 	e.POST("/network", handler.CreateIPv4Network)
 	e.GET("/network/:id", handler.GetIPv4Network)
@@ -59,6 +62,13 @@ func main() {
 	e.PUT("/vlan/:id", handler.UpdateVlan)
 	e.DELETE("/vlan/:id", handler.DeleteVlan)
 
+	// routing host
+	e.POST("/host", handler.CreateHost)
+	e.GET("/host/:id", handler.GetHost)
+	e.PUT("/host/:id", handler.UpdateHost)
+	e.DELETE("/host/:id", handler.DeleteHost)
+
+	// routing datacenter
 	e.GET("/datacenter", handler.GetAllDataCenters)
 	e.POST("/datacenter", handler.CreateDataCenter)
 	e.PUT("/datacenter/:id", handler.UpdateDataCenter)

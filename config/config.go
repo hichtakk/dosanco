@@ -20,6 +20,7 @@ type DBConfig struct {
 // Feature is struct for enabled dosanco features.
 type Feature struct {
 	Network    bool `toml:"network"`
+	Host       bool `toml:"host"`
 	DataCenter bool `toml:"datacenter"`
 }
 
