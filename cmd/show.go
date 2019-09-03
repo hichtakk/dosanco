@@ -73,7 +73,7 @@ func NewCmdShowVlan() *cobra.Command {
 // NewCmdShowHost is subcommand represents show host resource.
 func NewCmdShowHost() *cobra.Command {
 	var hostCmd = &cobra.Command{
-		Use:     "host",
+		Use:     "host [NAME]",
 		Aliases: []string{"server"},
 		Short:   "show host",
 		Args:    cobra.ExactArgs(1),

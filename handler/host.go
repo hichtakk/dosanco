@@ -30,6 +30,20 @@ func GetHost(c echo.Context) error {
 	return c.JSON(http.StatusOK, host)
 }
 
+func GetHostByName(c echo.Context) error {
+	host := new(model.Host)
+	db := db.GetDB()
+	if result := db.Take(&host, "name=?", c.Param("hostname")); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("host not found"))
+	}
+	allocs := getIPv4AllocationsByHostname(host.Name)
+	if len(*allocs) > 0 {
+		host.IPv4Allocations = *allocs
+	}
+
+	return c.JSON(http.StatusOK, host)
+}
+
 // CreateHost creates a new host.
 func CreateHost(c echo.Context) error {
 	host := new(model.Host)
@@ -77,6 +91,14 @@ func DeleteHost(c echo.Context) error {
 	if result := db.Take(&host, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("host %d not found", id)))
 	}
+
+	// ensure the host does not have allocated ip
+	var alloc []model.IPv4Allocation
+	db.Find(&alloc, "name=?", host.Name)
+	if len(alloc) > 0 {
+		return c.JSON(http.StatusBadRequest, returnError("host has ip allocations"))
+	}
+
 	if result := db.Delete(&host, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}

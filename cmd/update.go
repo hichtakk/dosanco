@@ -70,7 +70,7 @@ func NewCmdUpdateHost() *cobra.Command {
 	var name string
 	var location string
 	var hostCmd = &cobra.Command{
-		Use:     "host [HOST_ID]",
+		Use:     "host [NAME]",
 		Aliases: []string{"server"},
 		Short:   "update host information",
 		Args:    cobra.ExactArgs(1),

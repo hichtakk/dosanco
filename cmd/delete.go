@@ -63,7 +63,7 @@ func NewCmdDeleteVlan() *cobra.Command {
 // NewCmdDeleteHost is subcommand represents delete vlan resource.
 func NewCmdDeleteHost() *cobra.Command {
 	var hostCmd = &cobra.Command{
-		Use:     "host [HOST_ID]",
+		Use:     "host [NAME]",
 		Aliases: []string{"server"},
 		Short:   "delete host",
 		Args:    cobra.ExactArgs(1),
