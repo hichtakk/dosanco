@@ -6,7 +6,7 @@ import (
 	"time"
 )
 
-// Host represents server or network node
+// Host represents server or network node.
 type Host struct {
 	ID              uint            `gorm:"primary_key" json:"id"`
 	CreatedAt       time.Time       `gorm:"created_at" json:"created_at"`
@@ -18,6 +18,7 @@ type Host struct {
 	IPv4Allocations IPv4Allocations `json:"ipv4_allocations"`
 }
 
+// Write does output to standard output.
 func (h Host) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(h, "", "    ")
@@ -38,6 +39,7 @@ func (h Host) Write(output string) {
 	}
 }
 
+// Hosts represents list of Host.
 type Hosts []Host
 
 func (h Hosts) Write() {

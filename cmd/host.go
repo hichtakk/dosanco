@@ -1,14 +1,9 @@
 package cmd
 
 import (
-	//"bytes"
 	"encoding/json"
-	//"errors"
 	"fmt"
-	//"io/ioutil"
-	//"net/http"
 	"strconv"
-	//"strings"
 
 	"github.com/spf13/cobra"
 
@@ -83,7 +78,6 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	name := cmd.Flag("name").Value.String()
 	location := cmd.Flag("location").Value.String()
 	description := cmd.Flag("description").Value.String()
-	//reqModel := model.Host{}
 	if name == "-" && description == "-" && location == "-" {
 		fmt.Println("nothing to be updated")
 		return fmt.Errorf("nothing to be updated")

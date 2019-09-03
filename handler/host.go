@@ -30,6 +30,7 @@ func GetHost(c echo.Context) error {
 	return c.JSON(http.StatusOK, host)
 }
 
+// GetHostByName returns specified host information.
 func GetHostByName(c echo.Context) error {
 	host := new(model.Host)
 	db := db.GetDB()
