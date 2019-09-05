@@ -7,25 +7,19 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/hichikaw/dosanco/handler"
 	"github.com/hichikaw/dosanco/model"
 )
 
 func showHost(cmd *cobra.Command, args []string) {
 	url := Conf.APIServer.URL + "/host/name/" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
+	resJSON, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return
 	}
 	host := new(model.Host)
-	if err := json.Unmarshal(body, host); err != nil {
-		fmt.Println("json unmarshal error:", err)
+	if err := json.Unmarshal(resJSON, host); err != nil {
+		fmt.Println("unmarshal host error:", err)
 		return
 	}
 	host.Write(cmd.Flag("output").Value.String())
@@ -40,12 +34,7 @@ func createHost(cmd *cobra.Command, args []string) error {
 	reqJSON, _ := json.Marshal(reqModel)
 	body, err := sendRequest("POST", url, reqJSON)
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	var resMsg responseMessage
@@ -61,12 +50,7 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host/name/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	host := new(model.Host)
@@ -84,13 +68,13 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	}
 	if name != "-" {
 		host.Name = name
-	}
-	// ensure the new name is not already exists in database
-	url = Conf.APIServer.URL + "/host/name/" + name
-	body, err = sendRequest("GET", url, []byte{})
-	if err == nil {
-		fmt.Printf("host '%v' is already exist\n", name)
-		return fmt.Errorf("host '%v' is already exist", name)
+		// ensure the new name is not already exists in database
+		url = Conf.APIServer.URL + "/host/name/" + name
+		body, err = sendRequest("GET", url, []byte{})
+		if err == nil {
+			fmt.Printf("host '%v' is already exist\n", name)
+			return fmt.Errorf("host '%v' is already exist", name)
+		}
 	}
 	if location != "-" {
 		host.Location = location
@@ -102,12 +86,7 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	url = Conf.APIServer.URL + "/host/" + id
 	body, err = sendRequest("PUT", url, reqJSON)
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	var resMsg responseMessage
@@ -123,12 +102,7 @@ func deleteHost(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host/name/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	host := new(model.Host)
@@ -139,12 +113,7 @@ func deleteHost(cmd *cobra.Command, args []string) error {
 	url = Conf.APIServer.URL + "/host/" + strconv.Itoa(int(host.ID))
 	body, err = sendRequest("DELETE", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	var resMsg responseMessage

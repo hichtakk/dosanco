@@ -158,7 +158,7 @@ func (n IPv4Networks) Write(output string) {
 			var writeNetworkTree func(networks IPv4Networks, depth int)
 			writeNetworkTree = func(networks IPv4Networks, d int) {
 				for _, n := range networks {
-					fmt.Printf("%v%v:%v\n", strings.Repeat("   ", d), n.ID, n.CIDR)
+					fmt.Printf("%v%v\n", strings.Repeat("   ", d), n.CIDR)
 					if len(n.Subnetworks) > 0 {
 						writeNetworkTree(n.Subnetworks, d+1)
 					}

@@ -6,7 +6,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/hichikaw/dosanco/handler"
 	"github.com/hichikaw/dosanco/model"
 )
 
@@ -14,12 +13,7 @@ func getDataCenter(cmd *cobra.Command, args []string) {
 	url := Conf.APIServer.URL + "/datacenter"
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return
 	}
 	data := new([]model.DataCenter)
@@ -46,7 +40,8 @@ func createDataCenter(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if reqErr != nil {
-		return fmt.Errorf(resMsg.Message)
+		fmt.Println(reqErr)
+		return reqErr
 	}
 	fmt.Println(resMsg.Message)
 
@@ -67,7 +62,8 @@ func updateDataCenter(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if reqErr != nil {
-		return fmt.Errorf(resMsg.Message)
+		fmt.Println(reqErr)
+		return reqErr
 	}
 	fmt.Println(resMsg.Message)
 
@@ -82,7 +78,8 @@ func deleteDataCenter(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if reqErr != nil {
-		return fmt.Errorf(resMsg.Message)
+		fmt.Println(reqErr)
+		return reqErr
 	}
 	fmt.Println(resMsg.Message)
 

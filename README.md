@@ -1,23 +1,23 @@
 Dosanco
-====
+=======
 
 **Dosanco** is a network and server database, written in Go. :horse:
 
 ## Description
-Dosanco manages infrastructure configurations bellow.
+Dosanco manages IT infrastructure configurations bellow.
 
 ### Network
-- Subnet
+- Subnets
 - IP address allocations
-- VLAN
+- VLANs
 
 ### Host
 - Server/Node information
 
 ### DataCenter
-- DC
+- DCs
 - Electrical facilities
-- Rack PDU
+- Rack PDUs
 
 ## Demo
 

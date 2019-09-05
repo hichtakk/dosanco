@@ -7,7 +7,8 @@ type Error struct {
 
 // ErrorResponse wraps Error for response.
 type ErrorResponse struct {
-	Error Error `json:"error"`
+	Error   Error  `json:"error"`
+	Message string `json:"message"`
 }
 
 func returnError(msg string) *ErrorResponse {

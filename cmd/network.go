@@ -12,7 +12,6 @@ import (
 
 	"github.com/spf13/cobra"
 
-	"github.com/hichikaw/dosanco/handler"
 	"github.com/hichikaw/dosanco/model"
 )
 
@@ -30,12 +29,7 @@ func showNetwork(cmd *cobra.Command, args []string) {
 		url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
 		body, err := sendRequest("GET", url, []byte{})
 		if err != nil {
-			errBody := new(handler.ErrorResponse)
-			if err := json.Unmarshal(body, errBody); err != nil {
-				fmt.Println("response parse error")
-				return
-			}
-			fmt.Println(errBody.Error.Message)
+			fmt.Println(err)
 			return
 		}
 		nw := new(model.IPv4Network)
@@ -58,12 +52,7 @@ func showNetwork(cmd *cobra.Command, args []string) {
 		url = url + query
 		body, err := sendRequest("GET", url, []byte{})
 		if err != nil {
-			errBody := new(handler.ErrorResponse)
-			if err := json.Unmarshal(body, errBody); err != nil {
-				fmt.Println("response parse error")
-				return
-			}
-			fmt.Println(errBody.Error.Message)
+			fmt.Println(err)
 			return
 		}
 		data := new(model.IPv4Networks)
@@ -79,12 +68,7 @@ func getNetwork(url string, id string) {
 	url = url + "/" + id
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return
 	}
 	nw := new(model.IPv4Network)
@@ -109,7 +93,8 @@ func createNetwork(cmd *cobra.Command, args []string) error {
 		return err
 	}
 	if reqErr != nil {
-		return fmt.Errorf(resMsg.Message)
+		fmt.Println(reqErr)
+		return reqErr
 	}
 	fmt.Println(resMsg.Message)
 
@@ -121,12 +106,7 @@ func updateNetwork(cmd *cobra.Command, args []string) error {
 	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	nw := new(model.IPv4Network)
@@ -159,12 +139,7 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	nw := new(model.IPv4Network)
@@ -190,12 +165,7 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 func getVlans(url string) {
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return
 	}
 	data := new([]model.Vlan)
@@ -282,12 +252,7 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	// get network
 	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network", []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(nBody, errBody); err != nil {
-			fmt.Println("response parse error")
-			return
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return
 	}
 	data := new([]model.IPv4Network)
@@ -335,11 +300,8 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 	// get network
 	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network/cidr/"+strings.Replace(cidr, "/", "-", 1), []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(nBody, errBody); err != nil {
-			return fmt.Errorf("response parse error")
-		}
-		return fmt.Errorf(errBody.Error.Message)
+		fmt.Println(err)
+		return err
 	}
 	data := new(model.IPv4Network)
 	if err := json.Unmarshal(nBody, data); err != nil {
@@ -377,6 +339,7 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf(err.Error())
 	}
 	if resp.StatusCode != 200 {
+		fmt.Println(resMsg.Message)
 		return errors.New(resMsg.Message)
 	}
 	fmt.Println(resMsg.Message)
@@ -388,12 +351,7 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/ip/v4/addr/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	alloc := new(model.IPv4Allocation)
@@ -453,12 +411,7 @@ func deleteIPAllocation(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/ip/v4/addr/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
-		errBody := new(handler.ErrorResponse)
-		if err := json.Unmarshal(body, errBody); err != nil {
-			fmt.Println("response parse error")
-			return err
-		}
-		fmt.Println(errBody.Error.Message)
+		fmt.Println(err)
 		return err
 	}
 	alloc := new(model.IPv4Allocation)
