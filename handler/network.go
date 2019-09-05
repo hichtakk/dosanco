@@ -49,7 +49,7 @@ func GetIPv4Network(c echo.Context) error {
 	var network model.IPv4Network
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, ErrorResponse{Error: Error{Message: err.Error()}})
+		return c.JSON(http.StatusBadRequest, returnError("parse network id error"))
 	}
 	db := db.GetDB()
 	if result := db.Take(&network, "id=?", id); result.Error != nil {
@@ -89,7 +89,7 @@ func GetIPv4NetworkByCIDR(c echo.Context) error {
 func CreateIPv4Network(c echo.Context) error {
 	network := new(model.IPv4Network)
 	if err := c.Bind(network); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError("received bad request. "+err.Error()))
 	}
 	if err := c.Validate(network); err != nil {
 		return c.JSON(http.StatusBadRequest, returnError("request validation failed. "+err.Error()))
@@ -99,7 +99,7 @@ func CreateIPv4Network(c echo.Context) error {
 		return err
 	}
 	if ipv4Addr.String() != network.GetNetworkAddress() {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("request '%v' is not network address", network.CIDR)})
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("'%v' is not network address", network.CIDR)))
 	}
 
 	db := db.GetDB()
@@ -113,25 +113,24 @@ func CreateIPv4Network(c echo.Context) error {
 	for _, s := range subnets {
 		if s.GetPrefixLength() > network.GetPrefixLength() {
 			if network.Contains(s.GetNetworkAddress()) {
-				return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("requested network '%v' is overwrapping with network '%v'", network.CIDR, s.CIDR)})
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("requested network '%v' is overwrapping with network '%v'", network.CIDR, s.CIDR)))
 			}
 		}
 		n := s.GetNetwork()
 		if n.Contains(ipv4Addr) {
-			return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("requested network '%v' is overwrapping with network '%v'", network.CIDR, n)})
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("requested network '%v' is overwrapping with network '%v'", network.CIDR, n)))
 		}
 	}
 
 	network.SupernetworkID = supernet.ID
 	if result := db.Create(&network); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": fmt.Sprintf("%v", result.Error)})
+		return c.JSON(http.StatusInternalServerError, returnError(result.Error.Error()))
 	}
-	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network created. ID: %d,  CIDR: %s,  Description: %s", network.ID, network.CIDR, network.Description)})
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("network created. ID: %d,  CIDR: %s,  Description: %s", network.ID, network.CIDR, network.Description)))
 }
 
 // GetSupernetwork returns supernetwork for network passed to argument.
 func GetSupernetwork(seed *model.IPv4Network, nw *model.IPv4Network) *model.IPv4Network {
-	//fmt.Printf("Search Network for %v: seed: %v\n", nw.CIDR, seed.CIDR)
 	subnets := getSubnetworks(seed.ID, uint(1), uint(0), true)
 	for _, subnet := range *subnets {
 		if subnet.GetNetworkAddress() == nw.GetNetworkAddress() {
@@ -151,30 +150,30 @@ func GetSupernetwork(seed *model.IPv4Network, nw *model.IPv4Network) *model.IPv4
 func UpdateIPv4Network(c echo.Context) error {
 	network := new(model.IPv4Network)
 	if err := c.Bind(network); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	network.ID = uint(id)
 	db := db.GetDB()
 	var net model.IPv4Network
 	if result := db.Take(&net, "id=?", network.ID); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
+		return c.JSON(http.StatusBadRequest, returnError("network not found"))
 	}
 	if result := db.Model(&net).Update("description", network.Description); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("network updated. ID: %d,  CIDR: %s,  Description: %s", net.ID, net.CIDR, network.Description)})
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("network updated. ID: %d,  CIDR: %s,  Description: %s", net.ID, net.CIDR, network.Description)))
 }
 
 // DeleteIPv4Network deletes specified network
 func DeleteIPv4Network(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	if id == 1 {
 		return fmt.Errorf("cannot delete root network")
@@ -192,30 +191,30 @@ func DeleteIPv4Network(c echo.Context) error {
 		for _, s := range subnets {
 			subnetList = append(subnetList, s.CIDR)
 		}
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has subnets [%v]", strings.Join(subnetList, ", "))})
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("network has subnets [%v]", strings.Join(subnetList, ", "))))
 	}
 	// ensure the network does not have ip allocations
 	allocations := []model.IPv4Allocation{}
 	db.Where(&model.IPv4Allocation{IPv4NetworkID: network.ID}).Find(&allocations)
 	if len(allocations) > 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has ip allocations")})
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("network has ip allocations")))
 	}
 	// ensure the network does not have vlan
 	vlan := model.Vlan{}
 	if db.Where(&model.Vlan{IPv4NetworkID: network.ID}).Take(&vlan).RecordNotFound() == false {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": fmt.Sprintf("network has vlan %v", vlan.ID)})
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("network has vlan %v", vlan.ID)))
 	}
 
 	db.Unscoped().Delete(&network)
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "network deleted"})
+	return c.JSON(http.StatusOK, returnMessage("network deleted"))
 }
 
 // GetIPv4Allocations returns ip allocation data for specified network.
 func GetIPv4Allocations(c echo.Context) error {
 	nid, err := strconv.Atoi(c.Param("network_id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	addr := getIPAllocations(uint(nid))
 
@@ -226,40 +225,40 @@ func GetIPv4Allocations(c echo.Context) error {
 func CreateIPv4Allocation(c echo.Context) error {
 	addr := new(model.IPv4Allocation)
 	if err := c.Bind(addr); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError("received bad request. "+err.Error()))
 	}
 	if err := c.Validate(addr); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError("request validation failed. "+err.Error()))
 	}
 	if (addr.Type == "generic") && (addr.Name == "") {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "hostname is required for type: generic"})
+		return c.JSON(http.StatusBadRequest, returnError("hostname is required for type: generic"))
 	}
 
 	db := db.GetDB()
 	network := new(model.IPv4Network)
 	if result := db.Take(network, "id=?", addr.IPv4NetworkID); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
+		return c.JSON(http.StatusBadRequest, returnError("network not found"))
 	}
 	if network.Contains(addr.Address) != true {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "requested address is not an address of specified network"})
+		return c.JSON(http.StatusBadRequest, returnError("requested address is not an address of specified network"))
 	}
 	subnets := getSubnetworks(network.ID, uint(1), uint(0), true)
 	if len(*subnets) != 0 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "requested network is subnetted"})
+		return c.JSON(http.StatusBadRequest, returnError("requested network is subnetted"))
 	}
 
 	if result := db.Create(addr); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database request failed. " + result.Error.Error()})
+		return c.JSON(http.StatusInternalServerError, returnError("database request failed. "+result.Error.Error()))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation created"})
+	return c.JSON(http.StatusOK, returnMessage("ip allocation created"))
 }
 
 // DeleteIPv4Allocation deletes specified ipv4 allocation.
 func DeleteIPv4Allocation(c echo.Context) error {
 	allocID, err := strconv.Atoi(c.Param("allocation_id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	addr := new(model.IPv4Allocation)
 	db := db.GetDB()
@@ -267,35 +266,35 @@ func DeleteIPv4Allocation(c echo.Context) error {
 		return result.Error
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "ip allocation deleted"})
+	return c.JSON(http.StatusOK, returnMessage("ip allocation deleted"))
 }
 
 // UpdateIPv4Allocation updates only description of specified ipv4 allocation.
 func UpdateIPv4Allocation(c echo.Context) error {
 	allocID, err := strconv.Atoi(c.Param("allocation_id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	addr := new(model.IPv4Allocation)
 	reqAddr := new(model.IPv4Allocation)
 	if err := c.Bind(reqAddr); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError("received bad request. "+err.Error()))
 	}
 	db := db.GetDB()
 	if result := db.Take(addr, "id=?", allocID); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "target not found"})
+		return c.JSON(http.StatusBadRequest, returnError("target not found"))
 	}
 	if addr.Type == "generic" && reqAddr.Name == "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "hostname is required for generic ip allocation"})
+		return c.JSON(http.StatusBadRequest, returnError("hostname is required for generic ip allocation"))
 	}
 	if addr.Type == "reserved" && reqAddr.Name != "" {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "cannot be set hostname to reserved ip allocation"})
+		return c.JSON(http.StatusBadRequest, returnError("cannot be set hostname to reserved ip allocation"))
 	}
 	if result := db.Model(addr).Update("description", reqAddr.Description).Update("name", reqAddr.Name); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": "allocation update"})
+	return c.JSON(http.StatusOK, returnMessage("allocation update"))
 }
 
 // GetHostIPv4Allocations returns ipv4 allocations associated with specified hostname.
@@ -368,53 +367,53 @@ func GetAllVlan(c echo.Context) error {
 func CreateVlan(c echo.Context) error {
 	vlan := new(model.Vlan)
 	if err := c.Bind(vlan); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "received bad request. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError("received bad request. "+err.Error()))
 	}
 	if err := c.Validate(vlan); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. " + err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError("request validation failed. "+err.Error()))
 	}
 	if vlan.ID > 4094 {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "request validation failed. Vlan ID should be the range of 1 - 4094."})
+		return c.JSON(http.StatusBadRequest, returnError("request validation failed. Vlan ID should be the range of 1 - 4094."))
 	}
 	db := db.GetDB()
 	var network model.IPv4Network
 	if result := db.Take(&network, "id=?", vlan.IPv4NetworkID); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "network not found"})
+		return c.JSON(http.StatusBadRequest, returnError("network not found"))
 	}
 	if result := db.Create(&vlan); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": fmt.Sprintf("%v", result.Error)})
+		return c.JSON(http.StatusInternalServerError, returnError(fmt.Sprintf("%v", result.Error)))
 	}
-	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan created. ID: %d, Description: %s", vlan.ID, vlan.Description)})
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("vlan created. ID: %d, Description: %s", vlan.ID, vlan.Description)))
 }
 
 // UpdateVlan updates only description for specified vlan
 func UpdateVlan(c echo.Context) error {
 	vlan := new(model.Vlan)
 	if err := c.Bind(vlan); err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	vlan.ID = uint(id)
 	db := db.GetDB()
 	var v model.Vlan
 	if result := db.Take(&v, "id=?", vlan.ID); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": "vlan not found"})
+		return c.JSON(http.StatusBadRequest, returnError("vlan not found"))
 	}
 	if result := db.Model(&v).Update("description", vlan.Description); result.Error != nil {
-		return c.JSON(http.StatusInternalServerError, map[string]string{"message": "database error"})
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
 
-	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan updated. ID: %d, Description: %s", v.ID, vlan.Description)})
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("vlan updated. ID: %d, Description: %s", v.ID, vlan.Description)))
 }
 
 // DeleteVlan deletes specified vlan
 func DeleteVlan(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, map[string]string{"message": err.Error()})
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	db := db.GetDB()
 	var vlan model.Vlan
@@ -423,5 +422,5 @@ func DeleteVlan(c echo.Context) error {
 	}
 	db.Unscoped().Delete(&vlan)
 
-	return c.JSON(http.StatusOK, map[string]string{"message": fmt.Sprintf("vlan %d deleted", id)})
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("vlan %d deleted", id)))
 }
