@@ -1,6 +1,7 @@
 package cmd
 
 import (
+	"fmt"
 	"os"
 
 	"github.com/spf13/cobra"
@@ -9,7 +10,6 @@ import (
 // Cobra flags
 var (
 	rootCmd    *cobra.Command
-	verbose    bool
 	debug      bool
 	output     string
 	flagConfig string
@@ -22,7 +22,8 @@ var Conf Config
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		//fmt.Println(err)
+		fmt.Println(err)
+		os.Exit(255)
 	}
 }
 
@@ -40,7 +41,6 @@ func init() {
 	rootCmd.SilenceUsage = true
 	rootCmd.SilenceErrors = true
 	rootCmd.PersistentFlags().StringVarP(&flagConfig, "config", "c", homedir+"/.dosanco.toml", "configuration file")
-	//rootCmd.PersistentFlags().BoolVarP(&verbose, "verbose", "v", false, "verbose output")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "default", "output style [default,json]")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "", false, "debug output")
 }

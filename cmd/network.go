@@ -307,7 +307,6 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 	if err := json.Unmarshal(nBody, data); err != nil {
 		return fmt.Errorf("json unmarshal err: %v", err)
 	}
-	// validation
 	addr := args[0]
 	url := Conf.APIServer.URL + "/ip/v4"
 	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: data.ID, Address: addr, Type: allocType, Description: description}
@@ -315,32 +314,13 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
-	req, err := http.NewRequest(
-		"POST",
-		url,
-		bytes.NewBuffer(reqJSON),
-	)
+	body, err := sendRequest("POST", url, reqJSON)
 	if err != nil {
 		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
-		return fmt.Errorf(err.Error())
-	}
-	if resp.StatusCode != 200 {
-		fmt.Println(resMsg.Message)
-		return errors.New(resMsg.Message)
+		return err
 	}
 	fmt.Println(resMsg.Message)
 
