@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"strconv"
 
 	"github.com/spf13/cobra"
 
@@ -11,19 +12,42 @@ import (
 
 func getDataCenter(cmd *cobra.Command, args []string) {
 	url := Conf.APIServer.URL + "/datacenter"
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	data := new([]model.DataCenter)
-	if err := json.Unmarshal(body, data); err != nil {
-		fmt.Println("json unmarshall error:", err)
-		return
-	}
-	fmt.Printf("%2s	%-10s	%s\n", "ID", "Name", "Address")
-	for _, dc := range *data {
-		fmt.Printf("%2d	%-10s	%s\n", dc.ID, dc.Name, dc.Address)
+	if len(args) > 0 {
+		// show specified datacenter
+		body, err := sendRequest("GET", url+"/name/"+args[0], []byte{})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		dc := new(model.DataCenter)
+		if err = json.Unmarshal(body, dc); err != nil {
+			fmt.Println("response parse error", err)
+		}
+		url = url + "/" + strconv.Itoa(int(dc.ID))
+		body, err = sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		data := new(model.DataCenter)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("response parse error", err)
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	} else {
+		// show all datacenters
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		data := new(model.DataCenters)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("json unmarshall error:", err)
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
 	}
 }
 

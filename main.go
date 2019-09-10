@@ -71,9 +71,11 @@ func main() {
 
 	// routing datacenter
 	e.GET("/datacenter", handler.GetAllDataCenters)
+	e.GET("/datacenter/:id", handler.GetDataCenter)
 	e.POST("/datacenter", handler.CreateDataCenter)
 	e.PUT("/datacenter/:id", handler.UpdateDataCenter)
 	e.DELETE("/datacenter/:id", handler.DeleteDataCenter)
+	e.GET("/datacenter/name/:name", handler.GetDataCenterByName)
 
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))

@@ -89,6 +89,7 @@ func NewCmdShowDataCenter() *cobra.Command {
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
 		Short:   "show datacenter",
+		Args:    cobra.MaximumNArgs(1),
 		Run:     getDataCenter,
 	}
 

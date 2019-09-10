@@ -149,13 +149,13 @@ func deleteNetwork(cmd *cobra.Command, args []string) error {
 	}
 
 	url = Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
-	body, reqErr := sendRequest("DELETE", url, []byte{})
+	body, err = sendRequest("DELETE", url, []byte{})
+	if err != nil {
+		return fmt.Errorf(err.Error())
+	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
-	}
-	if reqErr != nil {
-		return fmt.Errorf(resMsg.Message)
 	}
 	fmt.Println(resMsg.Message)
 

@@ -11,13 +11,39 @@ import (
 	"github.com/hichikaw/dosanco/model"
 )
 
-// GetAllDataCenters returns all data center information.
+// GetAllDataCenters returns all datacenter information.
 func GetAllDataCenters(c echo.Context) error {
 	db := db.GetDB()
 	dcs := []model.DataCenter{}
 	db.Find(&dcs)
 
-	return c.JSONPretty(http.StatusOK, dcs, "    ")
+	return c.JSON(http.StatusOK, dcs)
+}
+
+// GetDataCenter returns specified datacenter information.
+func GetDataCenter(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parse dc id error"))
+	}
+	dc := new(model.DataCenter)
+	db := db.GetDB()
+	if result := db.Take(&dc, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
+	}
+
+	return c.JSON(http.StatusOK, dc)
+}
+
+// GetDataCenterByName returns specified host information.
+func GetDataCenterByName(c echo.Context) error {
+	dc := new(model.DataCenter)
+	db := db.GetDB()
+	if result := db.Take(&dc, "name=?", c.Param("name")); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
+	}
+
+	return c.JSON(http.StatusOK, dc)
 }
 
 // CreateDataCenter creates a new data center.

@@ -176,7 +176,7 @@ func DeleteIPv4Network(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
 	if id == 1 {
-		return fmt.Errorf("cannot delete root network")
+		return c.JSON(http.StatusBadRequest, returnError("cannot delete root network"))
 	}
 	db := db.GetDB()
 	var network model.IPv4Network

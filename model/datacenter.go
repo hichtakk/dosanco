@@ -1,11 +1,58 @@
 package model
 
+import (
+	"encoding/json"
+	"fmt"
+)
+
+// DataCenters represents list of DataCenter
+type DataCenters []DataCenter
+
+func (d DataCenters) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(d, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else if output == "wide" {
+		fmt.Printf("%2s	%-10s	%s\n", "ID", "Name", "Address")
+		for _, dc := range d {
+			fmt.Printf("%2d	%-10s	%s\n", dc.ID, dc.Name, dc.Address)
+		}
+	} else {
+		fmt.Printf("%-10s	%s\n", "Name", "Address")
+		for _, dc := range d {
+			fmt.Printf("%-10s	%s\n", dc.Name, dc.Address)
+		}
+	}
+}
+
 // DataCenter represents datacenter building data.
 type DataCenter struct {
 	Model
 	Name    string  `gorm:"type:varchar(10);unique_index" json:"name"`
 	Address string  `gorm:"type:varchar(255)" json:"address"`
 	Floors  []Floor `json:"floors,omitempty"`
+}
+
+// Write outputs DC to standard output.
+func (d DataCenter) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(d, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else if output == "wide" {
+	} else {
+		fmt.Printf("# DataCenter\n")
+		fmt.Printf(" ID:          %d\n", d.ID)
+		fmt.Printf(" Name:        %v\n", d.Name)
+		fmt.Printf(" Address:    %v\n", d.Address)
+		/*
+			if d.Floors.Len() > 0 {
+				fmt.Println("# IP Allocations")
+				for _, a := range h.IPv4Allocations {
+					fmt.Printf(" %-15v %v\n", a.Address, a.Description)
+				}
+			}
+		*/
+	}
 }
 
 // Floor represents datacenter floor or area.
