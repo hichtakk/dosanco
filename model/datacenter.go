@@ -43,14 +43,12 @@ func (d DataCenter) Write(output string) {
 		fmt.Printf(" ID:          %d\n", d.ID)
 		fmt.Printf(" Name:        %v\n", d.Name)
 		fmt.Printf(" Address:    %v\n", d.Address)
-		/*
-			if d.Floors.Len() > 0 {
-				fmt.Println("# IP Allocations")
-				for _, a := range h.IPv4Allocations {
-					fmt.Printf(" %-15v %v\n", a.Address, a.Description)
-				}
+		if d.Floors.Len() > 0 {
+			fmt.Println("\n# Floors")
+			for _, f := range d.Floors {
+				fmt.Printf(" %v\n", f.Name)
 			}
-		*/
+		}
 	}
 }
 
