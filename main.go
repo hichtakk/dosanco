@@ -77,6 +77,12 @@ func main() {
 	e.DELETE("/datacenter/:id", handler.DeleteDataCenter)
 	e.GET("/datacenter/name/:name", handler.GetDataCenterByName)
 
+	e.GET("/datacenter/floor", handler.GetAllDataCenterFloors)
+	e.GET("/datacenter/:id/floor", handler.GetDataCenterFloorsByDC)
+	e.GET("/datacenter/floor/:id", handler.GetDataCenterFloor)
+
+	//e.GET("/datacenter/floor/name/:name", handler.GetDataCenterFloorByName)
+
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))
 }

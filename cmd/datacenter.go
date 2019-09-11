@@ -51,6 +51,88 @@ func getDataCenter(cmd *cobra.Command, args []string) {
 	}
 }
 
+func getDataCenterFloor(cmd *cobra.Command, args []string) {
+	url := Conf.APIServer.URL + "/datacenter/floor"
+	dcName := cmd.Flag("dc").Value.String()
+	if len(args) > 0 {
+		// show specified datacenter floor
+		if dcName == "" {
+			fmt.Println("datacenter name is required for showing specific floor")
+			return
+		}
+		body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		dc := new(model.DataCenter)
+		if err = json.Unmarshal(body, dc); err != nil {
+			fmt.Println("response parse error", err)
+		}
+		dcID := strconv.Itoa(int(dc.ID))
+		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		data := new(model.Floors)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("response parse error:", err)
+			return
+		}
+		floor := model.Floor{}
+		for _, flr := range *data {
+			if flr.Name == args[0] {
+				floor = flr
+			}
+		}
+		if floor.ID != 0 {
+			floor.Write(cmd.Flag("output").Value.String())
+		} else {
+			fmt.Println("floor not found")
+		}
+	} else {
+		if dcName != "" {
+			// show all datacenter floors
+			url = Conf.APIServer.URL + "/datacenter/name/" + dcName
+			body, err := sendRequest("GET", url, []byte{})
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			dc := new(model.DataCenter)
+			if err = json.Unmarshal(body, dc); err != nil {
+				fmt.Println("response parse error", err)
+			}
+			dcID := strconv.Itoa(int(dc.ID))
+			body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			data := new(model.Floors)
+			if err := json.Unmarshal(body, data); err != nil {
+				fmt.Println("response parse error:", err)
+				return
+			}
+			data.Write(cmd.Flag("output").Value.String())
+		} else {
+			// show all datacenter floors
+			body, err := sendRequest("GET", url, []byte{})
+			if err != nil {
+				fmt.Println(err)
+				return
+			}
+			data := new(model.Floors)
+			if err := json.Unmarshal(body, data); err != nil {
+				fmt.Println("response parse error:", err)
+				return
+			}
+			data.Write(cmd.Flag("output").Value.String())
+		}
+	}
+}
+
 func createDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	reqModel := model.DataCenter{Name: args[0], Address: cmd.Flag("address").Value.String()}

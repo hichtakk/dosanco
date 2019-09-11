@@ -97,3 +97,47 @@ func DeleteDataCenter(c echo.Context) error {
 
 	return c.JSONPretty(http.StatusOK, map[string]string{"message": fmt.Sprintf("datacenter %d deleted", id)}, "    ")
 }
+
+// GetAllDataCenterFloors returns all of datacenter floors.
+func GetAllDataCenterFloors(c echo.Context) error {
+	db := db.GetDB()
+	flrs := []model.Floor{}
+	db.Find(&flrs)
+
+	return c.JSON(http.StatusOK, flrs)
+}
+
+// GetDataCenterFloorsByDC returns datacenter floors of specified datacenter.
+func GetDataCenterFloorsByDC(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parse dc id error"))
+	}
+	dc := new(model.DataCenter)
+	db := db.GetDB()
+	if result := db.Take(&dc, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
+	}
+
+	flrs := new(model.Floors)
+	if result := db.Find(&flrs, "data_center_id=?", dc.ID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, flrs)
+}
+
+// GetDataCenterFloor returns specified datacenter floor.
+func GetDataCenterFloor(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parse floor id error"))
+	}
+	flr := new(model.Floor)
+	db := db.GetDB()
+	if result := db.Take(&flr, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("floor not found"))
+	}
+
+	return c.JSON(http.StatusOK, flr)
+}

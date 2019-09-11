@@ -28,9 +28,9 @@ func (d DataCenters) Write(output string) {
 // DataCenter represents datacenter building data.
 type DataCenter struct {
 	Model
-	Name    string  `gorm:"type:varchar(10);unique_index" json:"name"`
-	Address string  `gorm:"type:varchar(255)" json:"address"`
-	Floors  []Floor `json:"floors,omitempty"`
+	Name    string `gorm:"type:varchar(10);unique_index" json:"name"`
+	Address string `gorm:"type:varchar(255)" json:"address"`
+	Floors  Floors `json:"floors,omitempty"`
 }
 
 // Write outputs DC to standard output.
@@ -38,7 +38,6 @@ func (d DataCenter) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(d, "", "    ")
 		fmt.Println(string(jsonBytes))
-	} else if output == "wide" {
 	} else {
 		fmt.Printf("# DataCenter\n")
 		fmt.Printf(" ID:          %d\n", d.ID)
@@ -58,8 +57,48 @@ func (d DataCenter) Write(output string) {
 // Floor represents datacenter floor or area.
 type Floor struct {
 	Model
-	Name  string `gorm:"type:varchar(16);unique_index" json:"name"`
-	Halls []Hall `json:"halls,omitempty"`
+	Name         string `gorm:"type:varchar(16);unique_index" json:"name"`
+	DataCenterID uint   `json:"datacenter_id"`
+	Halls        []Hall `json:"halls,omitempty"`
+}
+
+func (f Floor) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(f, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# Floor\n")
+		fmt.Printf(" ID:           %d\n", f.ID)
+		fmt.Printf(" Name:         %v\n", f.Name)
+		fmt.Printf(" DataCenterID: %v\n", f.DataCenterID)
+		/*
+			if f.Halls.Len() > 0 {
+			}
+		*/
+	}
+}
+
+type Floors []Floor
+
+func (f Floors) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(f, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else if output == "wide" {
+		fmt.Printf("%3s   %3s   %-10s\n", "ID", "DC", "Name")
+		for _, floor := range f {
+			fmt.Printf("%3d   %3d   %-10s\n", floor.ID, floor.DataCenterID, floor.Name)
+		}
+	} else {
+		fmt.Printf("%3s   %-10s\n", "DC", "Name")
+		for _, floor := range f {
+			fmt.Printf("%3d   %-10s\n", floor.DataCenterID, floor.Name)
+		}
+	}
+}
+
+func (f Floors) Len() int {
+	return len(f)
 }
 
 // Hall represents data hall in datacenter.

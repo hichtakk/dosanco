@@ -16,6 +16,7 @@ func NewCmdShow() *cobra.Command {
 		NewCmdShowVlan(),
 		NewCmdShowHost(),
 		NewCmdShowDataCenter(),
+		NewCmdShowDataCenterFloor(),
 	)
 
 	return showCmd
@@ -92,6 +93,21 @@ func NewCmdShowDataCenter() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		Run:     getDataCenter,
 	}
+
+	return dcCmd
+}
+
+// NewCmdShowDataCenterFloor is subcommand represents show datacenter resource.
+func NewCmdShowDataCenterFloor() *cobra.Command {
+	var dc string
+	var dcCmd = &cobra.Command{
+		Use:     "floor",
+		Aliases: []string{"dc-floor"},
+		Short:   "show datacenter floor",
+		Args:    cobra.MaximumNArgs(1),
+		Run:     getDataCenterFloor,
+	}
+	dcCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
 
 	return dcCmd
 }
