@@ -154,6 +154,38 @@ func createDataCenter(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func createDataCenterFloor(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.URL + "/datacenter"
+	// get datacenter
+	dcName := cmd.Flag("dc").Value.String()
+	body, err := sendRequest("GET", url+"/name/"+dcName, []byte{})
+	if err != nil {
+		return err
+	}
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dc); err != nil {
+		return fmt.Errorf("response parse error")
+	}
+	// prepare request floor model
+	reqModel := model.Floor{Name: args[0], DataCenterID: dc.ID}
+	reqJSON, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("POST", url+"/floor", reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		fmt.Println(reqErr)
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func updateDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	url = url + "/" + args[0]
@@ -176,6 +208,55 @@ func updateDataCenter(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateDataCenterFloor(cmd *cobra.Command, args []string) error {
+	floorName := cmd.Flag("name").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+	if err != nil {
+		return err
+	}
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dc); err != nil {
+		return fmt.Errorf("response parse error: " + err.Error())
+	}
+	dcID := strconv.Itoa(int(dc.ID))
+	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+	if err != nil {
+		return err
+	}
+	data := new(model.Floors)
+	if err := json.Unmarshal(body, data); err != nil {
+		return fmt.Errorf("response parse error:" + err.Error())
+	}
+	floor := model.Floor{}
+	for _, flr := range *data {
+		if flr.Name == args[0] {
+			floor = flr
+		}
+	}
+	if floor.ID == 0 {
+		return fmt.Errorf("floor not found")
+	}
+	if floorName == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	floor.Name = floorName
+	reqJSON, _ := json.Marshal(floor)
+	floorID := strconv.Itoa(int(floor.ID))
+	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
+	body, err = sendRequest("PUT", url, reqJSON)
+	if err != nil {
+		return err
+	}
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})
@@ -185,6 +266,49 @@ func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	}
 	if reqErr != nil {
 		fmt.Println(reqErr)
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func deleteDataCenterFloor(cmd *cobra.Command, args []string) error {
+	dcName := cmd.Flag("dc").Value.String()
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+	if err != nil {
+		return err
+	}
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dc); err != nil {
+		return fmt.Errorf("response parse error: " + err.Error())
+	}
+	dcID := strconv.Itoa(int(dc.ID))
+	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+	if err != nil {
+		return err
+	}
+	data := new(model.Floors)
+	if err := json.Unmarshal(body, data); err != nil {
+		return fmt.Errorf("response parse error:" + err.Error())
+	}
+	floor := model.Floor{}
+	for _, flr := range *data {
+		if flr.Name == args[0] {
+			floor = flr
+		}
+	}
+	if floor.ID == 0 {
+		return fmt.Errorf("floor not found")
+	}
+	floorID := strconv.Itoa(int(floor.ID))
+	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
 		return reqErr
 	}
 	fmt.Println(resMsg.Message)

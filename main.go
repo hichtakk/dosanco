@@ -80,6 +80,9 @@ func main() {
 	e.GET("/datacenter/floor", handler.GetAllDataCenterFloors)
 	e.GET("/datacenter/:id/floor", handler.GetDataCenterFloorsByDC)
 	e.GET("/datacenter/floor/:id", handler.GetDataCenterFloor)
+	e.POST("/datacenter/floor", handler.CreateDataCenterFloor)
+	e.PUT("/datacenter/floor/:id", handler.UpdateDataCenterFloor)
+	e.DELETE("/datacenter/floor/:id", handler.DeleteDataCenterFloor)
 
 	//e.GET("/datacenter/floor/name/:name", handler.GetDataCenterFloorByName)
 

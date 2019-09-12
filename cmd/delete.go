@@ -16,6 +16,7 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteVlan(),
 		NewCmdDeleteHost(),
 		NewCmdDeleteDataCenter(),
+		NewCmdDeleteDataCenterFloor(),
 	)
 
 	return deleteCmd
@@ -84,4 +85,20 @@ func NewCmdDeleteDataCenter() *cobra.Command {
 	}
 
 	return dcCmd
+}
+
+// NewCmdDeleteDataCenterFloor is subcommand represents delete datacenter floor resource.
+func NewCmdDeleteDataCenterFloor() *cobra.Command {
+	var dc string
+	var flrCmd = &cobra.Command{
+		Use:     "floor",
+		Aliases: []string{"dc-floor"},
+		Short:   "delete datacenter floor",
+		Args:    cobra.ExactArgs(1),
+		RunE:    deleteDataCenterFloor,
+	}
+	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	flrCmd.MarkFlagRequired("dc")
+
+	return flrCmd
 }

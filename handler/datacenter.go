@@ -145,3 +145,57 @@ func GetDataCenterFloor(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, flr)
 }
+
+// CreateDataCenterFloor creates a new floor to specified datacenter.
+func CreateDataCenterFloor(c echo.Context) error {
+	floor := new(model.Floor)
+	if err := c.Bind(floor); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&floor); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("floor created. ID: %d, Address: %s", floor.ID, floor.Name)))
+}
+
+// UpdateDataCenterFloor updates specified datacenter floor information.
+func UpdateDataCenterFloor(c echo.Context) error {
+	floor := new(model.Floor)
+	if err := c.Bind(floor); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	floorID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	if uint(floorID) != floor.ID {
+		return c.JSON(http.StatusBadRequest, returnError("floor ID specified in URI and request body are mismatched."))
+	}
+	var flr model.Floor
+	db := db.GetDB()
+	if result := db.Take(&flr, "id=?", floorID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("floor not found on database."))
+	}
+	if result := db.Model(&flr).Update("name", floor.Name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database write error."))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("datacenter floor updated. ID: %d, Name: %s", flr.ID, floor.Name)))
+}
+
+// DeleteDataCenterFloor deletes specified datacenter
+func DeleteDataCenterFloor(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing floor id error"))
+	}
+	db := db.GetDB()
+	var floor model.Floor
+	if result := db.Take(&floor, "id=?", id); result.Error != nil {
+		return fmt.Errorf("floor '%v' not found", id)
+	}
+	db.Delete(&floor)
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("datacenter floor %d deleted", id)))
+}

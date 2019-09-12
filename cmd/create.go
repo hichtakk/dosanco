@@ -16,6 +16,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateVlan(),
 		NewCmdCreateHost(),
 		NewCmdCreateDataCenter(),
+		NewCmdCreateDataCenterFloor(),
 	)
 
 	return createCmd
@@ -104,4 +105,20 @@ func NewCmdCreateDataCenter() *cobra.Command {
 	dcCmd.MarkFlagRequired("address")
 
 	return dcCmd
+}
+
+// NewCmdCreateDataCenterFloor is subcommand represents datacenter resource.
+func NewCmdCreateDataCenterFloor() *cobra.Command {
+	var dc string
+	var flrCmd = &cobra.Command{
+		Use:     "floor",
+		Aliases: []string{"dc-floor", "area"},
+		Short:   "create new floor to datacenter",
+		Args:    cobra.ExactArgs(1),
+		RunE:    createDataCenterFloor,
+	}
+	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	flrCmd.MarkFlagRequired("dc")
+
+	return flrCmd
 }

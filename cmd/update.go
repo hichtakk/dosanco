@@ -16,6 +16,7 @@ func NewCmdUpdate() *cobra.Command {
 		NewCmdUpdateVlan(),
 		NewCmdUpdateHost(),
 		NewCmdUpdateDataCenter(),
+		NewCmdUpdateDataCenterFloor(),
 	)
 
 	return updateCmd
@@ -97,4 +98,23 @@ func NewCmdUpdateDataCenter() *cobra.Command {
 	dcCmd.MarkFlagRequired("address")
 
 	return dcCmd
+}
+
+// NewCmdUpdateDataCenterFloor is subcommand represents update datacenter floor/area resource.
+func NewCmdUpdateDataCenterFloor() *cobra.Command {
+	var dc string
+	var name string
+	var flrCmd = &cobra.Command{
+		Use:     "floor",
+		Aliases: []string{"dc-floor", "area"},
+		Short:   "update datacenter address",
+		Args:    cobra.ExactArgs(1),
+		RunE:    updateDataCenterFloor,
+	}
+	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	flrCmd.Flags().StringVarP(&name, "name", "n", "-", "name of datacenter floor")
+	flrCmd.MarkFlagRequired("dc")
+	flrCmd.MarkFlagRequired("name")
+
+	return flrCmd
 }
