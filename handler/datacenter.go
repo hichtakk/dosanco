@@ -143,6 +143,23 @@ func GetDataCenterFloor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("floor not found"))
 	}
 
+	halls := new([]model.Hall)
+	if db.Find(&halls, "floor_id=?", flr.ID).RecordNotFound() == false {
+		flr.Halls = *halls
+	}
+
+	return c.JSON(http.StatusOK, flr)
+}
+
+// GetDataCenterFloor returns specified datacenter floor.
+func GetDataCenterFloorByName(c echo.Context) error {
+	name, _ := strconv.Atoi(c.Param("name"))
+	flr := new(model.Floor)
+	db := db.GetDB()
+	if result := db.Take(&flr, "name=?", name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("floor not found"))
+	}
+
 	return c.JSON(http.StatusOK, flr)
 }
 
@@ -198,4 +215,59 @@ func DeleteDataCenterFloor(c echo.Context) error {
 	db.Delete(&floor)
 
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("datacenter floor %d deleted", id)))
+}
+
+// GetAllDataCenterHalls returns all of datacenter floors.
+func GetAllDataCenterHalls(c echo.Context) error {
+	db := db.GetDB()
+	halls := model.Halls{}
+	db.Find(&halls)
+
+	return c.JSON(http.StatusOK, halls)
+}
+
+// GetDataCenterHall returns all of datacenter floors.
+func GetDataCenterHall(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing hall id error"))
+	}
+	db := db.GetDB()
+	hall := model.Hall{}
+	if result := db.Find(&hall, "id=?", id); result.Error != nil {
+		return fmt.Errorf("hall '%v' not found", id)
+	}
+
+	return c.JSON(http.StatusOK, hall)
+}
+
+// CreateDataCenterHall creates a new floor to specified datacenter.
+func CreateDataCenterHall(c echo.Context) error {
+	hall := new(model.Hall)
+	if err := c.Bind(hall); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&hall); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("hall created. ID: %d, Name: %s, Type: %s", hall.ID, hall.Name, hall.Type)))
+}
+
+// DeleteDataCenterHall deletes specified datacenter
+func DeleteDataCenterHall(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing hall id error"))
+	}
+	db := db.GetDB()
+	var hall model.Hall
+	if result := db.Take(&hall, "id=?", id); result.Error != nil {
+		return fmt.Errorf("hall '%v' not found", id)
+	}
+	if result := db.Delete(&hall); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("datacenter hall %d deleted", id)))
 }

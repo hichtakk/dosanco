@@ -57,7 +57,7 @@ type Floor struct {
 	Model
 	Name         string `gorm:"type:varchar(16);unique_index" json:"name"`
 	DataCenterID uint   `json:"datacenter_id"`
-	Halls        []Hall `json:"halls,omitempty"`
+	Halls        Halls  `json:"halls,omitempty"`
 }
 
 func (f Floor) Write(output string) {
@@ -102,9 +102,37 @@ func (f Floors) Len() int {
 // Hall represents data hall in datacenter.
 type Hall struct {
 	Model
-	Name     string    `gorm:"type:varchar(16);unique_index" json:"name"`
+	Name     string    `gorm:"type:varchar(16)" json:"name"`
 	Type     string    `gorm:"type:varchar(10)" json:"type"`
+	FloorID  uint      `json:"floor_id"`
 	RackRows []RackRow `json:"rows,omitempty"`
+}
+
+func (h Hall) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(h, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# Hall\n")
+		fmt.Printf(" ID:      %d\n", h.ID)
+		fmt.Printf(" Name:    %v\n", h.Name)
+		fmt.Printf(" Type:    %v\n", h.Type)
+		fmt.Printf(" FloorID: %v\n", h.FloorID)
+	}
+}
+
+type Halls []Hall
+
+func (h Halls) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(h, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("%3s   %7s   %10s   %6s\n", "ID", "FloorID", "Name", "Type")
+		for _, hall := range h {
+			fmt.Printf("%3d   %7d   %10s   %6s\n", hall.ID, hall.FloorID, hall.Name, hall.Type)
+		}
+	}
 }
 
 // RackRow represents row of racks in data hall.
