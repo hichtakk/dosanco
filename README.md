@@ -1,7 +1,7 @@
 Dosanco
 =======
 
-**Dosanco** is a network and server database, written in Go. :horse:
+**Dosanco** is a network and server database.
 
 ## Description
 Dosanco manages IT infrastructure configurations bellow.
@@ -13,13 +13,12 @@ Dosanco manages IT infrastructure configurations bellow.
 
 ### Host
 - Server/Node information
+- Configuration
 
 ### DataCenter
 - DCs
 - Electrical facilities
 - Rack PDUs
-
-## Demo
 
 ## Usage
 Dosanco privides command-line client.
