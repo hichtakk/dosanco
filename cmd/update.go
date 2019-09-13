@@ -17,6 +17,7 @@ func NewCmdUpdate() *cobra.Command {
 		NewCmdUpdateHost(),
 		NewCmdUpdateDataCenter(),
 		NewCmdUpdateDataCenterFloor(),
+		NewCmdUpdateDataCenterHall(),
 	)
 
 	return updateCmd
@@ -117,4 +118,26 @@ func NewCmdUpdateDataCenterFloor() *cobra.Command {
 	flrCmd.MarkFlagRequired("name")
 
 	return flrCmd
+}
+
+// NewCmdUpdateDataCenterHall is subcommand represents update datacenter hall resource.
+func NewCmdUpdateDataCenterHall() *cobra.Command {
+	var dc string
+	var floor string
+	var name string
+	var hallCmd = &cobra.Command{
+		Use:     "hall",
+		Aliases: []string{"dc-hall"},
+		Short:   "update data hall name",
+		Args:    cobra.ExactArgs(1),
+		RunE:    updateDataCenterHall,
+	}
+	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	hallCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of data hall")
+	hallCmd.MarkFlagRequired("dc")
+	hallCmd.MarkFlagRequired("floor")
+	hallCmd.MarkFlagRequired("name")
+
+	return hallCmd
 }

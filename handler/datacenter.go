@@ -254,6 +254,31 @@ func CreateDataCenterHall(c echo.Context) error {
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("hall created. ID: %d, Name: %s, Type: %s", hall.ID, hall.Name, hall.Type)))
 }
 
+// UpdateDataCenterHall updates specified datacenter hall information.
+func UpdateDataCenterHall(c echo.Context) error {
+	hall := new(model.Hall)
+	if err := c.Bind(hall); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	hallID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	if uint(hallID) != hall.ID {
+		return c.JSON(http.StatusBadRequest, returnError("mismatched hall ID between URI and request body."))
+	}
+	var h model.Hall
+	db := db.GetDB()
+	if result := db.Take(&h, "id=?", hallID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("hall not found on database."))
+	}
+	if result := db.Model(&h).Update("name", hall.Name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database write error."))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("datacenter hall updated. ID: %d, Name: %s", h.ID, hall.Name)))
+}
+
 // DeleteDataCenterHall deletes specified datacenter
 func DeleteDataCenterHall(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

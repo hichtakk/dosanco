@@ -458,6 +458,78 @@ func updateDataCenterFloor(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateDataCenterHall(cmd *cobra.Command, args []string) error {
+	hallName := cmd.Flag("name").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+	if hallName == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+	if err != nil {
+		return err
+	}
+
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dc); err != nil {
+		return fmt.Errorf("response parse error: " + err.Error())
+	}
+	dcID := strconv.Itoa(int(dc.ID))
+	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+	if err != nil {
+		return err
+	}
+	data := new(model.Floors)
+	if err := json.Unmarshal(body, data); err != nil {
+		return fmt.Errorf("response parse error:" + err.Error())
+	}
+	floor := model.Floor{}
+	for _, flr := range *data {
+		if flr.Name == floorName {
+			floor = flr
+			break
+		}
+	}
+	if floor.ID == 0 {
+		return fmt.Errorf("floor not found")
+	}
+	floorID := strconv.Itoa(int(floor.ID))
+	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
+	body, err = sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	f := new(model.Floor)
+	if err := json.Unmarshal(body, f); err != nil {
+		return fmt.Errorf("response parse error: " + err.Error())
+	}
+	hall := model.Hall{}
+	for _, h := range f.Halls {
+		if h.Name == args[0] {
+			hall = h
+			break
+		}
+	}
+	if hall.ID == 0 {
+		return fmt.Errorf("hall not found")
+	}
+	hall.Name = hallName
+	reqJSON, _ := json.Marshal(hall)
+	hallID := strconv.Itoa(int(hall.ID))
+	url = Conf.APIServer.URL + "/datacenter/hall/" + hallID
+	body, err = sendRequest("PUT", url, reqJSON)
+	if err != nil {
+		return err
+	}
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})

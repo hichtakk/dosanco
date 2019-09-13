@@ -92,7 +92,7 @@ func main() {
 	e.GET("/datacenter/hall/:id", handler.GetDataCenterHall)
 	//e.GET("/datacenter/floor/:fid/hall", handler.GetDataCenterHallByFloor)
 	e.POST("/datacenter/hall", handler.CreateDataCenterHall)
-	//e.PUT("/datacenter/hall/:id", handler.UpdateDataCenterHall)
+	e.PUT("/datacenter/hall/:id", handler.UpdateDataCenterHall)
 	e.DELETE("/datacenter/hall/:id", handler.DeleteDataCenterHall)
 
 	// Start dosanco server
