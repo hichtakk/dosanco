@@ -516,3 +516,69 @@ func deleteDataCenterFloor(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
+func deleteDataCenterHall(cmd *cobra.Command, args []string) error {
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+	if err != nil {
+		return err
+	}
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dc); err != nil {
+		return fmt.Errorf("response parse error: " + err.Error())
+	}
+	dcID := strconv.Itoa(int(dc.ID))
+	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+	if err != nil {
+		return err
+	}
+	data := new(model.Floors)
+	if err := json.Unmarshal(body, data); err != nil {
+		return fmt.Errorf("response parse error:" + err.Error())
+	}
+	floor := model.Floor{}
+	for _, flr := range *data {
+		if flr.Name == floorName {
+			floor = flr
+		}
+	}
+	if floor.ID == 0 {
+		return fmt.Errorf("floor not found")
+	}
+	floorID := strconv.Itoa(int(floor.ID))
+	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
+
+	f := new(model.Floor)
+	body, err = sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	if err := json.Unmarshal(body, f); err != nil {
+		return err
+	}
+
+	hall := model.Hall{}
+	for _, h := range f.Halls {
+		if h.Name == args[0] {
+			hall = h
+			break
+		}
+	}
+	if hall.ID == 0 {
+		return fmt.Errorf("hall not found")
+	}
+	hallID := strconv.Itoa(int(hall.ID))
+	url = Conf.APIServer.URL + "/datacenter/hall/" + hallID
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}

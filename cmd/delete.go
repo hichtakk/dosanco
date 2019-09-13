@@ -17,6 +17,7 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteHost(),
 		NewCmdDeleteDataCenter(),
 		NewCmdDeleteDataCenterFloor(),
+		NewCmdDeleteDataCenterHall(),
 	)
 
 	return deleteCmd
@@ -112,7 +113,7 @@ func NewCmdDeleteDataCenterHall() *cobra.Command {
 		Aliases: []string{"dc-hall"},
 		Short:   "delete datacenter hall",
 		Args:    cobra.ExactArgs(1),
-		RunE:    deleteDataCenterFloor,
+		RunE:    deleteDataCenterHall,
 	}
 	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
 	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
