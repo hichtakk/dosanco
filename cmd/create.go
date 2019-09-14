@@ -18,6 +18,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateDataCenter(),
 		NewCmdCreateDataCenterFloor(),
 		NewCmdCreateDataCenterHall(),
+		NewCmdCreateRackRow(),
 	)
 
 	return createCmd
@@ -144,4 +145,26 @@ func NewCmdCreateDataCenterHall() *cobra.Command {
 	hallCmd.MarkFlagRequired("type")
 
 	return hallCmd
+}
+
+// NewCmdCreateRackRow is subcommand represents datacenter resource.
+func NewCmdCreateRackRow() *cobra.Command {
+	var dc string
+	var floor string
+	var hall string
+	var rowCmd = &cobra.Command{
+		Use:     "row",
+		Aliases: []string{"rack-row"},
+		Short:   "create new hall to datacenter floor",
+		Args:    cobra.ExactArgs(1),
+		RunE:    createRackRow,
+	}
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
+	rowCmd.MarkFlagRequired("dc")
+	rowCmd.MarkFlagRequired("floor")
+	rowCmd.MarkFlagRequired("hall")
+
+	return rowCmd
 }

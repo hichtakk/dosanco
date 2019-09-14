@@ -138,29 +138,45 @@ func (h Halls) Write(output string) {
 // RackRow represents row of racks in data hall.
 type RackRow struct {
 	Model
-	Name  string `gorm:"type:varchar(16);unique_index" json:"name"`
-	Racks []Rack `json:"racks,omitempty"`
+	Name   string `gorm:"type:varchar(16)" json:"name"`
+	HallID uint   `json:"hall_id"`
+	Racks  Racks  `json:"racks,omitempty"`
+}
+
+type RackRows []RackRow
+
+func (r RackRows) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("%3s   %7s   %10s\n", "ID", "HallID", "Name")
+		for _, row := range r {
+			fmt.Printf("%3d   %7d   %10s\n", row.ID, row.HallID, row.Name)
+		}
+	}
 }
 
 // Rack represents each rack in row.
 type Rack struct {
 	Model
-	Name        string    `gorm:"type:varchar(16);unique_index" json:"name"`
-	RackPDUs    []RackPDU `json:"rack_pdus,omitempty"`
-	Description string    `gorm:"type:varchar(255)" json:"description"`
+	Name        string   `gorm:"type:varchar(16)" json:"name"`
+	RackPDUs    RackPDUs `json:"rack_pdus,omitempty"`
+	Description string   `gorm:"type:varchar(255)" json:"description"`
 }
+type Racks []Rack
 
 // UPS represents redundant power source
 type UPS struct {
 	Model
-	Name        string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Name        string `gorm:"type:varchar(16)" json:"name"`
 	Description string `gorm:"type:varchar(255)" json:"description"`
 }
 
 // PDU represents power distribution unit on data hall
 type PDU struct {
 	Model
-	Name         string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Name         string `gorm:"type:varchar(16)" json:"name"`
 	PrimaryUPS   UPS    `json:"primary_ups,omitempty"`
 	SecondaryUPS UPS    `json:"secondary_ups,omitempty"`
 	Description  string `gorm:"type:varchar(255)" json:"description"`
@@ -169,8 +185,9 @@ type PDU struct {
 // RackPDU represents power distribution unit installed inside of rack
 type RackPDU struct {
 	Model
-	Name        string `gorm:"type:varchar(16);unique_index" json:"name"`
+	Name        string `gorm:"type:varchar(16)" json:"name"`
 	Address     string `gorm:"type:varchar(15)" json:"address"`
 	Description string `gorm:"type:varchar(255)" json:"description"`
 	SourcePDUs  []PDU  `json:"source_pdus,omitempty"`
 }
+type RackPDUs []RackPDU

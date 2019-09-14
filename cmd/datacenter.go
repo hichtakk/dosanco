@@ -275,6 +275,35 @@ func getDataCenterHall(cmd *cobra.Command, args []string) {
 	}
 }
 
+func getRackRow(cmd *cobra.Command, args []string) {
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	if len(args) > 0 {
+		// show specified row
+	} else {
+		// show list of rows
+		url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName
+		if floorName != "" {
+			url = url + "&floor=" + floorName
+		}
+		if hallName != "" {
+			url = url + "&hall=" + hallName
+		}
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		data := new(model.RackRows)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	}
+}
+
 func createDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	reqModel := model.DataCenter{Name: args[0], Address: cmd.Flag("address").Value.String()}
@@ -374,6 +403,49 @@ func createDataCenterHall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", url+"/hall", reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		fmt.Println(reqErr)
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func createRackRow(cmd *cobra.Command, args []string) error {
+	// get data hall
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	url := Conf.APIServer.URL + "/datacenter/hall?dc=" + dcName + "&floor=" + floorName + "&name=" + hallName
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	halls := new(model.Halls)
+	if err = json.Unmarshal(body, halls); err != nil {
+		return fmt.Errorf("response parse error")
+	}
+	if len(*halls) == 0 {
+		return fmt.Errorf("hall not found")
+	} else if len(*halls) > 1 {
+		return fmt.Errorf("multiple hall found")
+	}
+	hall := model.Hall{}
+	for _, h := range *halls {
+		hall = h
+	}
+	// prepare request hall model
+	reqModel := model.RackRow{Name: args[0], HallID: hall.ID}
+	reqJSON, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("POST", Conf.APIServer.URL+"/datacenter/row", reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err

@@ -87,13 +87,15 @@ func main() {
 	e.DELETE("/datacenter/floor/:id", handler.DeleteDataCenterFloor)
 
 	// datacenter hall
-	//e.GET("/datacenter/floor/name/:name", handler.GetDataCenterFloorByName)
-	e.GET("/datacenter/hall", handler.GetAllDataCenterHalls)
+	e.GET("/datacenter/hall", handler.GetDataCenterHalls)
 	e.GET("/datacenter/hall/:id", handler.GetDataCenterHall)
-	//e.GET("/datacenter/floor/:fid/hall", handler.GetDataCenterHallByFloor)
 	e.POST("/datacenter/hall", handler.CreateDataCenterHall)
 	e.PUT("/datacenter/hall/:id", handler.UpdateDataCenterHall)
 	e.DELETE("/datacenter/hall/:id", handler.DeleteDataCenterHall)
+
+	// routing rack row
+	e.GET("/datacenter/row", handler.GetRackRows)
+	e.POST("/datacenter/row", handler.CreateRackRow)
 
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))

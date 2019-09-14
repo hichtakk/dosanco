@@ -226,6 +226,62 @@ func GetAllDataCenterHalls(c echo.Context) error {
 	return c.JSON(http.StatusOK, halls)
 }
 
+// GetDataCenterHalls returns datacenter floors.
+func GetDataCenterHalls(c echo.Context) error {
+	db := db.GetDB()
+	halls := model.Halls{}
+	dcName := c.QueryParam("dc")
+	floorName := c.QueryParam("floor")
+	name := c.QueryParam("name")
+	if (dcName == "") && (floorName != "") {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("'dc' parameter is required when 'floor' parameter is used.")))
+	} else if (dcName != "") && (floorName == "") {
+		// get datacenter
+		dc := model.DataCenter{}
+		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		// get floor
+		floors := []model.Floor{}
+		db.Find(&floors, "data_center_id=?", dc.ID)
+		for _, floor := range floors {
+			// get hall for each floor
+			h := model.Halls{}
+			if name != "" {
+				db.Find(&h, "floor_id=? AND name=?", floor.ID, name)
+				halls = append(halls, h...)
+			} else {
+				db.Find(&h, "floor_id=?", floor.ID)
+				halls = append(halls, h...)
+			}
+		}
+	} else if (dcName != "") && (floorName != "") {
+		// get datacenter
+		dc := model.DataCenter{}
+		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		// get floor
+		floor := model.Floor{}
+		if result := db.Take(&floor, "name=? AND data_center_id=?", floorName, dc.ID); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", floorName)))
+		}
+		if name != "" {
+			db.Find(&halls, "floor_id=? AND name=?", floor.ID, name)
+		} else {
+			db.Find(&halls, "floor_id=?", floor.ID)
+		}
+	} else {
+		if name != "" {
+			db.Find(&halls, "name=?", name)
+		} else {
+			db.Find(&halls)
+		}
+	}
+
+	return c.JSON(http.StatusOK, halls)
+}
+
 // GetDataCenterHall returns all of datacenter floors.
 func GetDataCenterHall(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -295,4 +351,70 @@ func DeleteDataCenterHall(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("datacenter hall %d deleted", id)))
+}
+
+// GetRackRows returns datacenter rack rows.
+func GetRackRows(c echo.Context) error {
+	db := db.GetDB()
+	rows := model.RackRows{}
+	dcName := c.QueryParam("dc")
+	floorName := c.QueryParam("floor")
+	hallName := c.QueryParam("hall")
+
+	if dcName != "" {
+		dc := model.DataCenter{}
+		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		if floorName != "" {
+			floor := model.Floor{}
+			if result := db.Take(&floor, "name=? AND data_center_id=?", floorName, dc.ID); result.Error != nil {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", floorName)))
+			}
+			if hallName != "" {
+				hall := model.Hall{}
+				if result := db.Take(&hall, "name=? AND floor_id=?", hallName, floor.ID); result.Error != nil {
+					return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", hallName)))
+				}
+				db.Find(&rows, "hall_id=?", hall.ID)
+			} else {
+				halls := model.Halls{}
+				db.Find(&halls, "floor_id=?", floor.ID)
+				for _, hall := range halls {
+					hallRows := model.RackRows{}
+					db.Find(&hallRows, "hall_id=?", hall.ID)
+					rows = append(rows, hallRows...)
+				}
+			}
+		} else {
+			floors := model.Floors{}
+			db.Find(&floors, "data_center_id=?", dc.ID)
+			for _, floor := range floors {
+				halls := model.Halls{}
+				db.Find(&halls, "floor_id=?", floor.ID)
+				for _, hall := range halls {
+					hallRows := model.RackRows{}
+					db.Find(&hallRows, "hall_id=?", hall.ID)
+					rows = append(rows, hallRows...)
+				}
+			}
+		}
+	} else {
+		db.Find(&rows)
+	}
+
+	return c.JSON(http.StatusOK, rows)
+}
+
+// CreateRackRow creates a new rack row to specified data hall.
+func CreateRackRow(c echo.Context) error {
+	row := new(model.RackRow)
+	if err := c.Bind(row); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&row); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack row created. ID: %d, Name: %s", row.ID, row.Name)))
 }

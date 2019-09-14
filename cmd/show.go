@@ -18,6 +18,7 @@ func NewCmdShow() *cobra.Command {
 		NewCmdShowDataCenter(),
 		NewCmdShowDataCenterFloor(),
 		NewCmdShowDataCenterHall(),
+		NewCmdShowRackRow(),
 	)
 
 	return showCmd
@@ -128,4 +129,24 @@ func NewCmdShowDataCenterHall() *cobra.Command {
 	dcCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
 
 	return dcCmd
+}
+
+// NewCmdShowRackRow is subcommand represents show rack row resource.
+func NewCmdShowRackRow() *cobra.Command {
+	var dc string
+	var floor string
+	var hall string
+	var rowCmd = &cobra.Command{
+		Use:     "row",
+		Aliases: []string{"rack-row"},
+		Short:   "show row of racks",
+		Args:    cobra.MaximumNArgs(1),
+		Run:     getRackRow,
+	}
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
+	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
+	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "specify datacenter hall")
+	rowCmd.MarkFlagRequired("dc")
+
+	return rowCmd
 }
