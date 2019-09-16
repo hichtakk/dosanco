@@ -602,6 +602,48 @@ func updateDataCenterHall(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateRackRow(cmd *cobra.Command, args []string) error {
+	rowName := cmd.Flag("name").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	if rowName == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	rows := new([]model.RackRow)
+	if err := json.Unmarshal(body, rows); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*rows) > 1 {
+		return fmt.Errorf("multiple row found")
+	}
+	row := new(model.RackRow)
+	for _, r := range *rows {
+		row = &r
+		break
+	}
+	row.Name = rowName
+	reqJSON, _ := json.Marshal(row)
+	rowID := strconv.Itoa(int(row.ID))
+	url = Conf.APIServer.URL + "/datacenter/row/" + rowID
+	body, reqErr := sendRequest("PUT", url, reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})

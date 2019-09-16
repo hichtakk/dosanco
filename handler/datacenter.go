@@ -436,6 +436,31 @@ func CreateRackRow(c echo.Context) error {
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack row created. ID: %d, Name: %s", row.ID, row.Name)))
 }
 
+// UpdateRackRow updates specified datacenter rack row information.
+func UpdateRackRow(c echo.Context) error {
+	row := new(model.RackRow)
+	if err := c.Bind(row); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	rowID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	if uint(rowID) != row.ID {
+		return c.JSON(http.StatusBadRequest, returnError("mismatched row ID between URI and request body."))
+	}
+	var r model.RackRow
+	db := db.GetDB()
+	if result := db.Take(&r, "id=?", rowID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("row not found on database."))
+	}
+	if result := db.Model(&r).Update("name", row.Name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database write error."))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack row updated. ID: %d, Name: %s", r.ID, row.Name)))
+}
+
 // DeleteRackRow deletes specified datacenter
 func DeleteRackRow(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
