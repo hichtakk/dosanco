@@ -360,6 +360,7 @@ func GetRackRows(c echo.Context) error {
 	dcName := c.QueryParam("dc")
 	floorName := c.QueryParam("floor")
 	hallName := c.QueryParam("hall")
+	name := c.QueryParam("name")
 
 	if dcName != "" {
 		dc := model.DataCenter{}
@@ -376,13 +377,21 @@ func GetRackRows(c echo.Context) error {
 				if result := db.Take(&hall, "name=? AND floor_id=?", hallName, floor.ID); result.Error != nil {
 					return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", hallName)))
 				}
-				db.Find(&rows, "hall_id=?", hall.ID)
+				if name != "" {
+					db.Find(&rows, "name=? AND hall_id=?", name, hall.ID)
+				} else {
+					db.Find(&rows, "hall_id=?", hall.ID)
+				}
 			} else {
 				halls := model.Halls{}
 				db.Find(&halls, "floor_id=?", floor.ID)
 				for _, hall := range halls {
 					hallRows := model.RackRows{}
-					db.Find(&hallRows, "hall_id=?", hall.ID)
+					if name != "" {
+						db.Find(&hallRows, "name=? AND hall_id=?", name, hall.ID)
+					} else {
+						db.Find(&hallRows, "hall_id=?", hall.ID)
+					}
 					rows = append(rows, hallRows...)
 				}
 			}
@@ -394,13 +403,21 @@ func GetRackRows(c echo.Context) error {
 				db.Find(&halls, "floor_id=?", floor.ID)
 				for _, hall := range halls {
 					hallRows := model.RackRows{}
-					db.Find(&hallRows, "hall_id=?", hall.ID)
+					if name != "" {
+						db.Find(&hallRows, "name=? AND hall_id=?", name, hall.ID)
+					} else {
+						db.Find(&hallRows, "hall_id=?", hall.ID)
+					}
 					rows = append(rows, hallRows...)
 				}
 			}
 		}
 	} else {
-		db.Find(&rows)
+		if name != "" {
+			db.Find(&rows, "name=?", name)
+		} else {
+			db.Find(&rows)
+		}
 	}
 
 	return c.JSON(http.StatusOK, rows)
@@ -417,4 +434,22 @@ func CreateRackRow(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack row created. ID: %d, Name: %s", row.ID, row.Name)))
+}
+
+// DeleteRackRow deletes specified datacenter
+func DeleteRackRow(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing row id error"))
+	}
+	db := db.GetDB()
+	var row model.RackRow
+	if result := db.Take(&row, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("row '%v' not found", id)))
+	}
+	if result := db.Delete(&row); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack row '%d' deleted", id)))
 }
