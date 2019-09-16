@@ -281,6 +281,25 @@ func getRackRow(cmd *cobra.Command, args []string) {
 	hallName := cmd.Flag("hall").Value.String()
 	if len(args) > 0 {
 		// show specified row
+		url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&name=" + args[0]
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		data := new(model.RackRows)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		if len(*data) > 1 {
+			fmt.Println("multiple row found")
+			return
+		}
+		for _, r := range *data {
+			r.Write(cmd.Flag("output").Value.String())
+			break
+		}
 	} else {
 		// show list of rows
 		url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName

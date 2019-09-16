@@ -143,6 +143,18 @@ type RackRow struct {
 	Racks  Racks  `json:"racks,omitempty"`
 }
 
+func (r RackRow) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# Rack Row\n")
+		fmt.Printf(" ID:     %d\n", r.ID)
+		fmt.Printf(" Name:   %v\n", r.Name)
+		fmt.Printf(" HallID: %v\n", r.HallID)
+	}
+}
+
 type RackRows []RackRow
 
 func (r RackRows) Write(output string) {
