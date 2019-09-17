@@ -20,6 +20,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateDataCenterHall(),
 		NewCmdCreateRackRow(),
 		NewCmdCreateRack(),
+		NewCmdCreateUPS(),
 	)
 
 	return createCmd
@@ -193,4 +194,19 @@ func NewCmdCreateRack() *cobra.Command {
 	rackCmd.MarkFlagRequired("row")
 
 	return rackCmd
+}
+
+// NewCmdCreateUPS is subcommand represents vlan resource.
+func NewCmdCreateUPS() *cobra.Command {
+	var dc string
+	var upsCmd = &cobra.Command{
+		Use:   "ups",
+		Short: "create new ups",
+		Args:  cobra.ExactArgs(1),
+		RunE:  createUPS,
+	}
+	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	upsCmd.MarkFlagRequired("dc")
+
+	return upsCmd
 }

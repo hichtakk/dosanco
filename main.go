@@ -105,6 +105,13 @@ func main() {
 	e.PUT("/datacenter/rack/:id", handler.UpdateRack)
 	e.DELETE("/datacenter/rack/:id", handler.DeleteRack)
 
+	// datacenter power
+	// routing UPS
+	e.GET("/datacenter/ups", handler.GetUPS)
+	e.POST("/datacenter/ups", handler.CreateUPS)
+	e.PUT("/datacenter/ups/:id", handler.UpdateUPS)
+	e.DELETE("/datacenter/ups/:id", handler.DeleteUPS)
+
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))
 }

@@ -297,6 +297,35 @@ func GetDataCenterHall(c echo.Context) error {
 	return c.JSON(http.StatusOK, hall)
 }
 
+// GetUPS returns datacenter floors.
+func GetUPS(c echo.Context) error {
+	db := db.GetDB()
+	ups := model.UPSs{}
+	dcName := c.QueryParam("dc")
+	name := c.QueryParam("name")
+	if dcName != "" {
+		// get datacenter
+		dc := model.DataCenter{}
+		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		// get ups
+		if name != "" {
+			db.Find(&ups, "data_center_id=? AND name=?", dc.ID, name)
+		} else {
+			db.Find(&ups, "data_center_id=?", dc.ID)
+		}
+	} else {
+		if name != "" {
+			db.Find(&ups, "name=?", name)
+		} else {
+			db.Find(&ups)
+		}
+	}
+
+	return c.JSON(http.StatusOK, ups)
+}
+
 // CreateDataCenterHall creates a new floor to specified datacenter.
 func CreateDataCenterHall(c echo.Context) error {
 	hall := new(model.Hall)
@@ -631,4 +660,60 @@ func DeleteRack(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack '%d' deleted", id)))
+}
+
+// CreateUPS creates a new rack row to specified data hall.
+func CreateUPS(c echo.Context) error {
+	ups := new(model.UPS)
+	if err := c.Bind(ups); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&ups); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("ups created. ID: %d, Name: %s", ups.ID, ups.Name)))
+}
+
+// UpdateUPS updates specified UPS information.
+func UpdateUPS(c echo.Context) error {
+	ups := new(model.UPS)
+	if err := c.Bind(ups); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	upsID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	if uint(upsID) != ups.ID {
+		return c.JSON(http.StatusBadRequest, returnError("mismatched UPS ID between URI and request body."))
+	}
+	var u model.UPS
+	db := db.GetDB()
+	if result := db.Take(&u, "id=?", upsID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("ups not found on database."))
+	}
+	if result := db.Model(&u).Update("name", ups.Name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database write error."))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("ups updated. ID: %d, Name: %s", ups.ID, ups.Name)))
+}
+
+// DeleteUPS deletes specified datacenter
+func DeleteUPS(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing row id error"))
+	}
+	db := db.GetDB()
+	var ups model.UPS
+	if result := db.Take(&ups, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("ups '%v' not found", id)))
+	}
+	if result := db.Delete(&ups); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("ups '%d' deleted", id)))
 }

@@ -20,6 +20,7 @@ func NewCmdShow() *cobra.Command {
 		NewCmdShowDataCenterHall(),
 		NewCmdShowRackRow(),
 		NewCmdShowRack(),
+		NewCmdShowUPS(),
 	)
 
 	return showCmd
@@ -172,4 +173,18 @@ func NewCmdShowRack() *cobra.Command {
 	rowCmd.MarkFlagRequired("dc")
 
 	return rowCmd
+}
+
+// NewCmdShowUPS is subcommand represents show rack row resource.
+func NewCmdShowUPS() *cobra.Command {
+	var dc string
+	var upsCmd = &cobra.Command{
+		Use:   "ups [UPS_NAME]",
+		Short: "show ups",
+		Args:  cobra.MaximumNArgs(1),
+		Run:   getUPS,
+	}
+	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
+
+	return upsCmd
 }

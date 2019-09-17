@@ -194,24 +194,38 @@ func (r Racks) Write(output string) {
 // UPS represents redundant power source
 type UPS struct {
 	Model
-	Name        string `gorm:"type:varchar(16)" json:"name"`
-	Description string `gorm:"type:varchar(255)" json:"description"`
+	Name         string `gorm:"type:varchar(16)" json:"name"`
+	DataCenterID uint   `json:"datacenter_id"`
+	Description  string `gorm:"type:varchar(255)" json:"description"`
+}
+
+type UPSs []UPS
+
+func (u UPSs) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(u, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "DataCenterID", "Name", "Description")
+		for _, ups := range u {
+			fmt.Printf("%3v   %5v   %10s   %s\n", ups.ID, ups.DataCenterID, ups.Name, ups.Description)
+		}
+	}
 }
 
 // PDU represents power distribution unit on data hall
 type PDU struct {
 	Model
-	Name         string `gorm:"type:varchar(16)" json:"name"`
-	PrimaryUPS   UPS    `json:"primary_ups,omitempty"`
-	SecondaryUPS UPS    `json:"secondary_ups,omitempty"`
-	Description  string `gorm:"type:varchar(255)" json:"description"`
+	Name           string `gorm:"type:varchar(16)" json:"name"`
+	PrimaryUPSID   uint   `json:"primary_ups_id,omitempty"`
+	SecondaryUPSID uint   `json:"secondary_ups_id,omitempty"`
+	Description    string `gorm:"type:varchar(255)" json:"description"`
 }
 
 // RackPDU represents power distribution unit installed inside of rack
 type RackPDU struct {
 	Model
 	Name        string `gorm:"type:varchar(16)" json:"name"`
-	Address     string `gorm:"type:varchar(15)" json:"address"`
 	Description string `gorm:"type:varchar(255)" json:"description"`
 	SourcePDUs  []PDU  `json:"source_pdus,omitempty"`
 }

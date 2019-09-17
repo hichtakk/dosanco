@@ -20,6 +20,7 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteDataCenterHall(),
 		NewCmdDeleteRackRow(),
 		NewCmdDeleteRack(),
+		NewCmdDeleteUPS(),
 	)
 
 	return deleteCmd
@@ -147,7 +148,7 @@ func NewCmdDeleteRackRow() *cobra.Command {
 	return rowCmd
 }
 
-// NewCmdRack is subcommand represents delete rack row resource.
+// NewCmdDeleteRack is subcommand represents delete rack row resource.
 func NewCmdDeleteRack() *cobra.Command {
 	var dc string
 	var floor string
@@ -170,4 +171,19 @@ func NewCmdDeleteRack() *cobra.Command {
 	rackCmd.MarkFlagRequired("row")
 
 	return rackCmd
+}
+
+// NewCmdDeleteUPS is subcommand represents delete rack row resource.
+func NewCmdDeleteUPS() *cobra.Command {
+	var dc string
+	var upsCmd = &cobra.Command{
+		Use:   "ups [RACK_NAME]",
+		Short: "delete ups",
+		Args:  cobra.ExactArgs(1),
+		RunE:  deleteUPS,
+	}
+	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	upsCmd.MarkFlagRequired("dc")
+
+	return upsCmd
 }

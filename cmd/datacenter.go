@@ -377,6 +377,32 @@ func getRack(cmd *cobra.Command, args []string) {
 	}
 }
 
+func getUPS(cmd *cobra.Command, args []string) {
+	dcName := cmd.Flag("dc").Value.String()
+	if len(args) > 0 {
+		/*
+		 *
+		 */
+	} else {
+		// show list of racks
+		url := Conf.APIServer.URL + "/datacenter/ups"
+		if dcName != "" {
+			url = url + "?dc=" + dcName
+		}
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		data := new(model.UPSs)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	}
+}
+
 func createDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	reqModel := model.DataCenter{Name: args[0], Address: cmd.Flag("address").Value.String()}
@@ -564,6 +590,38 @@ func createRack(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", Conf.APIServer.URL+"/datacenter/rack", reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		fmt.Println(reqErr)
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func createUPS(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.URL + "/datacenter"
+	// get datacenter
+	dcName := cmd.Flag("dc").Value.String()
+	body, err := sendRequest("GET", url+"/name/"+dcName, []byte{})
+	if err != nil {
+		return err
+	}
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dc); err != nil {
+		return fmt.Errorf("response parse error")
+	}
+	// prepare request floor model
+	reqModel := model.UPS{Name: args[0], DataCenterID: dc.ID}
+	reqJSON, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("POST", url+"/ups", reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
@@ -805,6 +863,46 @@ func updateRack(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateUPS(cmd *cobra.Command, args []string) error {
+	upsName := cmd.Flag("name").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+	if upsName == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	url := Conf.APIServer.URL + "/datacenter/ups?dc=" + dcName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	upss := new(model.UPSs)
+	if err := json.Unmarshal(body, upss); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*upss) > 1 {
+		return fmt.Errorf("multiple ups found")
+	}
+	ups := new(model.UPS)
+	for _, r := range *upss {
+		ups = &r
+		break
+	}
+	ups.Name = upsName
+	reqJSON, _ := json.Marshal(ups)
+	upsID := strconv.Itoa(int(ups.ID))
+	url = Conf.APIServer.URL + "/datacenter/ups/" + upsID
+	body, reqErr := sendRequest("PUT", url, reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})
@@ -992,6 +1090,40 @@ func deleteRack(cmd *cobra.Command, args []string) error {
 	}
 	rackID := strconv.Itoa(int(rack.ID))
 	url = Conf.APIServer.URL + "/datacenter/rack/" + rackID
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func deleteUPS(cmd *cobra.Command, args []string) error {
+	dcName := cmd.Flag("dc").Value.String()
+	url := Conf.APIServer.URL + "/datacenter/ups?dc=" + dcName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	upss := new(model.UPSs)
+	if err := json.Unmarshal(body, upss); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*upss) > 1 {
+		return fmt.Errorf("multiple ups found")
+	}
+	ups := new(model.UPS)
+	for _, u := range *upss {
+		ups = &u
+		break
+	}
+	upsID := strconv.Itoa(int(ups.ID))
+	url = Conf.APIServer.URL + "/datacenter/ups/" + upsID
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
