@@ -19,6 +19,7 @@ func NewCmdUpdate() *cobra.Command {
 		NewCmdUpdateDataCenterFloor(),
 		NewCmdUpdateDataCenterHall(),
 		NewCmdUpdateRackRow(),
+		NewCmdUpdateRack(),
 	)
 
 	return updateCmd
@@ -143,7 +144,7 @@ func NewCmdUpdateDataCenterHall() *cobra.Command {
 	return hallCmd
 }
 
-// NewCmdUpdateRackRow is subcommand represents update datacenter hall resource.
+// NewCmdUpdateRackRow is subcommand represents update rack row resource.
 func NewCmdUpdateRackRow() *cobra.Command {
 	var dc string
 	var floor string
@@ -166,4 +167,31 @@ func NewCmdUpdateRackRow() *cobra.Command {
 	rowCmd.MarkFlagRequired("name")
 
 	return rowCmd
+}
+
+// NewCmdUpdateRack is subcommand represents update rack resource.
+func NewCmdUpdateRack() *cobra.Command {
+	var dc string
+	var floor string
+	var hall string
+	var row string
+	var name string
+	var rackCmd = &cobra.Command{
+		Use:   "rack [RACK_NAME]",
+		Short: "update rack name",
+		Args:  cobra.ExactArgs(1),
+		RunE:  updateRack,
+	}
+	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall")
+	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
+	rackCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
+	rackCmd.MarkFlagRequired("dc")
+	rackCmd.MarkFlagRequired("floor")
+	rackCmd.MarkFlagRequired("hall")
+	rackCmd.MarkFlagRequired("row")
+	rackCmd.MarkFlagRequired("name")
+
+	return rackCmd
 }

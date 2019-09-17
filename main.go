@@ -99,6 +99,12 @@ func main() {
 	e.PUT("/datacenter/row/:id", handler.UpdateRackRow)
 	e.DELETE("/datacenter/row/:id", handler.DeleteRackRow)
 
+	// routing rack
+	e.GET("/datacenter/rack", handler.GetRacks)
+	e.POST("/datacenter/rack", handler.CreateRack)
+	e.PUT("/datacenter/rack/:id", handler.UpdateRack)
+	e.DELETE("/datacenter/rack/:id", handler.DeleteRack)
+
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))
 }

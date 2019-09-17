@@ -18,7 +18,8 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteDataCenter(),
 		NewCmdDeleteDataCenterFloor(),
 		NewCmdDeleteDataCenterHall(),
-		NewCmdRackRow(),
+		NewCmdDeleteRackRow(),
+		NewCmdDeleteRack(),
 	)
 
 	return deleteCmd
@@ -125,7 +126,7 @@ func NewCmdDeleteDataCenterHall() *cobra.Command {
 }
 
 // NewCmdRackRow is subcommand represents delete rack row resource.
-func NewCmdRackRow() *cobra.Command {
+func NewCmdDeleteRackRow() *cobra.Command {
 	var dc string
 	var floor string
 	var hall string
@@ -144,4 +145,29 @@ func NewCmdRackRow() *cobra.Command {
 	rowCmd.MarkFlagRequired("hall")
 
 	return rowCmd
+}
+
+// NewCmdRack is subcommand represents delete rack row resource.
+func NewCmdDeleteRack() *cobra.Command {
+	var dc string
+	var floor string
+	var hall string
+	var row string
+	var rackCmd = &cobra.Command{
+		Use:     "rack [RACK_NAME]",
+		Aliases: []string{"rack-row"},
+		Short:   "delete rack row",
+		Args:    cobra.ExactArgs(1),
+		RunE:    deleteRack,
+	}
+	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall")
+	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
+	rackCmd.MarkFlagRequired("dc")
+	rackCmd.MarkFlagRequired("floor")
+	rackCmd.MarkFlagRequired("hall")
+	rackCmd.MarkFlagRequired("row")
+
+	return rackCmd
 }

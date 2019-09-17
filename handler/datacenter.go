@@ -478,3 +478,157 @@ func DeleteRackRow(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack row '%d' deleted", id)))
 }
+
+// GetRacks returns datacenter rack rows.
+func GetRacks(c echo.Context) error {
+	db := db.GetDB()
+	racks := model.Racks{}
+	dcName := c.QueryParam("dc")
+	floorName := c.QueryParam("floor")
+	hallName := c.QueryParam("hall")
+	rowName := c.QueryParam("row")
+	name := c.QueryParam("name")
+
+	if dcName != "" {
+		dc := model.DataCenter{}
+		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		if floorName != "" {
+			floor := model.Floor{}
+			if result := db.Take(&floor, "name=? AND data_center_id=?", floorName, dc.ID); result.Error != nil {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", floorName)))
+			}
+			if hallName != "" {
+				hall := model.Hall{}
+				if result := db.Take(&hall, "name=? AND floor_id=?", hallName, floor.ID); result.Error != nil {
+					return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", hallName)))
+				}
+				if rowName != "" {
+					row := model.RackRow{}
+					if result := db.Take(&row, "name=? AND hall_id=?", rowName, hall.ID); result.Error != nil {
+						return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("row '%v' not found", rowName)))
+					}
+					if name != "" {
+						db.Find(&racks, "name=? AND row_id=?", name, row.ID)
+					} else {
+						db.Find(&racks, "row_id=?", row.ID)
+					}
+				} else {
+					hallRows := model.RackRows{}
+					db.Find(&hallRows, "hall_id=?", hall.ID)
+					for _, row := range hallRows {
+						rowRacks := model.Racks{}
+						if name != "" {
+							db.Find(&rowRacks, "name=? AND row_id=?", name, row.ID)
+						} else {
+							db.Find(&rowRacks, "row_id=?", row.ID)
+						}
+						racks = append(racks, rowRacks...)
+					}
+				}
+
+			} else {
+				halls := model.Halls{}
+				db.Find(&halls, "floor_id=?", floor.ID)
+				for _, hall := range halls {
+					hallRows := model.RackRows{}
+					db.Find(&hallRows, "hall_id=?", hall.ID)
+					for _, row := range hallRows {
+						rowRacks := model.Racks{}
+						if name != "" {
+							db.Find(&rowRacks, "name=? AND row_id=?", name, row.ID)
+						} else {
+							db.Find(&rowRacks, "row_id=?", row.ID)
+						}
+						racks = append(racks, rowRacks...)
+					}
+				}
+			}
+		} else {
+			floors := model.Floors{}
+			db.Find(&floors, "data_center_id=?", dc.ID)
+			for _, floor := range floors {
+				halls := model.Halls{}
+				db.Find(&halls, "floor_id=?", floor.ID)
+				for _, hall := range halls {
+					hallRows := model.RackRows{}
+					db.Find(&hallRows, "hall_id=?", hall.ID)
+					for _, row := range hallRows {
+						rowRacks := model.Racks{}
+						if name != "" {
+							db.Find(&rowRacks, "name=? AND row_id=?", name, row.ID)
+						} else {
+							db.Find(&rowRacks, "row_id=?", row.ID)
+						}
+						racks = append(racks, rowRacks...)
+					}
+				}
+			}
+		}
+	} else {
+		if name != "" {
+			db.Find(&racks, "name=?", name)
+		} else {
+			db.Find(&racks)
+		}
+	}
+
+	return c.JSON(http.StatusOK, racks)
+}
+
+// CreateRack creates a new rack row to specified data hall.
+func CreateRack(c echo.Context) error {
+	rack := new(model.Rack)
+	if err := c.Bind(rack); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&rack); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack created. ID: %d, Name: %s", rack.ID, rack.Name)))
+}
+
+// UpdateRack updates specified datacenter rack row information.
+func UpdateRack(c echo.Context) error {
+	rack := new(model.Rack)
+	if err := c.Bind(rack); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	rackID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	if uint(rackID) != rack.ID {
+		return c.JSON(http.StatusBadRequest, returnError("mismatched row ID between URI and request body."))
+	}
+	var r model.Rack
+	db := db.GetDB()
+	if result := db.Take(&r, "id=?", rackID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("rack not found on database."))
+	}
+	if result := db.Model(&r).Update("name", rack.Name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database write error."))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack updated. ID: %d, Name: %s", r.ID, rack.Name)))
+}
+
+// DeleteRack deletes specified datacenter
+func DeleteRack(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing row id error"))
+	}
+	db := db.GetDB()
+	var rack model.Rack
+	if result := db.Take(&rack, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack '%v' not found", id)))
+	}
+	if result := db.Delete(&rack); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack '%d' deleted", id)))
+}

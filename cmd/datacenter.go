@@ -323,6 +323,60 @@ func getRackRow(cmd *cobra.Command, args []string) {
 	}
 }
 
+func getRack(cmd *cobra.Command, args []string) {
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	rowName := cmd.Flag("row").Value.String()
+	if len(args) > 0 {
+		/*
+			// show specified rack
+			url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&name=" + args[0]
+			body, err := sendRequest("GET", url, []byte{})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			data := new(model.RackRows)
+			if err := json.Unmarshal(body, data); err != nil {
+				fmt.Println("parse response error")
+				return
+			}
+			if len(*data) > 1 {
+				fmt.Println("multiple row found")
+				return
+			}
+			for _, r := range *data {
+				r.Write(cmd.Flag("output").Value.String())
+				break
+			}
+		*/
+	} else {
+		// show list of racks
+		url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName
+		if floorName != "" {
+			url = url + "&floor=" + floorName
+		}
+		if hallName != "" {
+			url = url + "&hall=" + hallName
+		}
+		if rowName != "" {
+			url = url + "&row=" + rowName
+		}
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		data := new(model.Racks)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	}
+}
+
 func createDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	reqModel := model.DataCenter{Name: args[0], Address: cmd.Flag("address").Value.String()}
@@ -465,6 +519,51 @@ func createRackRow(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", Conf.APIServer.URL+"/datacenter/row", reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		fmt.Println(reqErr)
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func createRack(cmd *cobra.Command, args []string) error {
+	// get data hall
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	rowName := cmd.Flag("row").Value.String()
+	url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&name=" + rowName
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	rows := new(model.RackRows)
+	if err = json.Unmarshal(body, rows); err != nil {
+		return fmt.Errorf("response parse error")
+	}
+	if len(*rows) == 0 {
+		return fmt.Errorf("row not found")
+	} else if len(*rows) > 1 {
+		return fmt.Errorf("multiple row found")
+	}
+	row := model.RackRow{}
+	for _, r := range *rows {
+		row = r
+		break
+	}
+	// prepare request rack model
+	reqModel := model.Rack{Name: args[0], RowID: row.ID}
+	reqJSON, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("POST", Conf.APIServer.URL+"/datacenter/rack", reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
@@ -663,6 +762,49 @@ func updateRackRow(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateRack(cmd *cobra.Command, args []string) error {
+	rackName := cmd.Flag("name").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	rowName := cmd.Flag("row").Value.String()
+	if rackName == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&row=" + rowName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	racks := new(model.Racks)
+	if err := json.Unmarshal(body, racks); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*racks) > 1 {
+		return fmt.Errorf("multiple rack found")
+	}
+	rack := new(model.Rack)
+	for _, r := range *racks {
+		rack = &r
+		break
+	}
+	rack.Name = rackName
+	reqJSON, _ := json.Marshal(rack)
+	rackID := strconv.Itoa(int(rack.ID))
+	url = Conf.APIServer.URL + "/datacenter/rack/" + rackID
+	body, reqErr := sendRequest("PUT", url, reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})
@@ -812,6 +954,44 @@ func deleteRackRow(cmd *cobra.Command, args []string) error {
 	}
 	rowID := strconv.Itoa(int(row.ID))
 	url = Conf.APIServer.URL + "/datacenter/row/" + rowID
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func deleteRack(cmd *cobra.Command, args []string) error {
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	rowName := cmd.Flag("row").Value.String()
+
+	url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&row=" + rowName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	racks := new(model.Racks)
+	if err := json.Unmarshal(body, racks); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*racks) > 1 {
+		return fmt.Errorf("multiple rack found")
+	}
+	rack := new(model.Rack)
+	for _, r := range *racks {
+		rack = &r
+		break
+	}
+	rackID := strconv.Itoa(int(rack.ID))
+	url = Conf.APIServer.URL + "/datacenter/rack/" + rackID
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {

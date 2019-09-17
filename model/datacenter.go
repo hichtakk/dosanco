@@ -173,10 +173,23 @@ func (r RackRows) Write(output string) {
 type Rack struct {
 	Model
 	Name        string   `gorm:"type:varchar(16)" json:"name"`
+	RowID       uint     `json:"row_id"`
 	RackPDUs    RackPDUs `json:"rack_pdus,omitempty"`
 	Description string   `gorm:"type:varchar(255)" json:"description"`
 }
 type Racks []Rack
+
+func (r Racks) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "RowID", "Name", "Description")
+		for _, rack := range r {
+			fmt.Printf("%3d   %5v   %10s   %s\n", rack.ID, rack.RowID, rack.Name, rack.Description)
+		}
+	}
+}
 
 // UPS represents redundant power source
 type UPS struct {
