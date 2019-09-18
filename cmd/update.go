@@ -21,6 +21,7 @@ func NewCmdUpdate() *cobra.Command {
 		NewCmdUpdateRackRow(),
 		NewCmdUpdateRack(),
 		NewCmdUpdateUPS(),
+		NewCmdUpdatePDU(),
 	)
 
 	return updateCmd
@@ -213,4 +214,22 @@ func NewCmdUpdateUPS() *cobra.Command {
 	upsCmd.MarkFlagRequired("name")
 
 	return upsCmd
+}
+
+// NewCmdUpdatePDU is subcommand represents update rack resource.
+func NewCmdUpdatePDU() *cobra.Command {
+	var dc string
+	var name string
+	var pduCmd = &cobra.Command{
+		Use:   "dc-pdu [PDU_NAME]",
+		Short: "update pdu name",
+		Args:  cobra.ExactArgs(1),
+		RunE:  updatePDU,
+	}
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
+	pduCmd.MarkFlagRequired("dc")
+	pduCmd.MarkFlagRequired("name")
+
+	return pduCmd
 }

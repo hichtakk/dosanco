@@ -21,6 +21,7 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteRackRow(),
 		NewCmdDeleteRack(),
 		NewCmdDeleteUPS(),
+		NewCmdDeletePDU(),
 	)
 
 	return deleteCmd
@@ -186,4 +187,19 @@ func NewCmdDeleteUPS() *cobra.Command {
 	upsCmd.MarkFlagRequired("dc")
 
 	return upsCmd
+}
+
+// NewCmdDeletePDU is subcommand represents delete rack row resource.
+func NewCmdDeletePDU() *cobra.Command {
+	var dc string
+	var pduCmd = &cobra.Command{
+		Use:   "dc-pdu [PDU_NAME]",
+		Short: "delete pdu",
+		Args:  cobra.ExactArgs(1),
+		RunE:  deletePDU,
+	}
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.MarkFlagRequired("dc")
+
+	return pduCmd
 }

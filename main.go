@@ -112,6 +112,12 @@ func main() {
 	e.PUT("/datacenter/ups/:id", handler.UpdateUPS)
 	e.DELETE("/datacenter/ups/:id", handler.DeleteUPS)
 
+	// routing PDU
+	e.GET("/datacenter/pdu", handler.GetPDU)
+	e.POST("/datacenter/pdu", handler.CreatePDU)
+	e.PUT("/datacenter/pdu/:id", handler.UpdatePDU)
+	e.DELETE("/datacenter/pdu/:id", handler.DeletePDU)
+
 	// Start dosanco server
 	e.Logger.Fatal(e.Start(":8080"))
 }

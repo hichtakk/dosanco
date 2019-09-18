@@ -21,6 +21,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateRackRow(),
 		NewCmdCreateRack(),
 		NewCmdCreateUPS(),
+		NewCmdCreatePDU(),
 	)
 
 	return createCmd
@@ -196,7 +197,7 @@ func NewCmdCreateRack() *cobra.Command {
 	return rackCmd
 }
 
-// NewCmdCreateUPS is subcommand represents vlan resource.
+// NewCmdCreateUPS is subcommand represents ups resource.
 func NewCmdCreateUPS() *cobra.Command {
 	var dc string
 	var upsCmd = &cobra.Command{
@@ -209,4 +210,24 @@ func NewCmdCreateUPS() *cobra.Command {
 	upsCmd.MarkFlagRequired("dc")
 
 	return upsCmd
+}
+
+// NewCmdCreatePDU is subcommand represents pdu resource.
+func NewCmdCreatePDU() *cobra.Command {
+	var dc string
+	var primary string
+	var secondary string
+	var pduCmd = &cobra.Command{
+		Use:   "pdu",
+		Short: "create new pdu",
+		Args:  cobra.ExactArgs(1),
+		RunE:  createPDU,
+	}
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")
+	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "", "name of secondary power source")
+	pduCmd.MarkFlagRequired("dc")
+	pduCmd.MarkFlagRequired("primary")
+
+	return pduCmd
 }
