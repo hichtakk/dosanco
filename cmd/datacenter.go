@@ -433,6 +433,40 @@ func getPDU(cmd *cobra.Command, args []string) {
 	}
 }
 
+func getRackPDU(cmd *cobra.Command, args []string) {
+	dcName := cmd.Flag("dc").Value.String()
+	upsName := cmd.Flag("ups").Value.String()
+	pduName := cmd.Flag("pdu").Value.String()
+	if len(args) > 0 {
+		/*
+		 *
+		 */
+	} else {
+		// show list of pdus
+		url := Conf.APIServer.URL + "/datacenter/rack-pdu"
+		if dcName != "" {
+			url = url + "?dc=" + dcName
+			if upsName != "" {
+				url = url + "&ups=" + upsName
+			}
+			if pduName != "" {
+				url = url + "&dc-pdu=" + pduName
+			}
+		}
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		data := new(model.RackPDUs)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	}
+}
+
 func createDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	reqModel := model.DataCenter{Name: args[0], Address: cmd.Flag("address").Value.String()}
@@ -713,6 +747,73 @@ func createPDU(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", url+"/pdu", reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		fmt.Println(reqErr)
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func createRackPDU(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.URL + "/datacenter"
+	pPDUName := cmd.Flag("primary").Value.String()
+	sPDUName := cmd.Flag("secondary").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+
+	// get primary pdu
+	body, err := sendRequest("GET", url+"/pdu?dc="+dcName+"&name="+pPDUName, []byte{})
+	if err != nil {
+		return err
+	}
+	pdus := new(model.PDUs)
+	if err = json.Unmarshal(body, pdus); err != nil {
+		return fmt.Errorf("response parse error")
+	}
+	pPDU := model.PDU{}
+	for _, p := range *pdus {
+		pPDU = p
+		break
+	}
+	if pPDU.ID == 0 {
+		return fmt.Errorf("primary pdu not found")
+	}
+
+	// get secondary pdu
+	sPDU := model.PDU{}
+	if sPDUName != "" {
+		body, err := sendRequest("GET", url+"/pdu?dc="+dcName+"&name="+sPDUName, []byte{})
+		if err != nil {
+			return err
+		}
+		pdus := new(model.PDUs)
+		if err = json.Unmarshal(body, pdus); err != nil {
+			return fmt.Errorf("response parse error")
+		}
+		for _, p := range *pdus {
+			sPDU = p
+			break
+		}
+		if sPDU.ID == 0 {
+			return fmt.Errorf("secondary pdu not found")
+		}
+	}
+
+	// prepare request floor model
+	reqModel := model.RackPDU{Name: args[0], PrimaryPDUID: pPDU.ID}
+	if sPDU.ID != 0 {
+		reqModel.SecondaryPDUID = sPDU.ID
+	}
+	reqJSON, err := json.Marshal(reqModel)
+	if err != nil {
+		return fmt.Errorf("json marshal error: %v", reqModel)
+	}
+	body, reqErr := sendRequest("POST", url+"/rack-pdu", reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
@@ -1034,6 +1135,46 @@ func updatePDU(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateRackPDU(cmd *cobra.Command, args []string) error {
+	pduName := cmd.Flag("name").Value.String()
+	dcName := cmd.Flag("dc").Value.String()
+	if pduName == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	url := Conf.APIServer.URL + "/datacenter/rack-pdu?dc=" + dcName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	pdus := new(model.RackPDUs)
+	if err := json.Unmarshal(body, pdus); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*pdus) > 1 {
+		return fmt.Errorf("multiple pdu found")
+	}
+	pdu := new(model.RackPDU)
+	for _, p := range *pdus {
+		pdu = &p
+		break
+	}
+	pdu.Name = pduName
+	reqJSON, _ := json.Marshal(pdu)
+	pduID := strconv.Itoa(int(pdu.ID))
+	url = Conf.APIServer.URL + "/datacenter/rack-pdu/" + pduID
+	body, reqErr := sendRequest("PUT", url, reqJSON)
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter/" + args[0]
 	body, reqErr := sendRequest("DELETE", url, []byte{})
@@ -1289,6 +1430,40 @@ func deletePDU(cmd *cobra.Command, args []string) error {
 	}
 	pduID := strconv.Itoa(int(pdu.ID))
 	url = Conf.APIServer.URL + "/datacenter/pdu/" + pduID
+	body, reqErr := sendRequest("DELETE", url, []byte{})
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	if reqErr != nil {
+		return reqErr
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func deleteRackPDU(cmd *cobra.Command, args []string) error {
+	dcName := cmd.Flag("dc").Value.String()
+	url := Conf.APIServer.URL + "/datacenter/rack-pdu?dc=" + dcName + "&name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	pdus := new(model.RackPDUs)
+	if err := json.Unmarshal(body, pdus); err != nil {
+		return fmt.Errorf("response parse error" + err.Error())
+	}
+	if len(*pdus) > 1 {
+		return fmt.Errorf("multiple rack pdu found")
+	}
+	pdu := new(model.RackPDU)
+	for _, p := range *pdus {
+		pdu = &p
+		break
+	}
+	pduID := strconv.Itoa(int(pdu.ID))
+	url = Conf.APIServer.URL + "/datacenter/rack-pdu/" + pduID
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {

@@ -254,7 +254,20 @@ type RackPDU struct {
 	Model
 	Name           string `gorm:"type:varchar(16)" json:"name"`
 	Description    string `gorm:"type:varchar(255)" json:"description"`
-	PrimaryPDUID   uint   `json:"primary_pdu_id,omitempty"`
-	SecondaryPDUID uint   `json:"secondary_pdu_id,omitempty"`
+	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
+	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
 }
+
 type RackPDUs []RackPDU
+
+func (p RackPDUs) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("%3s   %10s   %5s   %5s\n", "ID", "Name", "Primary PDU ID", "Secondary PDU ID")
+		for _, pdu := range p {
+			fmt.Printf("%3d   %10s   %5d   %5d\n", pdu.ID, pdu.Name, pdu.PrimaryPDUID, pdu.SecondaryPDUID)
+		}
+	}
+}

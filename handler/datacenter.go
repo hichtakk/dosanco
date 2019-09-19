@@ -364,6 +364,64 @@ func GetPDU(c echo.Context) error {
 	return c.JSON(http.StatusOK, pdu)
 }
 
+// GetRackPDU returns datacenter floors.
+func GetRackPDU(c echo.Context) error {
+	db := db.GetDB()
+	pdu := model.RackPDUs{}
+	dcName := c.QueryParam("dc")
+	upsName := c.QueryParam("ups")
+	dcPduName := c.QueryParam("dc-pdu")
+	name := c.QueryParam("name")
+	if dcName != "" {
+		// get dc
+		dc := model.DataCenter{}
+		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		// get ups
+		ups := model.UPSs{}
+		if upsName != "" {
+			if result := db.Find(&ups, "name=? AND data_center_id=?", upsName, dc.ID); result.Error != nil {
+				return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups '%v' not found for dc '%v'", upsName, dcName)))
+			}
+		} else {
+			if result := db.Find(&ups, "data_center_id=?", dc.ID); result.Error != nil {
+				return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups not found for dc '%v'", dcName)))
+			}
+		}
+		// get dc pdu
+		for _, u := range ups {
+			dcPDUs := []model.PDU{}
+			if dcPduName != "" {
+				if result := db.Find(&dcPDUs, "name=? AND primary_ups_id=?", dcPduName, u.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("dc pdu '%v' not found", dcPduName)))
+				}
+			} else {
+				if result := db.Find(&dcPDUs, "primary_ups_id=?", u.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("dc pdu not found")))
+				}
+			}
+			for _, dcPDU := range dcPDUs {
+				p := []model.RackPDU{}
+				if name != "" {
+					db.Find(&p, "name=? AND primary_pdu_id=?", name, dcPDU.ID)
+				} else {
+					db.Find(&p, "primary_pdu_id=?", dcPDU.ID)
+				}
+				pdu = append(pdu, p...)
+			}
+		}
+	} else {
+		if name != "" {
+			db.Find(&pdu, "name=?", name)
+		} else {
+			db.Find(&pdu)
+		}
+	}
+
+	return c.JSON(http.StatusOK, pdu)
+}
+
 // CreateDataCenterHall creates a new floor to specified datacenter.
 func CreateDataCenterHall(c echo.Context) error {
 	hall := new(model.Hall)
@@ -763,6 +821,31 @@ func UpdatePDU(c echo.Context) error {
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("pdu updated. ID: %d, Name: %s", pdu.ID, pdu.Name)))
 }
 
+// UpdateRackPDU updates specified UPS information.
+func UpdateRackPDU(c echo.Context) error {
+	pdu := new(model.RackPDU)
+	if err := c.Bind(pdu); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	pduID, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	if uint(pduID) != pdu.ID {
+		return c.JSON(http.StatusBadRequest, returnError("mismatched RACK PDU ID between URI and request body."))
+	}
+	var p model.RackPDU
+	db := db.GetDB()
+	if result := db.Take(&p, "id=?", pduID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("rack pdu not found on database."))
+	}
+	if result := db.Model(&p).Update("name", pdu.Name); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database write error."))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("pdu updated. ID: %d, Name: %s", pdu.ID, pdu.Name)))
+}
+
 // DeleteUPS deletes specified datacenter
 func DeleteUPS(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -785,12 +868,30 @@ func DeleteUPS(c echo.Context) error {
 func DeletePDU(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {
-		return c.JSON(http.StatusBadRequest, returnError("parsing row id error"))
+		return c.JSON(http.StatusBadRequest, returnError("parsing dc pdu id error"))
 	}
 	db := db.GetDB()
 	var pdu model.PDU
 	if result := db.Take(&pdu, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("pdu '%v' not found", id)))
+	}
+	if result := db.Delete(&pdu); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("pdu '%d' deleted", id)))
+}
+
+// DeleteRackPDU deletes specified datacenter
+func DeleteRackPDU(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parsing rack pdu id error"))
+	}
+	db := db.GetDB()
+	var pdu model.RackPDU
+	if result := db.Take(&pdu, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack pdu '%v' not found", id)))
 	}
 	if result := db.Delete(&pdu); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
@@ -810,4 +911,17 @@ func CreatePDU(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("pdu created. ID: %d, Name: %s", pdu.ID, pdu.Name)))
+}
+
+// CreateRackPDU creates a new rack row to specified data hall.
+func CreateRackPDU(c echo.Context) error {
+	pdu := new(model.RackPDU)
+	if err := c.Bind(pdu); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&pdu); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("rack pdu created. ID: %d, Name: %s", pdu.ID, pdu.Name)))
 }

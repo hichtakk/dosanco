@@ -22,6 +22,7 @@ func NewCmdShow() *cobra.Command {
 		NewCmdShowRack(),
 		NewCmdShowUPS(),
 		NewCmdShowPDU(),
+		NewCmdShowRackPDU(),
 	)
 
 	return showCmd
@@ -195,13 +196,31 @@ func NewCmdShowPDU() *cobra.Command {
 	var dc string
 	var ups string
 	var pduCmd = &cobra.Command{
-		Use:   "dc-pdu [UPS_NAME]",
+		Use:   "dc-pdu [PDU_NAME]",
 		Short: "show dc-pdu",
 		Args:  cobra.MaximumNArgs(1),
 		Run:   getPDU,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
 	pduCmd.Flags().StringVarP(&ups, "ups", "", "", "specify ups")
+
+	return pduCmd
+}
+
+// NewCmdShowRackPDU is subcommand represents show rack row resource.
+func NewCmdShowRackPDU() *cobra.Command {
+	var dc string
+	var ups string
+	var pdu string
+	var pduCmd = &cobra.Command{
+		Use:   "pdu [RACK_PDU_NAME]",
+		Short: "show pdu",
+		Args:  cobra.MaximumNArgs(1),
+		Run:   getRackPDU,
+	}
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter name")
+	pduCmd.Flags().StringVarP(&ups, "ups", "", "", "specify ups name")
+	pduCmd.Flags().StringVarP(&pdu, "pdu", "", "", "specify datacenter pdu name")
 
 	return pduCmd
 }
