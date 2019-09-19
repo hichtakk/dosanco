@@ -16,7 +16,7 @@ type Host struct {
 	Location        string          `json:"location"`
 	Description     string          `json:"description"`
 	IPv4Allocations IPv4Allocations `json:"ipv4_allocations"`
-	Configuration   Configuration   `json:"configuration" `
+	//Configuration   Configuration   `json:"configuration" `
 }
 
 // Write does output to standard output.
@@ -46,6 +46,7 @@ type Hosts []Host
 func (h Hosts) Write() {
 }
 
+/*
 type CPU struct {
 	Model string `json:"model"`
 }
@@ -73,3 +74,4 @@ type Configuration struct {
 	NICs         []NIC         `json:"nic"`
 	Accelerators []Accelerator `json:"accelerator"`
 }
+*/
