@@ -219,8 +219,8 @@ func NewCmdCreatePDU() *cobra.Command {
 	var primary string
 	var secondary string
 	var pduCmd = &cobra.Command{
-		Use:   "dc-pdu",
-		Short: "create new pdu",
+		Use:   "row-pdu",
+		Short: "create new row-pdu",
 		Args:  cobra.ExactArgs(1),
 		RunE:  createPDU,
 	}
@@ -239,8 +239,8 @@ func NewCmdCreateRackPDU() *cobra.Command {
 	var primary string
 	var secondary string
 	var pduCmd = &cobra.Command{
-		Use:   "pdu",
-		Short: "create new rack pdu",
+		Use:   "rack-pdu",
+		Short: "create new rack-pdu",
 		Args:  cobra.ExactArgs(1),
 		RunE:  createRackPDU,
 	}

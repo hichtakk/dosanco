@@ -194,8 +194,8 @@ func NewCmdDeleteUPS() *cobra.Command {
 func NewCmdDeletePDU() *cobra.Command {
 	var dc string
 	var pduCmd = &cobra.Command{
-		Use:   "dc-pdu [PDU_NAME]",
-		Short: "delete dc pdu",
+		Use:   "row-pdu [PDU_NAME]",
+		Short: "delete row-pdu",
 		Args:  cobra.ExactArgs(1),
 		RunE:  deletePDU,
 	}
@@ -210,7 +210,7 @@ func NewCmdDeleteRackPDU() *cobra.Command {
 	var dc string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu [RACK_PDU_NAME]",
-		Short: "delete rack pdu",
+		Short: "delete rack-pdu",
 		Args:  cobra.ExactArgs(1),
 		RunE:  deleteRackPDU,
 	}

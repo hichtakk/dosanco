@@ -70,7 +70,7 @@ func main() {
 	e.GET("/host/name/:hostname", handler.GetHostByName)
 
 	// routing datacenter
-	e.GET("/datacenter", handler.GetAllDataCenters)
+	e.GET("/datacenter", handler.GetDataCenters)
 	e.GET("/datacenter/:id", handler.GetDataCenter)
 	e.POST("/datacenter", handler.CreateDataCenter)
 	e.PUT("/datacenter/:id", handler.UpdateDataCenter)
@@ -95,6 +95,7 @@ func main() {
 
 	// routing rack row
 	e.GET("/datacenter/row", handler.GetRackRows)
+	e.GET("/datacenter/row/:id", handler.GetRackRow)
 	e.POST("/datacenter/row", handler.CreateRackRow)
 	e.PUT("/datacenter/row/:id", handler.UpdateRackRow)
 	e.DELETE("/datacenter/row/:id", handler.DeleteRackRow)
@@ -107,19 +108,22 @@ func main() {
 
 	// datacenter power
 	// routing UPS
-	e.GET("/datacenter/ups", handler.GetUPS)
+	e.GET("/datacenter/ups", handler.GetUPSs)
+	e.GET("/datacenter/ups/:id", handler.GetUPS)
 	e.POST("/datacenter/ups", handler.CreateUPS)
 	e.PUT("/datacenter/ups/:id", handler.UpdateUPS)
 	e.DELETE("/datacenter/ups/:id", handler.DeleteUPS)
 
-	// routing PDU
-	e.GET("/datacenter/pdu", handler.GetPDU)
-	e.POST("/datacenter/pdu", handler.CreatePDU)
-	e.PUT("/datacenter/pdu/:id", handler.UpdatePDU)
-	e.DELETE("/datacenter/pdu/:id", handler.DeletePDU)
+	// routing RowPDU
+	e.GET("/datacenter/row-pdu", handler.GetRowPDUs)
+	e.GET("/datacenter/row-pdu/:id", handler.GetRowPDU)
+	e.POST("/datacenter/row-pdu", handler.CreateRowPDU)
+	e.PUT("/datacenter/row-pdu/:id", handler.UpdateRowPDU)
+	e.DELETE("/datacenter/row-pdu/:id", handler.DeleteRowPDU)
 
 	// routing RackPDU
-	e.GET("/datacenter/rack-pdu", handler.GetRackPDU)
+	e.GET("/datacenter/rack-pdu", handler.GetRackPDUs)
+	e.GET("/datacenter/rack-pdu/:id", handler.GetRackPDU)
 	e.POST("/datacenter/rack-pdu", handler.CreateRackPDU)
 	e.PUT("/datacenter/rack-pdu/:id", handler.UpdateRackPDU)
 	e.DELETE("/datacenter/rack-pdu/:id", handler.DeleteRackPDU)

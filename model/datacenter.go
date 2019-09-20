@@ -145,11 +145,22 @@ func (h Halls) Write(output string) {
 	}
 }
 
+func (h Halls) Take(id uint) (*Hall, error) {
+	for _, hall := range h {
+		if hall.ID == id {
+			return &hall, nil
+		}
+	}
+
+	return &Hall{}, fmt.Errorf("no hall found for '%v'", id)
+}
+
 // RackRow represents row of racks in data hall.
 type RackRow struct {
 	Model
 	Name   string `gorm:"type:varchar(16)" json:"name"`
 	HallID uint   `json:"hall_id"`
+	Hall   Hall   `json:"hall"`
 	Racks  Racks  `json:"racks,omitempty"`
 }
 
@@ -161,7 +172,7 @@ func (r RackRow) Write(output string) {
 		fmt.Printf("# Rack Row\n")
 		fmt.Printf(" ID:     %d\n", r.ID)
 		fmt.Printf(" Name:   %v\n", r.Name)
-		fmt.Printf(" HallID: %v\n", r.HallID)
+		fmt.Printf(" Hall: %v\n", r.Hall.Name)
 	}
 }
 
@@ -171,10 +182,15 @@ func (r RackRows) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
 		fmt.Println(string(jsonBytes))
-	} else {
-		fmt.Printf("%3s   %7s   %10s\n", "ID", "HallID", "Name")
+	} else if output == "wide" {
+		fmt.Printf("%3s   %7s   %10s\n", "ID", "Hall", "Name")
 		for _, row := range r {
-			fmt.Printf("%3d   %7d   %10s\n", row.ID, row.HallID, row.Name)
+			fmt.Printf("%3d   %7s   %10s\n", row.ID, row.Hall.Name, row.Name)
+		}
+	} else {
+		fmt.Printf("%7s   %10s\n", "Hall", "Name")
+		for _, row := range r {
+			fmt.Printf("%7s   %10s\n", row.Hall.Name, row.Name)
 		}
 	}
 }
@@ -186,7 +202,21 @@ type Rack struct {
 	RowID       uint     `json:"row_id"`
 	RackPDUs    RackPDUs `json:"rack_pdus,omitempty"`
 	Description string   `gorm:"type:varchar(255)" json:"description"`
+	RackRow     RackRow  `json:"row"`
 }
+
+func (r Rack) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# Rack\n")
+		fmt.Printf(" ID:    %d\n", r.ID)
+		fmt.Printf(" Name:  %v\n", r.Name)
+		fmt.Printf(" Row:   %v\n", r.RackRow.Name)
+	}
+}
+
 type Racks []Rack
 
 func (r Racks) Write(output string) {
@@ -196,7 +226,7 @@ func (r Racks) Write(output string) {
 	} else {
 		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "RowID", "Name", "Description")
 		for _, rack := range r {
-			fmt.Printf("%3d   %5v   %10s   %s\n", rack.ID, rack.RowID, rack.Name, rack.Description)
+			fmt.Printf("%3d   %5v   %10s   %s\n", rack.ID, rack.RackRow.Name, rack.Name, rack.Description)
 		}
 	}
 }
@@ -204,10 +234,22 @@ func (r Racks) Write(output string) {
 // UPS represents redundant power source
 type UPS struct {
 	Model
-	Name         string `gorm:"type:varchar(16)" json:"name"`
-	DataCenterID uint   `json:"datacenter_id"`
-	Description  string `gorm:"type:varchar(255)" json:"description"`
-	DataCenter   DataCenter
+	Name         string     `gorm:"type:varchar(16)" json:"name"`
+	DataCenterID uint       `json:"datacenter_id"`
+	Description  string     `gorm:"type:varchar(255)" json:"description"`
+	DataCenter   DataCenter `json:"datacenter"`
+}
+
+func (u UPS) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(u, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# UPS\n")
+		fmt.Printf(" ID:     %d\n", u.ID)
+		fmt.Printf(" Name:   %v\n", u.Name)
+		fmt.Printf(" DataCenter: %v\n", u.DataCenter.Name)
+	}
 }
 
 type UPSs []UPS
@@ -256,10 +298,10 @@ func (p PDU) Write(output string) {
 		fmt.Println(string(jsonBytes))
 	} else {
 		fmt.Printf("# DataCenter PDU\n")
-		fmt.Printf(" ID:               %d\n", p.ID)
-		fmt.Printf(" Name:             %v\n", p.Name)
-		fmt.Printf(" Primary UPS ID:   %v\n", p.PrimaryUPSID)
-		fmt.Printf(" Secondary UPS ID: %v\n", p.SecondaryUPSID)
+		fmt.Printf(" ID:            %d\n", p.ID)
+		fmt.Printf(" Name:          %v\n", p.Name)
+		fmt.Printf(" Primary UPS:   %v\n", p.PrimaryUPS.Name)
+		fmt.Printf(" Secondary UPS: %v\n", p.SecondaryUPS.Name)
 	}
 }
 
@@ -301,6 +343,19 @@ type RackPDU struct {
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
 	PrimaryPDU     PDU
 	SecondaryPDU   PDU
+}
+
+func (p RackPDU) Write(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Printf("# Rack PDU\n")
+		fmt.Printf(" ID:        %d\n", p.ID)
+		fmt.Printf(" Name:      %v\n", p.Name)
+		fmt.Printf(" Input#1:   %v\n", p.PrimaryPDU.Name)
+		fmt.Printf(" Input#2:   %v\n", p.SecondaryPDU.Name)
+	}
 }
 
 type RackPDUs []RackPDU

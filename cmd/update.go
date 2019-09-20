@@ -222,8 +222,8 @@ func NewCmdUpdatePDU() *cobra.Command {
 	var dc string
 	var name string
 	var pduCmd = &cobra.Command{
-		Use:   "dc-pdu [PDU_NAME]",
-		Short: "update pdu name",
+		Use:   "row-pdu [PDU_NAME]",
+		Short: "update row-pdu name",
 		Args:  cobra.ExactArgs(1),
 		RunE:  updatePDU,
 	}
@@ -241,7 +241,7 @@ func NewCmdUpdateRackPDU() *cobra.Command {
 	var name string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu [RACK_PDU_NAME]",
-		Short: "update rack pdu name",
+		Short: "update rack-pdu name",
 		Args:  cobra.ExactArgs(1),
 		RunE:  updateRackPDU,
 	}
