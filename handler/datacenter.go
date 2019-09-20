@@ -12,10 +12,26 @@ import (
 )
 
 // GetAllDataCenters returns all datacenter information.
+/*
 func GetAllDataCenters(c echo.Context) error {
 	db := db.GetDB()
 	dcs := []model.DataCenter{}
 	db.Find(&dcs)
+
+	return c.JSON(http.StatusOK, dcs)
+}
+*/
+
+// GetAllDataCenters returns all datacenter information.
+func GetAllDataCenters(c echo.Context) error {
+	db := db.GetDB()
+	dcs := []model.DataCenter{}
+	name := c.QueryParam("name")
+	if name != "" {
+		db.Find(&dcs, "name=?", name)
+	} else {
+		db.Find(&dcs)
+	}
 
 	return c.JSON(http.StatusOK, dcs)
 }

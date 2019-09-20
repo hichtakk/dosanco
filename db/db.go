@@ -138,11 +138,13 @@ func initIPAllocation() {
 
 func initHost() {
 	db.AutoMigrate(&model.Host{})
-	db.AutoMigrate(&model.CPU{})
-	db.AutoMigrate(&model.Memory{})
-	db.AutoMigrate(&model.Drive{})
-	db.AutoMigrate(&model.NIC{})
-	db.AutoMigrate(&model.Accelerator{})
+	/*
+		db.AutoMigrate(&model.CPU{})
+		db.AutoMigrate(&model.Memory{})
+		db.AutoMigrate(&model.Drive{})
+		db.AutoMigrate(&model.NIC{})
+		db.AutoMigrate(&model.Accelerator{})
+	*/
 }
 
 // GetDB returns database pointer

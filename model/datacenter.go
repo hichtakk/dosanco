@@ -25,6 +25,16 @@ func (d DataCenters) Write(output string) {
 	}
 }
 
+func (d DataCenters) Take(id uint) (*DataCenter, error) {
+	for _, dc := range d {
+		if dc.ID == id {
+			return &dc, nil
+		}
+	}
+
+	return &DataCenter{}, fmt.Errorf("no data center found for '%v'", id)
+}
+
 // DataCenter represents datacenter building data.
 type DataCenter struct {
 	Model
@@ -197,6 +207,7 @@ type UPS struct {
 	Name         string `gorm:"type:varchar(16)" json:"name"`
 	DataCenterID uint   `json:"datacenter_id"`
 	Description  string `gorm:"type:varchar(255)" json:"description"`
+	DataCenter   DataCenter
 }
 
 type UPSs []UPS
@@ -205,12 +216,27 @@ func (u UPSs) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(u, "", "    ")
 		fmt.Println(string(jsonBytes))
-	} else {
-		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "DataCenterID", "Name", "Description")
+	} else if output == "wide" {
+		fmt.Printf("%-3s   %-10s   %-10s   %-s\n", "ID", "Name", "DataCenter", "Description")
 		for _, ups := range u {
-			fmt.Printf("%3v   %5v   %10s   %s\n", ups.ID, ups.DataCenterID, ups.Name, ups.Description)
+			fmt.Printf("%3v   %-10v   %-10s   %-s\n", ups.ID, ups.Name, ups.DataCenter.Name, ups.Description)
+		}
+	} else {
+		fmt.Printf("%-10s   %-10s   %-s\n", "Name", "DataCenter", "Description")
+		for _, ups := range u {
+			fmt.Printf("%-10v   %-10s   %-s\n", ups.Name, ups.DataCenter.Name, ups.Description)
 		}
 	}
+}
+
+func (u UPSs) Take(id uint) (*UPS, error) {
+	for _, ups := range u {
+		if ups.ID == id {
+			return &ups, nil
+		}
+	}
+
+	return &UPS{}, fmt.Errorf("no ups found for '%v'", id)
 }
 
 // PDU represents power distribution unit on data hall
@@ -220,6 +246,8 @@ type PDU struct {
 	PrimaryUPSID   uint   `json:"primary_ups_id,omitempty"`
 	SecondaryUPSID uint   `json:"secondary_ups_id,omitempty"`
 	Description    string `gorm:"type:varchar(255)" json:"description"`
+	PrimaryUPS     UPS    `json:"primary_ups,omitempty"`
+	SecondaryUPS   UPS    `json:"secondary_ups,omitempty"`
 }
 
 func (p PDU) Write(output string) {
@@ -241,12 +269,27 @@ func (p PDUs) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
 		fmt.Println(string(jsonBytes))
-	} else {
-		fmt.Printf("%3s   %10s   %5s   %5s\n", "ID", "Name", "Primary UPS ID", "Secondary UPS ID")
+	} else if output == "wide" {
+		fmt.Printf("%3s   %-12s   %-10s   %-10s\n", "ID", "Name", "InputUPS#1", "InputUPS#2")
 		for _, pdu := range p {
-			fmt.Printf("%3d   %10s   %5d   %5d\n", pdu.ID, pdu.Name, pdu.PrimaryUPSID, pdu.SecondaryUPSID)
+			fmt.Printf("%3d   %-12s   %-10v   %-10v\n", pdu.ID, pdu.Name, pdu.PrimaryUPS.Name, pdu.SecondaryUPS.Name)
+		}
+	} else {
+		fmt.Printf("%-12s   %-10s   %-10s\n", "Name", "InputUPS#1", "InputUPS#2")
+		for _, pdu := range p {
+			fmt.Printf("%-12s   %-10v   %-10v\n", pdu.Name, pdu.PrimaryUPS.Name, pdu.SecondaryUPS.Name)
 		}
 	}
+}
+
+func (p PDUs) Take(id uint) (*PDU, error) {
+	for _, pdu := range p {
+		if pdu.ID == id {
+			return &pdu, nil
+		}
+	}
+
+	return &PDU{}, fmt.Errorf("no pdu found for '%v'", id)
 }
 
 // RackPDU represents power distribution unit installed inside of rack
@@ -256,6 +299,8 @@ type RackPDU struct {
 	Description    string `gorm:"type:varchar(255)" json:"description"`
 	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
+	PrimaryPDU     PDU
+	SecondaryPDU   PDU
 }
 
 type RackPDUs []RackPDU
@@ -264,10 +309,15 @@ func (p RackPDUs) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
 		fmt.Println(string(jsonBytes))
-	} else {
-		fmt.Printf("%3s   %10s   %5s   %5s\n", "ID", "Name", "Primary PDU ID", "Secondary PDU ID")
+	} else if output == "wide" {
+		fmt.Printf("%3s   %-32s   %-12s   %-12s\n", "ID", "Name", "Input#1", "Input#2")
 		for _, pdu := range p {
-			fmt.Printf("%3d   %10s   %5d   %5d\n", pdu.ID, pdu.Name, pdu.PrimaryPDUID, pdu.SecondaryPDUID)
+			fmt.Printf("%3d   %32s   %12s   %12s\n", pdu.ID, pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name)
+		}
+	} else {
+		fmt.Printf("%-32s   %-12s   %-12s\n", "Name", "Input#1", "Input#2")
+		for _, pdu := range p {
+			fmt.Printf("%32s   %12s   %12s\n", pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name)
 		}
 	}
 }

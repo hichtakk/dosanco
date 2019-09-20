@@ -399,7 +399,26 @@ func getUPS(cmd *cobra.Command, args []string) {
 			fmt.Println("parse response error")
 			return
 		}
-		data.Write(cmd.Flag("output").Value.String())
+		// get dc
+		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter?name="+dcName, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		dcs := new(model.DataCenters)
+		if err := json.Unmarshal(body, dcs); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		outputModel := model.UPSs{}
+		for _, u := range *data {
+			dc, err := dcs.Take(u.DataCenterID)
+			if err != nil {
+			}
+			u.DataCenter = *dc
+			outputModel = append(outputModel, u)
+		}
+
+		outputModel.Write(cmd.Flag("output").Value.String())
 	}
 }
 
@@ -429,7 +448,30 @@ func getPDU(cmd *cobra.Command, args []string) {
 			fmt.Println("parse response error")
 			return
 		}
-		data.Write(cmd.Flag("output").Value.String())
+		// get ups
+		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/ups?dc="+dcName, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+		}
+		ups := new(model.UPSs)
+		if err := json.Unmarshal(body, ups); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		outputModel := model.PDUs{}
+		for _, p := range *data {
+			pups, err := ups.Take(p.PrimaryUPSID)
+			if err != nil {
+			}
+			p.PrimaryUPS = *pups
+			sups, err := ups.Take(p.SecondaryUPSID)
+			if err != nil {
+			}
+			p.SecondaryUPS = *sups
+			outputModel = append(outputModel, p)
+		}
+
+		outputModel.Write(cmd.Flag("output").Value.String())
 	}
 }
 
@@ -463,7 +505,33 @@ func getRackPDU(cmd *cobra.Command, args []string) {
 			fmt.Println("parse response error")
 			return
 		}
-		data.Write(cmd.Flag("output").Value.String())
+
+		// get dc pdu
+		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/pdu?dc="+dcName, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		dcPDUs := new(model.PDUs)
+		if err := json.Unmarshal(body, dcPDUs); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+
+		outputModel := model.RackPDUs{}
+		for _, p := range *data {
+			pdcpdu, err := dcPDUs.Take(p.PrimaryPDUID)
+			if err != nil {
+			}
+			p.PrimaryPDU = *pdcpdu
+			sdcpdu, err := dcPDUs.Take(p.SecondaryPDUID)
+			if err != nil {
+			}
+			p.SecondaryPDU = *sdcpdu
+			outputModel = append(outputModel, p)
+		}
+
+		outputModel.Write(cmd.Flag("output").Value.String())
 	}
 }
 
