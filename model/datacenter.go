@@ -67,7 +67,8 @@ type Floor struct {
 	Model
 	Name         string `gorm:"type:varchar(16);unique_index" json:"name"`
 	DataCenterID uint   `json:"datacenter_id"`
-	Halls        Halls  `json:"halls,omitempty"`
+	DataCenter   DataCenter
+	Halls        Halls `json:"halls,omitempty"`
 }
 
 func (f Floor) Write(output string) {
@@ -93,14 +94,14 @@ func (f Floors) Write(output string) {
 		jsonBytes, _ := json.MarshalIndent(f, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else if output == "wide" {
-		fmt.Printf("%3s   %3s   %-10s\n", "ID", "DC", "Name")
+		fmt.Printf("%3s   %-5s   %-10s\n", "ID", "DC", "Name")
 		for _, floor := range f {
-			fmt.Printf("%3d   %3d   %-10s\n", floor.ID, floor.DataCenterID, floor.Name)
+			fmt.Printf("%3d   %5s   %-10s\n", floor.ID, floor.DataCenter.Name, floor.Name)
 		}
 	} else {
-		fmt.Printf("%3s   %-10s\n", "DC", "Name")
+		fmt.Printf("%-5s   %-10s\n", "DC", "Name")
 		for _, floor := range f {
-			fmt.Printf("%3d   %-10s\n", floor.DataCenterID, floor.Name)
+			fmt.Printf("%5s   %-10s\n", floor.DataCenter.Name, floor.Name)
 		}
 	}
 }
@@ -109,12 +110,23 @@ func (f Floors) Len() int {
 	return len(f)
 }
 
+func (f Floors) Take(id uint) (*Floor, error) {
+	for _, floor := range f {
+		if floor.ID == id {
+			return &floor, nil
+		}
+	}
+
+	return &Floor{}, fmt.Errorf("no floor found for '%v'", id)
+}
+
 // Hall represents data hall in datacenter.
 type Hall struct {
 	Model
 	Name     string    `gorm:"type:varchar(16)" json:"name"`
 	Type     string    `gorm:"type:varchar(10)" json:"type"`
 	FloorID  uint      `json:"floor_id"`
+	Floor    Floor     `json:"floor"`
 	RackRows []RackRow `json:"rows,omitempty"`
 }
 
@@ -138,9 +150,9 @@ func (h Halls) Write(output string) {
 		jsonBytes, _ := json.MarshalIndent(h, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else {
-		fmt.Printf("%3s   %7s   %10s   %6s\n", "ID", "FloorID", "Name", "Type")
+		fmt.Printf("%3s   %7s   %10s   %6s\n", "ID", "Floor", "Name", "Type")
 		for _, hall := range h {
-			fmt.Printf("%3d   %7d   %10s   %6s\n", hall.ID, hall.FloorID, hall.Name, hall.Type)
+			fmt.Printf("%3d   %7v   %10s   %6s\n", hall.ID, hall.Floor.Name, hall.Name, hall.Type)
 		}
 	}
 }
