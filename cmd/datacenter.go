@@ -1112,6 +1112,18 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	}
 	fmt.Println(resMsg.Message)
 
+	// create host
+	//location = dcName + "/"
+	reqHost := model.Host{Name: args[0]}
+	reqJSON, _ = json.Marshal(reqHost)
+	body, err = sendRequest("POST", Conf.APIServer.URL+"/host", reqJSON)
+	if err != nil {
+		fmt.Println("create host error")
+	}
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+
 	return nil
 }
 
