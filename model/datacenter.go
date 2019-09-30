@@ -207,6 +207,16 @@ func (r RackRows) Write(output string) {
 	}
 }
 
+func (r RackRows) Take(id uint) (*RackRow, error) {
+	for _, row := range r {
+		if row.ID == id {
+			return &row, nil
+		}
+	}
+
+	return &RackRow{}, fmt.Errorf("no rack row found for '%v'", id)
+}
+
 // Rack represents each rack in row.
 type Rack struct {
 	Model
@@ -235,10 +245,15 @@ func (r Racks) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
 		fmt.Println(string(jsonBytes))
-	} else {
-		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "RowID", "Name", "Description")
+	} else if output == "wide" {
+		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "Row", "Name", "Description")
 		for _, rack := range r {
 			fmt.Printf("%3d   %5v   %10s   %s\n", rack.ID, rack.RackRow.Name, rack.Name, rack.Description)
+		}
+	} else {
+		fmt.Printf("%5s   %10s   %s\n", "Row", "Name", "Description")
+		for _, rack := range r {
+			fmt.Printf("%5v   %10s   %s\n", rack.RackRow.Name, rack.Name, rack.Description)
 		}
 	}
 }

@@ -467,7 +467,6 @@ func getRack(cmd *cobra.Command, args []string) {
 			r.Write(cmd.Flag("output").Value.String())
 			break
 		}
-
 	} else {
 		// show list of racks
 		url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName
@@ -490,7 +489,25 @@ func getRack(cmd *cobra.Command, args []string) {
 			fmt.Println("parse response error")
 			return
 		}
-		data.Write(cmd.Flag("output").Value.String())
+		// get rack row
+		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/row?dc="+dcName, []byte{})
+		if err != nil {
+			fmt.Println(err.Error())
+			return
+		}
+		rows := new(model.RackRows)
+		if err := json.Unmarshal(body, rows); err != nil {
+			fmt.Println("parse response error")
+			return
+		}
+		outputModel := model.Racks{}
+		for _, r := range *data {
+			row, _ := rows.Take(r.RowID)
+			r.RackRow = *row
+			outputModel = append(outputModel, r)
+		}
+
+		outputModel.Write(cmd.Flag("output").Value.String())
 	}
 }
 
