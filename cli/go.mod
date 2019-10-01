@@ -1,4 +1,4 @@
-module dctl
+module dosanco
 
 go 1.12
 

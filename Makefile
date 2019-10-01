@@ -1,3 +1,5 @@
+.PHONY: fmt lint build clean
+
 fmt:
 	go fmt
 
