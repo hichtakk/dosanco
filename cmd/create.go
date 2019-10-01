@@ -241,8 +241,10 @@ func NewCmdCreateRackPDU() *cobra.Command {
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu",
 		Short: "create new rack-pdu",
-		Args:  cobra.ExactArgs(1),
-		RunE:  createRackPDU,
+		Long: `create new rack-pdu
+dosanco create rack-pdu --dc DC1 --primary ROW-PDU-1 rack-pdu01.dosanco`,
+		Args: cobra.ExactArgs(1),
+		RunE: createRackPDU,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
 	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")

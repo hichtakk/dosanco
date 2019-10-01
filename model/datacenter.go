@@ -195,14 +195,14 @@ func (r RackRows) Write(output string) {
 		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else if output == "wide" {
-		fmt.Printf("%3s   %7s   %10s\n", "ID", "Hall", "Name")
+		fmt.Printf("%3s   %-5s   %-5s   %7s   %10s\n", "ID", "DC", "Floor", "Hall", "Name")
 		for _, row := range r {
-			fmt.Printf("%3d   %7s   %10s\n", row.ID, row.Hall.Name, row.Name)
+			fmt.Printf("%3d   %5s   %5s   %7s   %10s\n", row.ID, row.Hall.Floor.DataCenter.Name, row.Hall.Floor.Name, row.Hall.Name, row.Name)
 		}
 	} else {
-		fmt.Printf("%7s   %10s\n", "Hall", "Name")
+		fmt.Printf("%-5s   %-5s   %7s   %10s\n", "DC", "Floor", "Hall", "Name")
 		for _, row := range r {
-			fmt.Printf("%7s   %10s\n", row.Hall.Name, row.Name)
+			fmt.Printf("%5s   %5s   %7s   %10s\n", row.Hall.Floor.DataCenter.Name, row.Hall.Floor.Name, row.Hall.Name, row.Name)
 		}
 	}
 }
@@ -246,14 +246,14 @@ func (r Racks) Write(output string) {
 		jsonBytes, _ := json.MarshalIndent(r, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else if output == "wide" {
-		fmt.Printf("%3s   %5s   %10s   %s\n", "ID", "Row", "Name", "Description")
+		fmt.Printf("%-3s   %-5s   %-5s   %-5s   %-5s   %10s   %s\n", "ID", "DC", "Floor", "Hall", "Row", "Name", "Description")
 		for _, rack := range r {
-			fmt.Printf("%3d   %5v   %10s   %s\n", rack.ID, rack.RackRow.Name, rack.Name, rack.Description)
+			fmt.Printf("%3d   %5v   %5v   %5s   %5s   %10s   %s\n", rack.ID, rack.RackRow.Hall.Floor.DataCenter.Name, rack.RackRow.Hall.Floor.Name, rack.RackRow.Hall.Name, rack.RackRow.Name, rack.Name, rack.Description)
 		}
 	} else {
-		fmt.Printf("%5s   %10s   %s\n", "Row", "Name", "Description")
+		fmt.Printf("%-5s   %-5s   %-5s   %-5s   %10s   %s\n", "DC", "Floor", "Hall", "Row", "Name", "Description")
 		for _, rack := range r {
-			fmt.Printf("%5v   %10s   %s\n", rack.RackRow.Name, rack.Name, rack.Description)
+			fmt.Printf("%5v   %5v   %5s   %5s   %10s   %s\n", rack.RackRow.Hall.Floor.DataCenter.Name, rack.RackRow.Hall.Floor.Name, rack.RackRow.Hall.Name, rack.RackRow.Name, rack.Name, rack.Description)
 		}
 	}
 }
