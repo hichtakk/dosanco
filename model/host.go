@@ -13,9 +13,12 @@ type Host struct {
 	UpdatedAt       time.Time       `gorm:"updated_at" json:"updated_at"`
 	DeletedAt       *time.Time      `gorm:"deleted_at;unique_index:unique_hostname" json:"deleted_at,omitempty"`
 	Name            string          `json:"name" validate:"required" gorm:"unique_index:unique_hostname;not null"`
-	Location        string          `json:"location"`
+	RackID          uint            `json:"rack_id"`
 	Description     string          `json:"description"`
 	IPv4Allocations IPv4Allocations `json:"ipv4_allocations"`
+	Rack            Rack
+	//Location        string          `json:"location"`
+	//MountUnit
 	//Configuration   Configuration   `json:"configuration" `
 }
 
@@ -27,10 +30,10 @@ func (h Host) Write(output string) {
 	} else if output == "wide" {
 	} else {
 		fmt.Printf("# Host Data\n")
-		fmt.Printf(" ID:          %d\n", h.ID)
-		fmt.Printf(" Name:        %v\n", h.Name)
-		fmt.Printf(" Location:    %v\n", h.Location)
-		fmt.Printf(" Description: %v\n\n", h.Description)
+		fmt.Printf(" ID:             %d\n", h.ID)
+		fmt.Printf(" Name:           %v\n", h.Name)
+		fmt.Printf(" RackLocation:   %v\n", h.Rack.GetLocationPath())
+		fmt.Printf(" Description:    %v\n\n", h.Description)
 		if h.IPv4Allocations.Len() > 0 {
 			fmt.Println("# IP Allocations")
 			for _, a := range h.IPv4Allocations {

@@ -102,6 +102,7 @@ func main() {
 
 	// routing rack
 	e.GET("/datacenter/rack", handler.GetRacks)
+	e.GET("/datacenter/rack/:id", handler.GetRack)
 	e.POST("/datacenter/rack", handler.CreateRack)
 	e.PUT("/datacenter/rack/:id", handler.UpdateRack)
 	e.DELETE("/datacenter/rack/:id", handler.DeleteRack)

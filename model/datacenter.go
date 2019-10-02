@@ -239,6 +239,15 @@ func (r Rack) Write(output string) {
 	}
 }
 
+func (r Rack) GetLocationPath() string {
+	row := r.RackRow.Name
+	hall := r.RackRow.Hall.Name
+	floor := r.RackRow.Hall.Floor.Name
+	dc := r.RackRow.Hall.Floor.DataCenter.Name
+
+	return fmt.Sprintf("%v/%v/%v/%v/%v", dc, floor, hall, row, r.Name)
+}
+
 type Racks []Rack
 
 func (r Racks) Write(output string) {
@@ -368,8 +377,8 @@ type RackPDU struct {
 	Description    string `gorm:"type:varchar(255)" json:"description"`
 	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
-	PrimaryPDU     PDU
-	SecondaryPDU   PDU
+	PrimaryPDU     PDU    `json:"primary_pdu"`
+	SecondaryPDU   PDU    `json:"secondary_pdu"`
 }
 
 func (p RackPDU) Write(output string) {
@@ -378,10 +387,11 @@ func (p RackPDU) Write(output string) {
 		fmt.Println(string(jsonBytes))
 	} else {
 		fmt.Printf("# Rack PDU\n")
-		fmt.Printf(" ID:        %d\n", p.ID)
-		fmt.Printf(" Name:      %v\n", p.Name)
-		fmt.Printf(" Input#1:   %v\n", p.PrimaryPDU.Name)
-		fmt.Printf(" Input#2:   %v\n", p.SecondaryPDU.Name)
+		fmt.Printf(" ID:          %d\n", p.ID)
+		fmt.Printf(" Name:        %v\n", p.Name)
+		fmt.Printf(" Input#1:     %v\n", p.PrimaryPDU.Name)
+		fmt.Printf(" Input#2:     %v\n", p.SecondaryPDU.Name)
+		fmt.Printf(" Description: %v\n", p.Description)
 	}
 }
 

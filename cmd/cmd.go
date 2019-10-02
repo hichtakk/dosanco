@@ -49,6 +49,6 @@ func newRootCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "dosanco",
 		Short: "dosanco command-line client",
-		Long:  "dosanco controls Dosanco infrastructure database",
+		Long:  "dosanco controls Dosanco infrastructure database \U0001f434",
 	}
 }

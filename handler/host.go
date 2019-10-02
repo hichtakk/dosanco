@@ -74,7 +74,12 @@ func UpdateHost(c echo.Context) error {
 	if result := db.Take(&h, "id=?", host.ID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("host not found"))
 	}
-	if result := db.Model(&h).Update("name", host.Name).Update("description", host.Description).Update("location", host.Location); result.Error != nil {
+	/*
+		if result := db.Model(&h).Update("name", host.Name).Update("description", host.Description).Update("location", host.Location); result.Error != nil {
+			return c.JSON(http.StatusBadRequest, returnError("database error"))
+		}
+	*/
+	if result := db.Model(&h).Update("name", host.Name).Update("description", host.Description); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database error"))
 	}
 

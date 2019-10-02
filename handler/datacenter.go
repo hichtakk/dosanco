@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"net/http"
 	"strconv"
+	"sort"
 
 	"github.com/labstack/echo/v4"
 
@@ -18,6 +19,9 @@ func GetDataCenters(c echo.Context) error {
 	name := c.QueryParam("name")
 	if name != "" {
 		db.Find(&dcs, "name=?", name)
+		if len(dcs) == 0 {
+			return c.JSON(http.StatusNotFound, returnError("dc not found"))
+		}
 	} else {
 		db.Find(&dcs)
 	}
@@ -677,9 +681,48 @@ func GetRacks(c echo.Context) error {
 	floorName := c.QueryParam("floor")
 	hallName := c.QueryParam("hall")
 	rowName := c.QueryParam("row")
+	pduName := c.QueryParam("pdu")
 	name := c.QueryParam("name")
 
 	if dcName != "" {
+		if pduName != "" {
+			pdu := new(model.PDU)
+			if result := db.Take(&pdu, "name=?", pduName); result.Error != nil {
+				return c.JSON(http.StatusBadRequest, returnError("row-pdu not found"))
+			}
+			rackPDUs := []model.RackPDU{}
+			db.Find(&rackPDUs, "primary_pdu_id=? OR secondary_pdu_id=?", pdu.ID, pdu.ID)
+			if len(rackPDUs) == 0 {
+				return c.JSON(http.StatusBadRequest, returnError("rack-pdu not found"))
+			}
+			hosts := []model.Host{}
+			for _, rackPDU := range rackPDUs {
+				host := new(model.Host)
+				if result := db.Take(&host, "name=?", rackPDU.Name); result.Error == nil {
+					hosts = append(hosts, *host)
+				}
+			}
+			if len(hosts) == 0 {
+				return c.JSON(http.StatusNotFound, returnError("rack-pdu host not found"))
+			}
+			rm := make(map[uint]struct{})
+			for _, host := range hosts {
+				rm[host.RackID] = struct{}{}
+			}
+			rs := []int{}
+			for id := range rm {
+				rs = append(rs, int(id))
+			}
+			sort.Sort(sort.IntSlice(rs))
+			racks := []model.Rack{}
+			for _, id := range rs {
+				rack := model.Rack{}
+				if result := db.Take(&rack, "id=?", id); result.Error == nil {
+					racks = append(racks, rack)
+				}
+			}
+			return c.JSON(http.StatusOK, racks)
+		}
 		dc := model.DataCenter{}
 		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
 			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
@@ -765,6 +808,21 @@ func GetRacks(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, racks)
+}
+
+// GetRack returns specified rack information.
+func GetRack(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parse rack id error"))
+	}
+	rack := new(model.Rack)
+	db := db.GetDB()
+	if result := db.Take(&rack, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("rack not found"))
+	}
+
+	return c.JSON(http.StatusOK, rack)
 }
 
 // CreateRack creates a new rack row to specified data hall.

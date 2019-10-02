@@ -457,6 +457,7 @@ func showRack(cmd *cobra.Command, args []string) {
 	floorName := cmd.Flag("floor").Value.String()
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
+	rowPduName := cmd.Flag("row-pdu").Value.String()
 	if len(args) > 0 {
 		// show specified rack
 		if dcName == "" {
@@ -474,6 +475,9 @@ func showRack(cmd *cobra.Command, args []string) {
 		if rowName == "" {
 			fmt.Println("row name is required")
 			return
+		}
+		if rowPduName == "" {
+			fmt.Println("row-pdu name is ignored")
 		}
 		url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&row=" + rowName + "&name=" + args[0]
 		body, err := sendRequest("GET", url, []byte{})
@@ -512,6 +516,9 @@ func showRack(cmd *cobra.Command, args []string) {
 		}
 		if rowName != "" {
 			url = url + "&row=" + rowName
+		}
+		if rowPduName != "" {
+			url = url + "&pdu=" + rowPduName
 		}
 		body, err := sendRequest("GET", url, []byte{})
 		if err != nil {
@@ -1156,6 +1163,21 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	pPDUName := cmd.Flag("primary").Value.String()
 	sPDUName := cmd.Flag("secondary").Value.String()
 	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	rowName := cmd.Flag("row").Value.String()
+	rackName := cmd.Flag("rack").Value.String()
+
+	// get rack
+	rack := new(model.Rack)
+	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
+	if err != nil {
+		return fmt.Errorf("rack not found")
+	}
+	for _, r := range *racks {
+		rack = &r
+		break
+	}
 
 	// get primary pdu
 	body, err := sendRequest("GET", url+"/row-pdu?dc="+dcName+"&name="+pPDUName, []byte{})
@@ -1216,8 +1238,7 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	fmt.Println(resMsg.Message)
 
 	// create host
-	//location = dcName + "/"
-	reqHost := model.Host{Name: args[0]}
+	reqHost := model.Host{Name: args[0], RackID: rack.ID}
 	reqJSON, _ = json.Marshal(reqHost)
 	body, err = sendRequest("POST", Conf.APIServer.URL+"/host", reqJSON)
 	if err != nil {
@@ -1232,7 +1253,21 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 
 func updateDataCenter(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
-	url = url + "/" + args[0]
+	url = url + "?name=" + args[0]
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return err
+	}
+	dcs := new(model.DataCenters)
+	dc := new(model.DataCenter)
+	if err = json.Unmarshal(body, dcs); err != nil {
+		return fmt.Errorf("response parse error: " + err.Error())
+	}
+	for _, d := range *dcs {
+		dc = &d
+		break
+	}
+	url = Conf.APIServer.URL + "/datacenter/" + strconv.Itoa(int(dc.ID))
 	reqModel := model.DataCenter{Address: cmd.Flag("address").Value.String()}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
@@ -1921,4 +1956,47 @@ func getHall(id uint) (*model.Hall, error) {
 	}
 
 	return hall, nil
+}
+
+func getRow(id uint) (*model.RackRow, error) {
+	row := new(model.RackRow)
+	idStr := strconv.Itoa(int(id))
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/row/"+idStr, []byte{})
+	if err != nil {
+		return row, err
+	}
+	if err := json.Unmarshal(body, row); err != nil {
+		return row, fmt.Errorf("response parse error")
+	}
+
+	return row, nil
+}
+
+func getRack(id uint) (*model.Rack, error) {
+	rack := new(model.Rack)
+	idStr := strconv.Itoa(int(id))
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/rack/"+idStr, []byte{})
+	if err != nil {
+		return rack, err
+	}
+	if err := json.Unmarshal(body, rack); err != nil {
+		return rack, fmt.Errorf("response parse error")
+	}
+
+	return rack, nil
+}
+
+func getRacks(dc, floor, hall, row, name string) (*model.Racks, error) {
+	racks := new(model.Racks)
+	url := Conf.APIServer.URL + "/datacenter/rack"
+	url = url + "?dc=" + dc + "&floor=" + floor + "&hall=" + hall + "&row=" + row + "&name=" + name
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		return &model.Racks{}, err
+	}
+	if err := json.Unmarshal(body, racks); err != nil {
+		return &model.Racks{}, fmt.Errorf("response parse error")
+	}
+
+	return racks, nil
 }

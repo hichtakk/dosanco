@@ -161,6 +161,7 @@ func NewCmdShowRack() *cobra.Command {
 	var floor string
 	var hall string
 	var row string
+	var pdu string
 	var rowCmd = &cobra.Command{
 		Use:     "rack [RACK_NAME]",
 		Aliases: []string{""},
@@ -172,6 +173,7 @@ func NewCmdShowRack() *cobra.Command {
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
 	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "specify datacenter hall")
 	rowCmd.Flags().StringVarP(&row, "row", "", "", "specify rack row")
+	rowCmd.Flags().StringVarP(&pdu, "row-pdu", "", "", "specify source row-pdu")
 	rowCmd.MarkFlagRequired("dc")
 
 	return rowCmd

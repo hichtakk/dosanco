@@ -83,7 +83,11 @@ func NewCmdCreateVlan() *cobra.Command {
 
 // NewCmdCreateHost is subcommand represents vlan resource.
 func NewCmdCreateHost() *cobra.Command {
-	var location string
+	var dc string
+	var floor string
+	var hall string
+	var row string
+	var rack string
 	var hostCmd = &cobra.Command{
 		Use:     "host",
 		Aliases: []string{"server"},
@@ -91,8 +95,18 @@ func NewCmdCreateHost() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE:    createHost,
 	}
-	hostCmd.Flags().StringVarP(&location, "location", "l", "", "location of the requested host")
+	//hostCmd.Flags().StringVarP(&location, "location", "l", "", "location of the requested host")
+	hostCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	hostCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	hostCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
+	hostCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
+	hostCmd.Flags().StringVarP(&rack, "rack", "", "", "name of rack")
 	hostCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
+	hostCmd.MarkFlagRequired("dc")
+	hostCmd.MarkFlagRequired("floor")
+	hostCmd.MarkFlagRequired("hall")
+	hostCmd.MarkFlagRequired("row")
+	hostCmd.MarkFlagRequired("rack")
 
 	return hostCmd
 }
@@ -236,20 +250,31 @@ func NewCmdCreatePDU() *cobra.Command {
 // NewCmdCreateRackPDU is subcommand represents pdu resource.
 func NewCmdCreateRackPDU() *cobra.Command {
 	var dc string
+	var floor string
+	var hall string
+	var row string
+	var rack string
 	var primary string
 	var secondary string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu",
 		Short: "create new rack-pdu",
-		Long: `create new rack-pdu
-dosanco create rack-pdu --dc DC1 --primary ROW-PDU-1 rack-pdu01.dosanco`,
-		Args: cobra.ExactArgs(1),
-		RunE: createRackPDU,
+		Long:  `create new rack-pdu dosanco create rack-pdu --dc DC1 --primary ROW-PDU-1 rack-pdu01.dosanco`,
+		Args:  cobra.ExactArgs(1),
+		RunE:  createRackPDU,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	pduCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
+	pduCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
+	pduCmd.Flags().StringVarP(&rack, "rack", "", "", "name of rack")
 	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")
 	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "", "name of secondary power source")
 	pduCmd.MarkFlagRequired("dc")
+	pduCmd.MarkFlagRequired("floor")
+	pduCmd.MarkFlagRequired("hall")
+	pduCmd.MarkFlagRequired("row")
+	pduCmd.MarkFlagRequired("rack")
 	pduCmd.MarkFlagRequired("primary")
 
 	return pduCmd

@@ -22,15 +22,56 @@ func showHost(cmd *cobra.Command, args []string) {
 		fmt.Println("unmarshal host error:", err)
 		return
 	}
+	rack, err := getRack(host.RackID)
+	if err != nil {
+		fmt.Println("rack not found")
+	}
+	row, err := getRow(rack.RowID)
+	if err != nil {
+		fmt.Println("row not found")
+	}
+	hall, err := getHall(row.HallID)
+	if err != nil {
+		fmt.Println("hall not found")
+	}
+	floor, err := getFloor(hall.FloorID)
+	if err != nil {
+		fmt.Println("floor not found")
+	}
+	dc, err := getDataCenter(floor.DataCenterID)
+	if err != nil {
+		fmt.Println("datacenter not found")
+	}
+	floor.DataCenter = *dc
+	hall.Floor = *floor
+	row.Hall = *hall
+	rack.RackRow = *row
+	host.Rack = *rack
+
 	host.Write(cmd.Flag("output").Value.String())
 }
 
 func createHost(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host"
-	name := args[0]
-	location := cmd.Flag("location").Value.String()
+	// get options
+	dcName := cmd.Flag("dc").Value.String()
+	floorName := cmd.Flag("floor").Value.String()
+	hallName := cmd.Flag("hall").Value.String()
+	rowName := cmd.Flag("row").Value.String()
+	rackName := cmd.Flag("rack").Value.String()
+	//rackID := cmd.Flag("rack-id").Value.String()
 	description := cmd.Flag("description").Value.String()
-	reqModel := model.Host{Name: name, Location: location, Description: description}
+	name := args[0]
+	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
+	if err != nil {
+		return fmt.Errorf("rack not found for specified location")
+	}
+	rack := new(model.Rack)
+	for _, r := range *racks {
+		rack = &r
+		break
+	}
+	reqModel := model.Host{Name: name, Description: description, RackID: rack.ID}
 	reqJSON, _ := json.Marshal(reqModel)
 	body, err := sendRequest("POST", url, reqJSON)
 	if err != nil {
@@ -75,9 +116,6 @@ func updateHost(cmd *cobra.Command, args []string) error {
 			fmt.Printf("host '%v' is already exist\n", name)
 			return fmt.Errorf("host '%v' is already exist", name)
 		}
-	}
-	if location != "-" {
-		host.Location = location
 	}
 	if description != "-" {
 		host.Description = description
