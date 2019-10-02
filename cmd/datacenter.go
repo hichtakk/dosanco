@@ -818,15 +818,15 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 		}
 	} else {
 		// show list of pdus
-		url := Conf.APIServer.URL + "/datacenter/rack-pdu"
+		url := Conf.APIServer.URL + "/datacenter/rack-pdu?"
 		if dcName != "" {
-			url = url + "?dc=" + dcName
-			if upsName != "" {
-				url = url + "&ups=" + upsName
-			}
-			if pduName != "" {
-				url = url + "&dc-pdu=" + pduName
-			}
+			url = url + "&dc=" + dcName
+		}
+		if upsName != "" {
+			url = url + "&ups=" + upsName
+		}
+		if pduName != "" {
+			url = url + "&row-pdu=" + pduName
 		}
 		body, err := sendRequest("GET", url, []byte{})
 		if err != nil {
@@ -838,8 +838,12 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 			fmt.Println("parse response error")
 			return
 		}
-		// get dc pdu
-		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/row-pdu?dc="+dcName, []byte{})
+		// get row pdu
+		rowPduURL := Conf.APIServer.URL + "/datacenter/row-pdu"
+		if dcName != "" {
+			rowPduURL = rowPduURL + "?dc=" + dcName
+		}
+		body, err = sendRequest("GET", rowPduURL, []byte{})
 		if err != nil {
 			fmt.Println(err.Error())
 			return

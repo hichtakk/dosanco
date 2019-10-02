@@ -3,8 +3,8 @@ package handler
 import (
 	"fmt"
 	"net/http"
-	"strconv"
 	"sort"
+	"strconv"
 
 	"github.com/labstack/echo/v4"
 
@@ -424,7 +424,7 @@ func GetRackPDUs(c echo.Context) error {
 	pdu := model.RackPDUs{}
 	dcName := c.QueryParam("dc")
 	upsName := c.QueryParam("ups")
-	dcPduName := c.QueryParam("dc-pdu")
+	rowPduName := c.QueryParam("row-pdu")
 	name := c.QueryParam("name")
 	if dcName != "" {
 		// get dc
@@ -446,9 +446,9 @@ func GetRackPDUs(c echo.Context) error {
 		// get dc pdu
 		for _, u := range ups {
 			dcPDUs := []model.PDU{}
-			if dcPduName != "" {
-				if result := db.Find(&dcPDUs, "name=? AND primary_ups_id=?", dcPduName, u.ID); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("dc pdu '%v' not found", dcPduName)))
+			if rowPduName != "" {
+				if result := db.Find(&dcPDUs, "name=? AND primary_ups_id=?", rowPduName, u.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row pdu '%v' not found", rowPduName)))
 				}
 			} else {
 				if result := db.Find(&dcPDUs, "primary_ups_id=?", u.ID); result.Error != nil {
@@ -466,10 +466,49 @@ func GetRackPDUs(c echo.Context) error {
 			}
 		}
 	} else {
-		if name != "" {
-			db.Find(&pdu, "name=?", name)
+		rowPDUs := []model.PDU{}
+		if upsName != "" {
+			ups := model.UPS{}
+			if result := db.Take(&ups, "name=?", upsName); result.Error != nil {
+				return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups '%v' not found", upsName)))
+			}
+			if rowPduName != "" {
+				if result := db.Find(&rowPDUs, "name=? AND primary_ups_id=?", rowPduName, ups.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found under UPS '%v'", rowPduName, upsName)))
+				}
+			} else {
+				if result := db.Find(&rowPDUs, "primary_ups_id=?", ups.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError("row-pdu not found"))
+				}
+			}
+			for _, rowPDU := range rowPDUs {
+				p := model.RackPDUs{}
+				if name != "" {
+					db.Find(&p, "primary_pdu_id=? AND name=?", rowPDU.ID, name)
+				} else {
+					db.Find(&p, "primary_pdu_id=?", rowPDU.ID)
+				}
+				pdu = append(pdu, p...)
+			}
 		} else {
-			db.Find(&pdu)
+			if rowPduName != "" {
+				if result := db.Find(&rowPDUs, "name=?", rowPduName); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found", rowPduName)))
+				}
+			} else {
+				if result := db.Find(&rowPDUs); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError("row-pdu not found"))
+				}
+			}
+			for _, rowPDU := range rowPDUs {
+				p := model.RackPDUs{}
+				if name != "" {
+					db.Find(&p, "primary_pdu_id=? AND name=?", rowPDU.ID, name)
+				} else {
+					db.Find(&p, "primary_pdu_id=?", rowPDU.ID)
+				}
+				pdu = append(pdu, p...)
+			}
 		}
 	}
 
