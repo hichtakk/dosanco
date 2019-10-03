@@ -863,6 +863,13 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 			if err != nil {
 			}
 			p.SecondaryPDU = *sdcpdu
+			host, err := getHostByName(p.Name)
+			if err != nil {
+			}
+			rack, _ := getRack(host.RackID)
+			loadRackLocation(rack)
+			host.Rack = *rack
+			p.Host = *host
 			outputModel = append(outputModel, p)
 		}
 		outputModel.Write(cmd.Flag("output").Value.String())
@@ -2003,4 +2010,15 @@ func getRacks(dc, floor, hall, row, name string) (*model.Racks, error) {
 	}
 
 	return racks, nil
+}
+
+func loadRackLocation(rack *model.Rack) {
+	row, _ := getRow(rack.RowID)
+	hall, _ := getHall(row.HallID)
+	floor, _ := getFloor(hall.FloorID)
+	dc, _ := getDataCenter(floor.DataCenterID)
+	floor.DataCenter = *dc
+	hall.Floor = *floor
+	row.Hall = *hall
+	rack.RackRow = *row
 }

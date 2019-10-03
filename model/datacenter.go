@@ -379,6 +379,7 @@ type RackPDU struct {
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
 	PrimaryPDU     PDU    `json:"primary_pdu"`
 	SecondaryPDU   PDU    `json:"secondary_pdu"`
+	Host           Host
 }
 
 func (p RackPDU) Write(output string) {
@@ -407,9 +408,9 @@ func (p RackPDUs) Write(output string) {
 			fmt.Printf("%3d   %32s   %12s   %12s\n", pdu.ID, pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name)
 		}
 	} else {
-		fmt.Printf("%-32s   %-12s   %-12s\n", "Name", "Input#1", "Input#2")
+		fmt.Printf("%-32s   %-12s   %-12s   %-10s\n", "Name", "Input#1", "Input#2", "Rack")
 		for _, pdu := range p {
-			fmt.Printf("%32s   %12s   %12s\n", pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name)
+			fmt.Printf("%32s   %12s   %12s   %10s\n", pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name, pdu.Host.Rack.GetLocationPath())
 		}
 	}
 }

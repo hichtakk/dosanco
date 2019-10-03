@@ -162,3 +162,16 @@ func deleteHost(cmd *cobra.Command, args []string) error {
 
 	return nil
 }
+
+func getHostByName(name string) (*model.Host, error) {
+	host := new(model.Host)
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/host/name/"+name, []byte{})
+	if err != nil {
+		return host, err
+	}
+	if err := json.Unmarshal(body, host); err != nil {
+		return host, fmt.Errorf("response parse error")
+	}
+
+	return host, nil
+}
