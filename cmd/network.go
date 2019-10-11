@@ -64,22 +64,6 @@ func showNetwork(cmd *cobra.Command, args []string) {
 	}
 }
 
-func getNetwork(url string, id string) {
-	url = url + "/" + id
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	nw := new(model.IPv4Network)
-	if err := json.Unmarshal(body, nw); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return
-	}
-
-	nw.Write("default")
-}
-
 func createNetwork(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/network"
 	reqModel := model.IPv4Network{CIDR: args[0], Description: description}
@@ -287,7 +271,14 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	if err := json.Unmarshal(body, allocs); err != nil {
 	}
 
-	allocs.Write(cmd.Flag("output").Value.String())
+	output := model.IPv4Allocations{}
+	for _, alloc := range *allocs {
+		network, _ := getNetwork(alloc.IPv4NetworkID)
+		alloc.IPv4Network = network
+		output = append(output, alloc)
+	}
+
+	output.Write(cmd.Flag("output").Value.String())
 }
 
 func createIPAllocation(cmd *cobra.Command, args []string) error {
@@ -440,4 +431,36 @@ func getNetworkCIDRfromID(networks *[]model.IPv4Network, id uint) string {
 	}
 
 	return "?"
+}
+
+/*
+func getNetwork(url string, id string) {
+	url = url + "/" + id
+	body, err := sendRequest("GET", url, []byte{})
+	if err != nil {
+		fmt.Println(err)
+		return
+	}
+	nw := new(model.IPv4Network)
+	if err := json.Unmarshal(body, nw); err != nil {
+		fmt.Println("json unmarshal error:", err)
+		return
+	}
+
+	nw.Write("default")
+}
+*/
+
+func getNetwork(id uint) (*model.IPv4Network, error) {
+	network := new(model.IPv4Network)
+	idStr := strconv.Itoa(int(id))
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/network/"+idStr, []byte{})
+	if err != nil {
+		return network, err
+	}
+	if err := json.Unmarshal(body, network); err != nil {
+		return network, fmt.Errorf("response parse error")
+	}
+
+	return network, nil
 }

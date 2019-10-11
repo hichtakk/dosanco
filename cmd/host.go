@@ -59,7 +59,6 @@ func createHost(cmd *cobra.Command, args []string) error {
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
 	rackName := cmd.Flag("rack").Value.String()
-	//rackID := cmd.Flag("rack-id").Value.String()
 	description := cmd.Flag("description").Value.String()
 	name := args[0]
 	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
