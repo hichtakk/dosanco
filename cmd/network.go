@@ -272,9 +272,14 @@ func showIPAllocation(cmd *cobra.Command, args []string) {
 	}
 
 	output := model.IPv4Allocations{}
+	netMap := make(map[uint]*model.IPv4Network)
 	for _, alloc := range *allocs {
-		network, _ := getNetwork(alloc.IPv4NetworkID)
-		alloc.IPv4Network = network
+		network, ok := netMap[alloc.IPv4NetworkID]
+		if ok != true {
+			network, _ = getNetwork(alloc.IPv4NetworkID)
+			netMap[alloc.IPv4NetworkID] = network
+		}
+		alloc.IPv4Network = netMap[alloc.IPv4NetworkID]
 		output = append(output, alloc)
 	}
 
@@ -432,24 +437,6 @@ func getNetworkCIDRfromID(networks *[]model.IPv4Network, id uint) string {
 
 	return "?"
 }
-
-/*
-func getNetwork(url string, id string) {
-	url = url + "/" + id
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	nw := new(model.IPv4Network)
-	if err := json.Unmarshal(body, nw); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return
-	}
-
-	nw.Write("default")
-}
-*/
 
 func getNetwork(id uint) (*model.IPv4Network, error) {
 	network := new(model.IPv4Network)
