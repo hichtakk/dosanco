@@ -65,8 +65,8 @@ func (d DataCenter) Write(output string) {
 // Floor represents datacenter floor or area.
 type Floor struct {
 	Model
-	Name         string `gorm:"type:varchar(16);unique_index" json:"name"`
-	DataCenterID uint   `json:"datacenter_id"`
+	Name         string `gorm:"type:varchar(16);unique_dc_floor" json:"name"`
+	DataCenterID uint   `gorm:"unique_dc_floor" json:"datacenter_id"`
 	DataCenter   DataCenter
 	Halls        Halls `json:"halls,omitempty"`
 }
@@ -124,7 +124,6 @@ func (f Floors) Take(id uint) (*Floor, error) {
 type Hall struct {
 	Model
 	Name     string    `gorm:"type:varchar(16)" json:"name"`
-	Type     string    `gorm:"type:varchar(10)" json:"type"`
 	FloorID  uint      `json:"floor_id"`
 	Floor    Floor     `json:"floor"`
 	RackRows []RackRow `json:"rows,omitempty"`
@@ -138,7 +137,6 @@ func (h Hall) Write(output string) {
 		fmt.Printf("# Hall\n")
 		fmt.Printf(" ID:      %d\n", h.ID)
 		fmt.Printf(" Name:    %v\n", h.Name)
-		fmt.Printf(" Type:    %v\n", h.Type)
 		fmt.Printf(" FloorID: %v\n", h.FloorID)
 	}
 }
@@ -150,9 +148,9 @@ func (h Halls) Write(output string) {
 		jsonBytes, _ := json.MarshalIndent(h, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else {
-		fmt.Printf("%3s   %7s   %10s   %6s\n", "ID", "Floor", "Name", "Type")
+		fmt.Printf("%3s   %7s   %10s\n", "ID", "Floor", "Name")
 		for _, hall := range h {
-			fmt.Printf("%3d   %7v   %10s   %6s\n", hall.ID, hall.Floor.Name, hall.Name, hall.Type)
+			fmt.Printf("%3d   %7v   %10s\n", hall.ID, hall.Floor.Name, hall.Name)
 		}
 	}
 }
@@ -378,8 +376,8 @@ type RackPDU struct {
 	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
 	PrimaryPDU     PDU    `json:"primary_pdu"`
-	SecondaryPDU   PDU    `json:"secondary_pdu"`
-	Host           Host
+	SecondaryPDU   *PDU   `json:"secondary_pdu"`
+	Host           *Host  `json:"host,omitempty"`
 }
 
 func (p RackPDU) Write(output string) {
@@ -391,7 +389,11 @@ func (p RackPDU) Write(output string) {
 		fmt.Printf(" ID:          %d\n", p.ID)
 		fmt.Printf(" Name:        %v\n", p.Name)
 		fmt.Printf(" Input#1:     %v\n", p.PrimaryPDU.Name)
-		fmt.Printf(" Input#2:     %v\n", p.SecondaryPDU.Name)
+		if p.SecondaryPDU != nil {
+			fmt.Printf(" Input#2:     %v\n", p.SecondaryPDU.Name)
+		} else {
+			fmt.Printf(" Input#2:     %v\n", "-")
+		}
 		fmt.Printf(" Description: %v\n", p.Description)
 	}
 }
@@ -410,7 +412,15 @@ func (p RackPDUs) Write(output string) {
 	} else {
 		fmt.Printf("%-32s   %-12s   %-12s   %-10s\n", "Name", "Input#1", "Input#2", "Rack")
 		for _, pdu := range p {
-			fmt.Printf("%32s   %12s   %12s   %10s\n", pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name, pdu.Host.Rack.GetLocationPath())
+			location := "-"
+			if pdu.Host.ID != 0 {
+				location = pdu.Host.Rack.GetLocationPath()
+			}
+			secondRowPDU := "-"
+			if pdu.SecondaryPDU != nil {
+				secondRowPDU = pdu.SecondaryPDU.Name
+			}
+			fmt.Printf("%32s   %12s   %12s   %10s\n", pdu.Name, pdu.PrimaryPDU.Name, secondRowPDU, location)
 		}
 	}
 }

@@ -1,6 +1,8 @@
 package db
 
 import (
+	"fmt"
+	"os"
 	"strings"
 
 	"github.com/jinzhu/gorm"
@@ -22,7 +24,8 @@ func Init(c config.Config) {
 	if schema[0] == "sqlite" {
 		db, err = gorm.Open("sqlite3", schema[1])
 		if err != nil {
-			panic("failed to connect database")
+			fmt.Fprintln(os.Stderr, "failed to connect database: "+err.Error())
+			os.Exit(255)
 		}
 		db.Exec("PRAGMA foreign_keys = ON;")
 	}
@@ -138,13 +141,7 @@ func initIPAllocation() {
 
 func initHost() {
 	db.AutoMigrate(&model.Host{})
-	/*
-		db.AutoMigrate(&model.CPU{})
-		db.AutoMigrate(&model.Memory{})
-		db.AutoMigrate(&model.Drive{})
-		db.AutoMigrate(&model.NIC{})
-		db.AutoMigrate(&model.Accelerator{})
-	*/
+	db.AutoMigrate(&model.HostGroup{})
 }
 
 // GetDB returns database pointer

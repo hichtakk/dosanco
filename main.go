@@ -130,5 +130,5 @@ func main() {
 	e.DELETE("/datacenter/rack-pdu/:id", handler.DeleteRackPDU)
 
 	// Start dosanco server
-	e.Logger.Fatal(e.Start(":8080"))
+	e.Logger.Fatal(e.Start(":5187"))
 }

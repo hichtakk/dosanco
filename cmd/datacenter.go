@@ -813,6 +813,8 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 					fmt.Println("parse response error")
 					return
 				}
+			} else {
+				p.SecondaryPDU = nil
 			}
 			p.Write(cmd.Flag("output").Value.String())
 		}
@@ -862,14 +864,18 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 			sdcpdu, err := dcPDUs.Take(p.SecondaryPDUID)
 			if err != nil {
 			}
-			p.SecondaryPDU = *sdcpdu
+			if sdcpdu.ID != 0 {
+				p.SecondaryPDU = sdcpdu
+			} else {
+				p.SecondaryPDU = nil
+			}
 			host, err := getHostByName(p.Name)
 			if err != nil {
 			}
 			rack, _ := getRack(host.RackID)
 			loadRackLocation(rack)
 			host.Rack = *rack
-			p.Host = *host
+			p.Host = host
 			outputModel = append(outputModel, p)
 		}
 		outputModel.Write(cmd.Flag("output").Value.String())
@@ -963,13 +969,15 @@ func createDataCenterHall(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("floor not found")
 	}
 	// hall type
-	hallType := cmd.Flag("type").Value.String()
-	if (hallType != "generic") && (hallType != "network") {
-		return fmt.Errorf("type must be 'network' or 'generic'")
-	}
+	/*
+		hallType := cmd.Flag("type").Value.String()
+		if (hallType != "generic") && (hallType != "network") {
+			return fmt.Errorf("type must be 'network' or 'generic'")
+		}
+	*/
 
 	// prepare request hall model
-	reqModel := model.Hall{Name: args[0], FloorID: floorID, Type: hallType}
+	reqModel := model.Hall{Name: args[0], FloorID: floorID}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)

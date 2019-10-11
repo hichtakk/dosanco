@@ -525,7 +525,7 @@ func CreateDataCenterHall(c echo.Context) error {
 	if result := db.Create(&hall); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
-	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("hall created. ID: %d, Name: %s, Type: %s", hall.ID, hall.Name, hall.Type)))
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("hall created. ID: %d, Name: %s", hall.ID, hall.Name)))
 }
 
 // UpdateDataCenterHall updates specified datacenter hall information.

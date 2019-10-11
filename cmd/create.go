@@ -147,7 +147,7 @@ func NewCmdCreateDataCenterFloor() *cobra.Command {
 func NewCmdCreateDataCenterHall() *cobra.Command {
 	var dc string
 	var floor string
-	var hallType string
+	//var hallType string
 	var hallCmd = &cobra.Command{
 		Use:     "hall",
 		Aliases: []string{"dc-hall"},
@@ -157,10 +157,10 @@ func NewCmdCreateDataCenterHall() *cobra.Command {
 	}
 	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
 	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	hallCmd.Flags().StringVarP(&hallType, "type", "", "", "type of data hall (network/generic)")
+	//hallCmd.Flags().StringVarP(&hallType, "type", "", "", "type of data hall (network/generic)")
 	hallCmd.MarkFlagRequired("dc")
 	hallCmd.MarkFlagRequired("floor")
-	hallCmd.MarkFlagRequired("type")
+	//hallCmd.MarkFlagRequired("type")
 
 	return hallCmd
 }

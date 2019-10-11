@@ -13,12 +13,11 @@ type Host struct {
 	UpdatedAt       time.Time       `gorm:"updated_at" json:"updated_at"`
 	DeletedAt       *time.Time      `gorm:"deleted_at;unique_index:unique_hostname" json:"deleted_at,omitempty"`
 	Name            string          `json:"name" validate:"required" gorm:"unique_index:unique_hostname;not null"`
-	RackID          uint            `json:"rack_id"`
 	Description     string          `json:"description"`
+	GroupID         uint            `json:"group_id"`
 	IPv4Allocations IPv4Allocations `json:"ipv4_allocations"`
-	Rack            Rack
-	//Location        string          `json:"location"`
-	//MountUnit
+	RackID          uint            `json:"rack_id"`
+	Rack            Rack            `json:"rack,omitempty"`
 	//Configuration   Configuration   `json:"configuration" `
 }
 
@@ -49,32 +48,12 @@ type Hosts []Host
 func (h Hosts) Write() {
 }
 
-/*
-type CPU struct {
-	Model string `json:"model"`
+type HostGroup struct {
+	ID          uint       `gorm:"primary_key" json:"id"`
+	CreatedAt   time.Time  `gorm:"created_at" json:"created_at"`
+	UpdatedAt   time.Time  `gorm:"updated_at" json:"updated_at"`
+	DeletedAt   *time.Time `gorm:"deleted_at;unique_index:unique_group" json:"deleted_at,omitempty"`
+	Name        string     `json:"name" validate:"required" gorm:"unique_index:unique_group;not null"`
+	Description string     `json:"description"`
+	Hosts       Hosts      `json:"omitempty"`
 }
-
-type Memory struct {
-	Capacity int `json:"capacity"`
-}
-
-type Drive struct {
-	Capacity int `json:"capacity"`
-}
-
-type NIC struct {
-	Model string `json:"nic"`
-}
-
-type Accelerator struct {
-	Model string `json:"accelerator"`
-}
-
-type Configuration struct {
-	CPUs         []CPU         `json:"cpu"`
-	Memories     []Memory      `json:"memory"`
-	Storage      []Drive       `json:"storage"`
-	NICs         []NIC         `json:"nic"`
-	Accelerators []Accelerator `json:"accelerator"`
-}
-*/

@@ -11,8 +11,6 @@ type DBConfig struct {
 	URL  string `toml:"url"`
 	Type string `toml:"type"`
 	Host string `toml:"host"`
-	//User     string `toml:"user"`
-	//Password string `toml:"password"`
 	Port int    `toml:"port"`
 	Name string `toml:"name"`
 }
