@@ -30,6 +30,20 @@ func GetHost(c echo.Context) error {
 	return c.JSON(http.StatusOK, host)
 }
 
+// GetHostGroups returns host group information.
+func GetHostGroups(c echo.Context) error {
+	db := db.GetDB()
+	groups := model.HostGroups{}
+	name := c.QueryParam("name")
+	if name != "" {
+		db.Find(&groups, "name=?", name)
+	} else {
+		db.Find(&groups)
+	}
+
+	return c.JSON(http.StatusOK, groups)
+}
+
 // GetHostByName returns specified host information.
 func GetHostByName(c echo.Context) error {
 	host := new(model.Host)
@@ -56,6 +70,19 @@ func CreateHost(c echo.Context) error {
 		return c.JSON(http.StatusInternalServerError, returnError(fmt.Sprintf("%v", result.Error)))
 	}
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host created. ID: %d, Name: %s", host.ID, host.Name)))
+}
+
+// CreateHostGroup creates a new host group.
+func CreateHostGroup(c echo.Context) error {
+	group := new(model.HostGroup)
+	if err := c.Bind(group); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
+	}
+	db := db.GetDB()
+	if result := db.Create(&group); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host group created. ID: %d, Name: %s", group.ID, group.Name)))
 }
 
 // UpdateHost updates information of specified host.

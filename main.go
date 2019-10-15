@@ -69,6 +69,10 @@ func main() {
 	e.DELETE("/host/:id", handler.DeleteHost)
 	e.GET("/host/name/:hostname", handler.GetHostByName)
 
+	// host groups
+	e.GET("/host/group", handler.GetHostGroups)
+	e.POST("/host/group", handler.CreateHostGroup)
+
 	// routing datacenter
 	e.GET("/datacenter", handler.GetDataCenters)
 	e.GET("/datacenter/:id", handler.GetDataCenter)

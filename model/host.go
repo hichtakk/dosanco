@@ -54,5 +54,19 @@ type HostGroup struct {
 	DeletedAt   *time.Time `gorm:"deleted_at;unique_index:unique_group" json:"deleted_at,omitempty"`
 	Name        string     `json:"name" validate:"required" gorm:"unique_index:unique_group;not null"`
 	Description string     `json:"description"`
-	Hosts       Hosts      `json:"omitempty"`
+	Hosts       *Hosts     `json:"omitempty"`
+}
+
+type HostGroups []HostGroup
+
+func (g HostGroups) Write(output string) {
+	if output == "json" {
+
+	} else {
+		fmt.Printf("%-15v   %-15v\n", "Name", "Description")
+		for _, grp := range g {
+			fmt.Printf("%15v   %15v\n", grp.Name, grp.Description)
+		}
+	}
+
 }

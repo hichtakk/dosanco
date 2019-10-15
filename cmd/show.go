@@ -15,6 +15,7 @@ func NewCmdShow() *cobra.Command {
 		NewCmdShowIPAM(),
 		NewCmdShowVlan(),
 		NewCmdShowHost(),
+		NewCmdShowHostGroup(),
 		NewCmdShowDataCenter(),
 		NewCmdShowDataCenterFloor(),
 		NewCmdShowDataCenterHall(),
@@ -88,6 +89,18 @@ func NewCmdShowHost() *cobra.Command {
 	}
 
 	return hostCmd
+}
+
+// NewCmdShowHostGroup is subcommand represents show host resource.
+func NewCmdShowHostGroup() *cobra.Command {
+	var groupCmd = &cobra.Command{
+		Use:   "group [NAME]",
+		Short: "show group",
+		Args:  cobra.MaximumNArgs(1),
+		Run:   showHostGroup,
+	}
+
+	return groupCmd
 }
 
 // NewCmdShowDataCenter is subcommand represents show datacenter resource.

@@ -51,6 +51,26 @@ func showHost(cmd *cobra.Command, args []string) {
 	host.Write(cmd.Flag("output").Value.String())
 }
 
+func showHostGroup(cmd *cobra.Command, args []string) {
+	url := Conf.APIServer.URL + "/host/group"
+	if len(args) > 0 {
+
+	} else {
+		// show all groups
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		data := new(model.HostGroups)
+		if err := json.Unmarshal(body, data); err != nil {
+			fmt.Println("json unmarshall error:", err)
+			return
+		}
+		data.Write(cmd.Flag("output").Value.String())
+	}
+}
+
 func createHost(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host"
 	// get options
@@ -71,6 +91,27 @@ func createHost(cmd *cobra.Command, args []string) error {
 		break
 	}
 	reqModel := model.Host{Name: name, Description: description, RackID: rack.ID}
+	reqJSON, _ := json.Marshal(reqModel)
+	body, err := sendRequest("POST", url, reqJSON)
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
+func createHostGroup(cmd *cobra.Command, args []string) error {
+	url := Conf.APIServer.URL + "/host/group"
+	// get options
+	//description := cmd.Flag("description").Value.String()
+	name := args[0]
+	reqModel := model.HostGroup{Name: name, Description: description}
 	reqJSON, _ := json.Marshal(reqModel)
 	body, err := sendRequest("POST", url, reqJSON)
 	if err != nil {

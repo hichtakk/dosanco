@@ -15,6 +15,7 @@ func NewCmdCreate() *cobra.Command {
 		NewCmdCreateIPAllocation(),
 		NewCmdCreateVlan(),
 		NewCmdCreateHost(),
+		NewCmdCreateHostGroup(),
 		NewCmdCreateDataCenter(),
 		NewCmdCreateDataCenterFloor(),
 		NewCmdCreateDataCenterHall(),
@@ -109,6 +110,21 @@ func NewCmdCreateHost() *cobra.Command {
 	hostCmd.MarkFlagRequired("rack")
 
 	return hostCmd
+}
+
+// NewCmdCreateHostGroup is subcommand represents vlan resource.
+func NewCmdCreateHostGroup() *cobra.Command {
+	//var name string
+	var groupCmd = &cobra.Command{
+		Use:   "group",
+		Short: "create new host group",
+		Args:  cobra.ExactArgs(1),
+		RunE:  createHostGroup,
+	}
+	//groupCmd.Flags().StringVarP(&name, "name", "", "", "name of host group")
+	//groupCmd.MarkFlagRequired("name")
+
+	return groupCmd
 }
 
 // NewCmdCreateDataCenter is subcommand represents datacenter resource.
