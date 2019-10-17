@@ -29,8 +29,8 @@ linux: ## build AMD64 linux binary
 	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -a -v -o build/dosanco-apiserver_linux_amd64 main.go
 
 macos: ## build AMD64 darwin binary
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -a -v -o build/dosanco-apiserver/dosanco-apiserver_darwin_amd64 main.go
-	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 go build -a -v -o build/dosanco/dosanco_darwin_amd64 cli/main.go
+	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 CC=o64-clang go build -a -v -o build/dosanco-apiserver/dosanco-apiserver_darwin_amd64 main.go
+	GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 CC=o64-clang go build -a -v -o build/dosanco/dosanco_darwin_amd64 cli/main.go
 
 update-package: ## Update dependency packages
 	@go mod tidy
