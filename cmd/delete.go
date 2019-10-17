@@ -141,7 +141,7 @@ func NewCmdDeleteDataCenterHall() *cobra.Command {
 	return hallCmd
 }
 
-// NewCmdRackRow is subcommand represents delete rack row resource.
+// NewCmdDeleteRackRow is subcommand represents delete rack row resource.
 func NewCmdDeleteRackRow() *cobra.Command {
 	var dc string
 	var floor string

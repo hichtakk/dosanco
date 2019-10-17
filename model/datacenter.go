@@ -25,6 +25,7 @@ func (d DataCenters) Write(output string) {
 	}
 }
 
+// Take returns DataCenter matches specified ID
 func (d DataCenters) Take(id uint) (*DataCenter, error) {
 	for _, dc := range d {
 		if dc.ID == id {
@@ -87,6 +88,7 @@ func (f Floor) Write(output string) {
 	}
 }
 
+// Floors represents slice of Floor
 type Floors []Floor
 
 func (f Floors) Write(output string) {
@@ -106,10 +108,12 @@ func (f Floors) Write(output string) {
 	}
 }
 
+// Len returns number of Floors
 func (f Floors) Len() int {
 	return len(f)
 }
 
+// Take returns Floor specified by ID
 func (f Floors) Take(id uint) (*Floor, error) {
 	for _, floor := range f {
 		if floor.ID == id {
@@ -141,6 +145,7 @@ func (h Hall) Write(output string) {
 	}
 }
 
+// Halls represents slice of Hall
 type Halls []Hall
 
 func (h Halls) Write(output string) {
@@ -155,6 +160,7 @@ func (h Halls) Write(output string) {
 	}
 }
 
+// Take returns Hall specified by ID
 func (h Halls) Take(id uint) (*Hall, error) {
 	for _, hall := range h {
 		if hall.ID == id {
@@ -186,6 +192,7 @@ func (r RackRow) Write(output string) {
 	}
 }
 
+// RackRows represents slice of RackRow
 type RackRows []RackRow
 
 func (r RackRows) Write(output string) {
@@ -205,6 +212,7 @@ func (r RackRows) Write(output string) {
 	}
 }
 
+// Take returns RackRow specified by ID
 func (r RackRows) Take(id uint) (*RackRow, error) {
 	for _, row := range r {
 		if row.ID == id {
@@ -237,6 +245,7 @@ func (r Rack) Write(output string) {
 	}
 }
 
+// GetLocationPath returns location of rack including datacenter, floor, hall and row
 func (r Rack) GetLocationPath() string {
 	row := r.RackRow.Name
 	hall := r.RackRow.Hall.Name
@@ -246,6 +255,7 @@ func (r Rack) GetLocationPath() string {
 	return fmt.Sprintf("%v/%v/%v/%v/%v", dc, floor, hall, row, r.Name)
 }
 
+// Racks represents slice of Rack
 type Racks []Rack
 
 func (r Racks) Write(output string) {
@@ -286,6 +296,7 @@ func (u UPS) Write(output string) {
 	}
 }
 
+// UPSs represents slice of UPS
 type UPSs []UPS
 
 func (u UPSs) Write(output string) {
@@ -305,6 +316,7 @@ func (u UPSs) Write(output string) {
 	}
 }
 
+// Take returns UPS specified by ID
 func (u UPSs) Take(id uint) (*UPS, error) {
 	for _, ups := range u {
 		if ups.ID == id {
@@ -339,6 +351,7 @@ func (p PDU) Write(output string) {
 	}
 }
 
+// PDUs represents slice of PDU
 type PDUs []PDU
 
 func (p PDUs) Write(output string) {
@@ -358,6 +371,7 @@ func (p PDUs) Write(output string) {
 	}
 }
 
+// Take returns PDU specified by ID
 func (p PDUs) Take(id uint) (*PDU, error) {
 	for _, pdu := range p {
 		if pdu.ID == id {
@@ -398,6 +412,7 @@ func (p RackPDU) Write(output string) {
 	}
 }
 
+// RackPDUs represents slice of RackPDU
 type RackPDUs []RackPDU
 
 func (p RackPDUs) Write(output string) {

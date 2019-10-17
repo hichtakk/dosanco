@@ -160,7 +160,7 @@ func GetDataCenterFloor(c echo.Context) error {
 	return c.JSON(http.StatusOK, flr)
 }
 
-// GetDataCenterFloor returns specified datacenter floor.
+// GetDataCenterFloorByName returns specified datacenter floor.
 func GetDataCenterFloorByName(c echo.Context) error {
 	name, _ := strconv.Atoi(c.Param("name"))
 	flr := new(model.Floor)
@@ -388,7 +388,7 @@ func GetRowPDUs(c echo.Context) error {
 	return c.JSON(http.StatusOK, pdu)
 }
 
-// GetRackPDU returns specified rack-pdu information
+// GetRowPDU returns specified row-pdu information
 func GetRowPDU(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
 	if err != nil {

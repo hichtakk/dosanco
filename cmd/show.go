@@ -206,7 +206,7 @@ func NewCmdShowUPS() *cobra.Command {
 	return upsCmd
 }
 
-// NewCmdShowPDU is subcommand represents show rack row resource.
+// NewCmdShowRowPDU is subcommand represents show rack row pdu resource.
 func NewCmdShowRowPDU() *cobra.Command {
 	var dc string
 	var ups string

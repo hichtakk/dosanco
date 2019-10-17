@@ -51,6 +51,7 @@ type Hosts []Host
 func (h Hosts) Write() {
 }
 
+// HostGroup represents group for host
 type HostGroup struct {
 	ID          uint       `gorm:"primary_key" json:"id"`
 	CreatedAt   time.Time  `gorm:"created_at" json:"created_at"`
@@ -61,6 +62,7 @@ type HostGroup struct {
 	Hosts       *Hosts     `json:"hosts,omitempty"`
 }
 
+// HostGroups represents slice of HostGroup
 type HostGroups []HostGroup
 
 func (g HostGroups) Write(output string) {
