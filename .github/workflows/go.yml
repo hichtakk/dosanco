@@ -2,14 +2,14 @@ name: Go
 on: [push]
 jobs:
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-    - uses: actions/checkout@master
-    - uses: grandcolline/golang-github-actions@v1.0.0
-      with:
-        run: make lint
+  #lint:
+  #  name: Lint
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - uses: actions/checkout@master
+  #  - uses: grandcolline/golang-github-actions@v1.0.0
+  #    with:
+  #      run: make lint
 
   build:
     name: Build
@@ -35,3 +35,8 @@ jobs:
 
     - name: Build
       run: go build -v .
+
+    - uses: actions/upload-artifact@master
+      with:
+        name: dosanco
+        path: build/dosanco
