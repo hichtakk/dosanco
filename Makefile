@@ -1,7 +1,7 @@
 NAME := dosanco
 #VERSION := $(gobump show -r)
 REVISION := $(shell git rev-parse --shrt HEAD)
-LDFLAGS := "-linkmode external -extldflags "-static""
+#LDFLAGS := "-linkmode external -extldflags "-static""
 
 RELEASE_DIR=build
 GOVERSION=$(shell go version)
@@ -36,7 +36,7 @@ build: $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) $(RELEASE_DIR)/dosanco-apiserver
 #	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -a -v -o build/dosanco-apiserver_linux_amd64 main.go
 
 build-linux-amd64: ## build AMD64 linux binary
-	@$(MAKE) build GOOS=linux GOARCH=amd64
+	@$(MAKE) build GOOS=linux GOARCH=amd64 LDFLAGS="--ldflags '-linkmode external -extldflags -static'"
 
 build-linux-arm64: ## build ARM64 linux binary
 	@$(MAKE) build GOOS=linux GOARCH=arm64
@@ -50,7 +50,7 @@ $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH): ## Build dosanco command-line client
 	go build -a -v -o $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) cli/main.go
 
 $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH): ## Build dosanco api server
-	CGO_ENABLED=1 go build -a -v -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
+	CGO_ENABLED=1 go build -a -v -o $(LDFLAGS) $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
 
 update-package: ## Update dependency packages
 	@go mod tidy
