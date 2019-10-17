@@ -15,6 +15,7 @@ type Host struct {
 	Name            string          `json:"name" validate:"required" gorm:"unique_index:unique_hostname;not null"`
 	Description     string          `json:"description"`
 	GroupID         uint            `json:"group_id"`
+	Group           *HostGroup      `json:"group,omitempty"`
 	IPv4Allocations IPv4Allocations `json:"ipv4_allocations"`
 	RackID          uint            `json:"rack_id"`
 	Rack            Rack            `json:"rack,omitempty"`
@@ -30,6 +31,9 @@ func (h Host) Write(output string) {
 		fmt.Printf("# Host Data\n")
 		fmt.Printf(" ID:             %d\n", h.ID)
 		fmt.Printf(" Name:           %v\n", h.Name)
+		if h.Group != nil {
+			fmt.Printf(" Group:          %v\n", h.Group.Name)
+		}
 		fmt.Printf(" RackLocation:   %v\n", h.Rack.GetLocationPath())
 		fmt.Printf(" Description:    %v\n\n", h.Description)
 		if h.IPv4Allocations.Len() > 0 {
@@ -54,7 +58,7 @@ type HostGroup struct {
 	DeletedAt   *time.Time `gorm:"deleted_at;unique_index:unique_group" json:"deleted_at,omitempty"`
 	Name        string     `json:"name" validate:"required" gorm:"unique_index:unique_group;not null"`
 	Description string     `json:"description"`
-	Hosts       *Hosts     `json:"omitempty"`
+	Hosts       *Hosts     `json:"hosts,omitempty"`
 }
 
 type HostGroups []HostGroup

@@ -48,6 +48,14 @@ func showHost(cmd *cobra.Command, args []string) {
 	rack.RackRow = *row
 	host.Rack = *rack
 
+	if host.GroupID != 0 {
+		group, err := getHostGroup(host.GroupID)
+		if err != nil {
+			fmt.Println("group not found")
+		}
+		host.Group = group
+	}
+
 	host.Write(cmd.Flag("output").Value.String())
 }
 
@@ -108,14 +116,12 @@ func createHost(cmd *cobra.Command, args []string) error {
 
 func createHostGroup(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host/group"
-	// get options
-	//description := cmd.Flag("description").Value.String()
 	name := args[0]
+	description := cmd.Flag("description").Value.String()
 	reqModel := model.HostGroup{Name: name, Description: description}
 	reqJSON, _ := json.Marshal(reqModel)
 	body, err := sendRequest("POST", url, reqJSON)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	var resMsg responseMessage
@@ -143,8 +149,8 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	name := cmd.Flag("name").Value.String()
 	location := cmd.Flag("location").Value.String()
 	description := cmd.Flag("description").Value.String()
-	if name == "-" && description == "-" && location == "-" {
-		fmt.Println("nothing to be updated")
+	group := cmd.Flag("group").Value.String()
+	if name == "-" && description == "-" && location == "-" && group == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
 	if name != "-" {
@@ -159,6 +165,24 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	}
 	if description != "-" {
 		host.Description = description
+	}
+	if group != "-" {
+		query := map[string]string{"name": group}
+		groups, err := getHostGroups(query)
+		if err != nil {
+			fmt.Println("get group error")
+		}
+		if len(*groups) > 1 {
+			fmt.Println("multiple group found")
+		}
+		for _, grp := range *groups {
+			host.GroupID = grp.ID
+		}
+	}
+	// update location
+	if location != "" {
+		//query := map[string]string{"name": location}
+
 	}
 	reqJSON, _ := json.Marshal(host)
 	url = Conf.APIServer.URL + "/host/" + id
@@ -203,6 +227,28 @@ func deleteHost(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func deleteHostGroup(cmd *cobra.Command, args []string) error {
+	group := new(model.HostGroup)
+	groups, err := getHostGroups(map[string]string{"name": args[0]})
+	for _, grp := range *groups {
+		group = &grp
+		break
+	}
+	url := Conf.APIServer.URL + "/host/group/" + strconv.Itoa(int(group.ID))
+	body, err := sendRequest("DELETE", url, []byte{})
+	if err != nil {
+		fmt.Println(err)
+		return err
+	}
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func getHostByName(name string) (*model.Host, error) {
 	host := new(model.Host)
 	body, err := sendRequest("GET", Conf.APIServer.URL+"/host/name/"+name, []byte{})
@@ -214,4 +260,35 @@ func getHostByName(name string) (*model.Host, error) {
 	}
 
 	return host, nil
+}
+
+func getHostGroup(id uint) (*model.HostGroup, error) {
+	group := new(model.HostGroup)
+	idStr := strconv.Itoa(int(id))
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/host/group/"+idStr, []byte{})
+	if err != nil {
+		return group, err
+	}
+	if err := json.Unmarshal(body, group); err != nil {
+		return group, fmt.Errorf("response parse error")
+	}
+
+	return group, nil
+}
+
+func getHostGroups(query map[string]string) (*model.HostGroups, error) {
+	groups := new(model.HostGroups)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/host/group?"+queryString, []byte{})
+	if err != nil {
+		return groups, err
+	}
+	if err := json.Unmarshal(body, groups); err != nil {
+		return groups, fmt.Errorf("response parse error")
+	}
+
+	return groups, nil
 }

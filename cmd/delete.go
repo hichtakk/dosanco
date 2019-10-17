@@ -15,6 +15,7 @@ func NewCmdDelete() *cobra.Command {
 		NewCmdDeleteIPAllocation(),
 		NewCmdDeleteVlan(),
 		NewCmdDeleteHost(),
+		NewCmdDeleteHostGroup(),
 		NewCmdDeleteDataCenter(),
 		NewCmdDeleteDataCenterFloor(),
 		NewCmdDeleteDataCenterHall(),
@@ -78,6 +79,18 @@ func NewCmdDeleteHost() *cobra.Command {
 	}
 
 	return hostCmd
+}
+
+// NewCmdDeleteHostGroup is subcommand represents delete vlan resource.
+func NewCmdDeleteHostGroup() *cobra.Command {
+	var groupCmd = &cobra.Command{
+		Use:   "group [NAME]",
+		Short: "delete host-group",
+		Args:  cobra.ExactArgs(1),
+		RunE:  deleteHostGroup,
+	}
+
+	return groupCmd
 }
 
 // NewCmdDeleteDataCenter is subcommand represents delete datacenter resource.

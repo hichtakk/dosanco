@@ -33,7 +33,7 @@ func main() {
 	// initialize echo instance
 	e := echo.New()
 	e.HideBanner = true
-	e.HidePort = true
+	e.HidePort = false
 	e.Validator = &Validator{validator: validator.New()}
 
 	// initialize logger middleware
@@ -71,7 +71,9 @@ func main() {
 
 	// host groups
 	e.GET("/host/group", handler.GetHostGroups)
+	e.GET("/host/group/:id", handler.GetHostGroup)
 	e.POST("/host/group", handler.CreateHostGroup)
+	e.DELETE("/host/group/:id", handler.DeleteHostGroup)
 
 	// routing datacenter
 	e.GET("/datacenter", handler.GetDataCenters)

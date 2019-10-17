@@ -30,6 +30,21 @@ func GetHost(c echo.Context) error {
 	return c.JSON(http.StatusOK, host)
 }
 
+// GetHostGroup returns specified host information.
+func GetHostGroup(c echo.Context) error {
+	group := new(model.HostGroup)
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError("parse host id error"))
+	}
+	db := db.GetDB()
+	if result := db.Take(&group, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("host group not found"))
+	}
+
+	return c.JSON(http.StatusOK, group)
+}
+
 // GetHostGroups returns host group information.
 func GetHostGroups(c echo.Context) error {
 	db := db.GetDB()
@@ -79,6 +94,10 @@ func CreateHostGroup(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
 	}
 	db := db.GetDB()
+	exist := new(model.HostGroup)
+	if result := db.Take(&exist, "name=?", group.Name); result.Error == nil {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("host group '%v' is already exist", group.Name)))
+	}
 	if result := db.Create(&group); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
@@ -101,12 +120,10 @@ func UpdateHost(c echo.Context) error {
 	if result := db.Take(&h, "id=?", host.ID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("host not found"))
 	}
-	/*
-		if result := db.Model(&h).Update("name", host.Name).Update("description", host.Description).Update("location", host.Location); result.Error != nil {
-			return c.JSON(http.StatusBadRequest, returnError("database error"))
-		}
-	*/
 	if result := db.Model(&h).Update("name", host.Name).Update("description", host.Description); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database error"))
+	}
+	if result := db.Model(&h).Update("group_id", host.GroupID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database error"))
 	}
 
@@ -137,4 +154,30 @@ func DeleteHost(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host %d is deleted", host.ID)))
+}
+
+// DeleteHostGroup deletes specified host.
+func DeleteHostGroup(c echo.Context) error {
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	db := db.GetDB()
+	var group model.HostGroup
+	if result := db.Take(&group, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("host group %d not found", id)))
+	}
+
+	// ensure the host group does not have host
+	var hosts []model.Host
+	db.Find(&hosts, "group_id=?", group.ID)
+	if len(hosts) > 0 {
+		return c.JSON(http.StatusBadRequest, returnError("group has hosts"))
+	}
+
+	if result := db.Delete(&group, "id=?", id); result.Error != nil {
+		return c.JSON(http.StatusInternalServerError, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host group %d is deleted", group.ID)))
 }

@@ -114,15 +114,13 @@ func NewCmdCreateHost() *cobra.Command {
 
 // NewCmdCreateHostGroup is subcommand represents vlan resource.
 func NewCmdCreateHostGroup() *cobra.Command {
-	//var name string
 	var groupCmd = &cobra.Command{
-		Use:   "group",
+		Use:   "group [NAME]",
 		Short: "create new host group",
 		Args:  cobra.ExactArgs(1),
 		RunE:  createHostGroup,
 	}
-	//groupCmd.Flags().StringVarP(&name, "name", "", "", "name of host group")
-	//groupCmd.MarkFlagRequired("name")
+	groupCmd.Flags().StringVarP(&description, "description", "d", "", "name of host group")
 
 	return groupCmd
 }

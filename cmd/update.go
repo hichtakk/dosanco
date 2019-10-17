@@ -76,6 +76,7 @@ func NewCmdUpdateVlan() *cobra.Command {
 func NewCmdUpdateHost() *cobra.Command {
 	var name string
 	var location string
+	var group string
 	var hostCmd = &cobra.Command{
 		Use:     "host [NAME]",
 		Aliases: []string{"server"},
@@ -85,6 +86,7 @@ func NewCmdUpdateHost() *cobra.Command {
 	}
 	hostCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "-", "location of the requested host")
+	hostCmd.Flags().StringVarP(&group, "group", "", "-", "group of the host")
 	hostCmd.Flags().StringVarP(&description, "description", "d", "-", "description of the requested vlan")
 
 	return hostCmd
