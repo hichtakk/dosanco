@@ -3,7 +3,7 @@
 Dosanco
 =======
 
-**Dosanco**: Simple IT infrastructure database.
+**Dosanco**: Simple DataCenter infrastructure database.
 
 <img src="./docs/image/logo.png" width="350">
 

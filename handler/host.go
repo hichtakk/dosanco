@@ -130,6 +130,32 @@ func UpdateHost(c echo.Context) error {
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host updated. ID: %d, Name: %s, Description: %s", h.ID, h.Name, h.Description)))
 }
 
+// UpdateHostGroup updates information of specified host group.
+func UpdateHostGroup(c echo.Context) error {
+	group := new(model.HostGroup)
+	if err := c.Bind(group); err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	id, err := strconv.Atoi(c.Param("id"))
+	if err != nil {
+		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	}
+	group.ID = uint(id)
+	db := db.GetDB()
+	var g model.HostGroup
+	if notFound := db.Take(&g, "name=? AND id!=?", group.Name, group.ID).RecordNotFound(); notFound == false {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("host group '%v' is already exists", group.Name)))
+	}
+	if result := db.Take(&g, "id=?", group.ID); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("host group not found"))
+	}
+	if result := db.Model(&g).Update("name", group.Name).Update("description", group.Description); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("database error"))
+	}
+
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host group updated. ID: %d, Name: %s, Description: %s", g.ID, g.Name, g.Description)))
+}
+
 // DeleteHost deletes specified host.
 func DeleteHost(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))

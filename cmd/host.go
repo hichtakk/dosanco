@@ -200,6 +200,48 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	return nil
 }
 
+func updateHostGroup(cmd *cobra.Command, args []string) error {
+	groups, err := getHostGroups(map[string]string{"name": args[0]})
+	if err != nil {
+		return err
+	}
+	group := new(model.HostGroup)
+	for _, g := range *groups {
+		group = &g
+		break
+	}
+	id := strconv.Itoa(int(group.ID))
+	name := cmd.Flag("name").Value.String()
+	description := cmd.Flag("description").Value.String()
+	if name == "-" && description == "-" {
+		return fmt.Errorf("nothing to be updated")
+	}
+	if name != "-" {
+		group.Name = name
+		// ensure the new name is not already exists in database
+		check, _ := getHostGroups(map[string]string{"name": name})
+		if len(*check) != 0 {
+			return fmt.Errorf(fmt.Sprintf("'%v' is already exists", name))
+		}
+	}
+	if description != "-" {
+		group.Description = description
+	}
+	reqJSON, _ := json.Marshal(group)
+	url := Conf.APIServer.URL + "/host/group/" + id
+	body, err := sendRequest("PUT", url, reqJSON)
+	if err != nil {
+		return err
+	}
+	var resMsg responseMessage
+	if err := json.Unmarshal(body, &resMsg); err != nil {
+		return err
+	}
+	fmt.Println(resMsg.Message)
+
+	return nil
+}
+
 func deleteHost(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host/name/" + args[0]
 	body, err := sendRequest("GET", url, []byte{})

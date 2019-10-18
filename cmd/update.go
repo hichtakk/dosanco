@@ -15,6 +15,7 @@ func NewCmdUpdate() *cobra.Command {
 		NewCmdUpdateIPAllocation(),
 		NewCmdUpdateVlan(),
 		NewCmdUpdateHost(),
+		NewCmdUpdateHostGroup(),
 		NewCmdUpdateDataCenter(),
 		NewCmdUpdateDataCenterFloor(),
 		NewCmdUpdateDataCenterHall(),
@@ -87,9 +88,25 @@ func NewCmdUpdateHost() *cobra.Command {
 	hostCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "-", "location of the requested host")
 	hostCmd.Flags().StringVarP(&group, "group", "", "-", "group of the host")
-	hostCmd.Flags().StringVarP(&description, "description", "d", "-", "description of the requested vlan")
+	hostCmd.Flags().StringVarP(&description, "description", "d", "-", "description of the requested host")
 
 	return hostCmd
+}
+
+// NewCmdUpdateHostGroup is subcommand represents update host resource.
+func NewCmdUpdateHostGroup() *cobra.Command {
+	var name string
+	var description string
+	var groupCmd = &cobra.Command{
+		Use:   "group [NAME]",
+		Short: "update host group information",
+		Args:  cobra.ExactArgs(1),
+		RunE:  updateHostGroup,
+	}
+	groupCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host group")
+	groupCmd.Flags().StringVarP(&description, "description", "d", "-", "description of the requested host group")
+
+	return groupCmd
 }
 
 // NewCmdUpdateDataCenter is subcommand represents update datacenter resource.

@@ -73,8 +73,9 @@ func main() {
 
 	// host groups
 	e.GET("/host/group", handler.GetHostGroups)
-	e.GET("/host/group/:id", handler.GetHostGroup)
 	e.POST("/host/group", handler.CreateHostGroup)
+	e.GET("/host/group/:id", handler.GetHostGroup)
+	e.PUT("/host/group/:id", handler.UpdateHostGroup)
 	e.DELETE("/host/group/:id", handler.DeleteHostGroup)
 
 	// routing datacenter
