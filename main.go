@@ -65,6 +65,7 @@ func main() {
 	e.DELETE("/vlan/:id", handler.DeleteVlan)
 
 	// routing host
+	e.GET("/host", handler.GetHosts)
 	e.POST("/host", handler.CreateHost)
 	e.GET("/host/:id", handler.GetHost)
 	e.PUT("/host/:id", handler.UpdateHost)

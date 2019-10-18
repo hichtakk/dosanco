@@ -30,6 +30,31 @@ func GetHost(c echo.Context) error {
 	return c.JSON(http.StatusOK, host)
 }
 
+// GetHosts returns specified host information.
+func GetHosts(c echo.Context) error {
+	groupName := c.QueryParam("group")
+	if groupName == "" {
+		return c.JSON(http.StatusBadRequest, returnError("group name is required"))
+	}
+	groups := new(model.HostGroups)
+	db := db.GetDB()
+	if result := db.Find(&groups, "name=?", groupName); result.Error != nil {
+		return c.JSON(http.StatusBadRequest, returnError("group not found"))
+	}
+	if len(*groups) > 1 {
+		return c.JSON(http.StatusInternalServerError, returnError("multiple group found"))
+	}
+	group := new(model.HostGroup)
+	for _, g := range *groups {
+		group = &g
+		break
+	}
+	hosts := new(model.Hosts)
+	db.Find(&hosts, "group_id=?", group.ID)
+
+	return c.JSON(http.StatusOK, hosts)
+}
+
 // GetHostGroup returns specified host information.
 func GetHostGroup(c echo.Context) error {
 	group := new(model.HostGroup)

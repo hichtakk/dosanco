@@ -48,7 +48,15 @@ func (h Host) Write(output string) {
 // Hosts represents list of Host.
 type Hosts []Host
 
-func (h Hosts) Write() {
+func (h Hosts) Write(output string) {
+	if output == "json" {
+
+	} else {
+		fmt.Printf("%-30v   %-30v\n", "Name", "Description")
+		for _, host := range h {
+			fmt.Printf("%-30v   %-30v\n", host.Name, host.Description)
+		}
+	}
 }
 
 // HostGroup represents group for host

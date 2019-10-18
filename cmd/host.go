@@ -11,52 +11,61 @@ import (
 )
 
 func showHost(cmd *cobra.Command, args []string) {
-	url := Conf.APIServer.URL + "/host/name/" + args[0]
-	resJSON, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return
-	}
-	host := new(model.Host)
-	if err := json.Unmarshal(resJSON, host); err != nil {
-		fmt.Println("unmarshal host error:", err)
-		return
-	}
-	rack, err := getRack(host.RackID)
-	if err != nil {
-		fmt.Println("rack not found")
-	}
-	row, err := getRow(rack.RowID)
-	if err != nil {
-		fmt.Println("row not found")
-	}
-	hall, err := getHall(row.HallID)
-	if err != nil {
-		fmt.Println("hall not found")
-	}
-	floor, err := getFloor(hall.FloorID)
-	if err != nil {
-		fmt.Println("floor not found")
-	}
-	dc, err := getDataCenter(floor.DataCenterID)
-	if err != nil {
-		fmt.Println("datacenter not found")
-	}
-	floor.DataCenter = *dc
-	hall.Floor = *floor
-	row.Hall = *hall
-	rack.RackRow = *row
-	host.Rack = *rack
-
-	if host.GroupID != 0 {
-		group, err := getHostGroup(host.GroupID)
+	if len(args) > 0 {
+		url := Conf.APIServer.URL + "/host/name/" + args[0]
+		resJSON, err := sendRequest("GET", url, []byte{})
 		if err != nil {
-			fmt.Println("group not found")
+			fmt.Println(err)
+			return
 		}
-		host.Group = group
-	}
+		host := new(model.Host)
+		if err := json.Unmarshal(resJSON, host); err != nil {
+			fmt.Println("unmarshal host error:", err)
+			return
+		}
+		rack, err := getRack(host.RackID)
+		if err != nil {
+			fmt.Println("rack not found")
+		}
+		row, err := getRow(rack.RowID)
+		if err != nil {
+			fmt.Println("row not found")
+		}
+		hall, err := getHall(row.HallID)
+		if err != nil {
+			fmt.Println("hall not found")
+		}
+		floor, err := getFloor(hall.FloorID)
+		if err != nil {
+			fmt.Println("floor not found")
+		}
+		dc, err := getDataCenter(floor.DataCenterID)
+		if err != nil {
+			fmt.Println("datacenter not found")
+		}
+		floor.DataCenter = *dc
+		hall.Floor = *floor
+		row.Hall = *hall
+		rack.RackRow = *row
+		host.Rack = *rack
 
-	host.Write(cmd.Flag("output").Value.String())
+		if host.GroupID != 0 {
+			group, err := getHostGroup(host.GroupID)
+			if err != nil {
+				fmt.Println("group not found")
+			}
+			host.Group = group
+		}
+
+		host.Write(cmd.Flag("output").Value.String())
+	} else {
+		hosts, err := getHosts(map[string]string{"group": cmd.Flag("group").Value.String()})
+		if err != nil {
+			fmt.Println(err)
+			return
+		}
+		hosts.Write(cmd.Flag("output").Value.String())
+	}
 }
 
 func showHostGroup(cmd *cobra.Command, args []string) {
@@ -316,6 +325,23 @@ func getHostGroup(id uint) (*model.HostGroup, error) {
 	}
 
 	return group, nil
+}
+
+func getHosts(query map[string]string) (*model.Hosts, error) {
+	hosts := new(model.Hosts)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/host?"+queryString, []byte{})
+	if err != nil {
+		return hosts, err
+	}
+	if err := json.Unmarshal(body, hosts); err != nil {
+		return hosts, fmt.Errorf("response parse error")
+	}
+
+	return hosts, nil
 }
 
 func getHostGroups(query map[string]string) (*model.HostGroups, error) {
