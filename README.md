@@ -3,9 +3,9 @@
 Dosanco
 =======
 
-**Dosanco** is simple it infrastructure database.
+**Dosanco**: Simple IT infrastructure database.
 
-<img src="./docs/image/logo.png" width="400">
+<img src="./docs/image/logo.png" width="350">
 
 ## Description
 Dosanco manages IT infrastructure configurations bellow.
