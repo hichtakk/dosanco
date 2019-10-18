@@ -34,21 +34,22 @@ build: $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) $(RELEASE_DIR)/dosanco-apiserver
 #	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -a -v -o build/dosanco-apiserver_linux_amd64 main.go
 
 build-linux-amd64: ## build AMD64 linux binary
-	@$(MAKE) build GOOS=linux GOARCH=amd64 LDFLAGS="--ldflags '-linkmode external -extldflags \"-static\"'"
+	#@$(MAKE) build GOOS=linux GOARCH=amd64 LDFLAGS="-ldflags '-linkmode external -extldflags \"-static\"'"
+	@$(MAKE) build GOOS=linux GOARCH=amd64
 
 build-linux-arm64: ## build ARM64 linux binary
 	@$(MAKE) build GOOS=linux GOARCH=arm64
 
 build-darwin-amd64: ## build AMD64 darwin binary
-	#GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 CC=o64-clang go build -a -v -o build/dosanco-apiserver/dosanco-apiserver_darwin_amd64 main.go
-	#GOOS=darwin GOARCH=amd64 CGO_ENABLED=1 CC=o64-clang go build -a -v -o build/dosanco/dosanco_darwin_amd64 cli/main.go
 	@$(MAKE) build GOOS=darwin GOARCH=amd64
 
 $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH): ## Build dosanco command-line client
-	@go build -a -v -o $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) cli/main.go
+	@echo "==> Build dosanco for ${GOOS}-${GOARCH}"
+	@GO111MODULE=on go build -a -v -o $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) cli/main.go
 
 $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH): ## Build dosanco api server
-	@CGO_ENABLED=1 go build -a -v -o $(LDFLAGS) $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
+	@echo '==> Build dosanco-apiserver for ${GOOS}-${GOARCH}'
+	@GO111MODULE=on CGO_ENABLED=1 go build -a -v $(LDFLAGS) -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
 
 update-package: ## Update dependency packages
 	@go mod tidy
