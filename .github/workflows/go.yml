@@ -12,7 +12,7 @@ jobs:
   #      run: make lint
 
   build:
-    name: Build
+    name: Build-linux
     runs-on: ubuntu-latest
     steps:
 
