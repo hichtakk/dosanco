@@ -8,11 +8,11 @@ import (
 
 // DBConfig is struct for database configuration.
 type DBConfig struct {
-	URL  string `toml:"url"`
-	Type string `toml:"type"`
-	Host string `toml:"host"`
-	Port int    `toml:"port"`
-	Name string `toml:"name"`
+	URL string `toml:"url"`
+}
+
+type Server struct {
+	Port int `toml:"port"`
 }
 
 // Feature is struct for enabled dosanco features.
@@ -25,6 +25,7 @@ type Feature struct {
 // Config is struct for main configuration.
 type Config struct {
 	DB      DBConfig `toml:"database"`
+	Server  Server   `toml:"server"`
 	Feature Feature  `toml:"feature"`
 }
 

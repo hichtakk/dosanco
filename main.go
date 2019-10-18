@@ -1,6 +1,8 @@
 package main
 
 import (
+	"strconv"
+
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
 	validator "gopkg.in/go-playground/validator.v9"
@@ -136,5 +138,6 @@ func main() {
 	e.DELETE("/datacenter/rack-pdu/:id", handler.DeleteRackPDU)
 
 	// Start dosanco server
-	e.Logger.Fatal(e.Start(":5187"))
+	listenPort := strconv.Itoa(conf.Server.Port)
+	e.Logger.Fatal(e.Start(":" + listenPort))
 }

@@ -2,6 +2,9 @@
 url = "sqlite://./dosanco.db"
 #url = "sqlite://"
 
+[server]
+port = 15187
+
 [feature]
 network = true
 host = true
