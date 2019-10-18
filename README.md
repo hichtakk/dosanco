@@ -1,9 +1,11 @@
+![](https://github.com/hichikaw/dosanco/workflows/Go/badge.svg)
+
 Dosanco
 =======
 
-**Dosanco** is a network and server database.  
+**Dosanco** is simple it infrastructure database.
 
-![](https://github.com/hichikaw/dosanco/workflows/Go/badge.svg)
+<img src="./docs/image/logo.png" width="400">
 
 ## Description
 Dosanco manages IT infrastructure configurations bellow.
@@ -14,12 +16,13 @@ Dosanco manages IT infrastructure configurations bellow.
 - VLANs
 
 ### Host
-- Server/Node information
-- Configuration
+- Server/Node
+- Group of hosts
 
 ### DataCenter
 - DCs
-- Electrical facilities
+- UPS
+- Row PDUs
 - Rack PDUs
 
 ## Usage
