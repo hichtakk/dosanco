@@ -37,27 +37,27 @@ jobs:
         name: dosanco
         path: build
 
-darwin:
-  name: Build-darwin
-  runs-on: macOS-10.14
-  steps:
-  - name: Set up Go 1.13
-    uses: actions/setup-go@v1
-    with:
-      go-version: 1.13
-    id: go
+  darwin:
+    name: Build-darwin
+    runs-on: macOS-10.14
+    steps:
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
 
-  - name: Check out code into the Go module directory
-    uses: actions/checkout@v1
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
 
-  - name: Get dependencies
-    run: |
-      go get -v -t -d ./...
+    - name: Get dependencies
+      run: |
+        go get -v -t -d ./...
 
-  - name: Build
-    run: make build-darwin-amd64
+    - name: Build
+      run: make build-darwin-amd64
 
-  - uses: actions/upload-artifact@master
-    with:
-      name: dosanco-darwin
-      path: build
+    - uses: actions/upload-artifact@master
+      with:
+        name: dosanco-darwin
+        path: build
