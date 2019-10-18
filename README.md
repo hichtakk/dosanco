@@ -1,4 +1,4 @@
-![](https://github.com/hichikaw/dosanco/workflows/Go/badge.svg)
+![](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)
 
 Dosanco
 =======
