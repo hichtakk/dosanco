@@ -59,11 +59,12 @@ type Vlan struct {
 // IPv4Allocation represents allocated ip address specification.
 type IPv4Allocation struct {
 	Model
-	Type          string       `json:"type" gorm:"default:host"` // generic or reserved
-	Address       string       `json:"address" gorm:"unique;not null" validate:"required"`
-	Name          string       `json:"name"`
-	Description   string       `json:"description"`
-	IPv4NetworkID uint         `json:"ipv4_network_id" gorm:"not null" validate:"required" sql:"type:integer REFERENCES ipv4_networks(id)"`
+	Type        string `json:"type" gorm:"default:'generic'"` // generic or reserved
+	Address     string `json:"address" gorm:"unique;not null" validate:"required"`
+	Name        string `json:"name"`
+	Description string `json:"description"`
+	//IPv4NetworkID uint         `json:"ipv4_network_id" gorm:"not null" validate:"required" sql:"type:integer REFERENCES ipv4_networks(id)"`
+	IPv4NetworkID uint         `json:"ipv4_network_id" gorm:"not null" validate:"required"`
 	IPv4Network   *IPv4Network `json:"ipv4_network,omitempty"`
 }
 

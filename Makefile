@@ -27,12 +27,6 @@ all: $(BUILD_TARGETS)
 
 build: $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) ## build dosanco and dosanco-apiserver
 
-#linux: ## build AMD64 linux binary
-#	GOOS=linux GOARCH=amd64 go build -o build/dosanco_linux_amd64 cli/main.go
-#	#see https://qiita.com/keijidosha/items/5f4a68a3341a44a25ab9
-#	#GOOS=linux GOARCH=amd64 CGO_ENABLED=1 CC=/usr/local/bin/x86_64-linux-musl-cc go build --ldflags '-linkmode external -extldflags "-static"' -a -v -o build/linux/amd64/dosanco-apiserver main.go
-#	GOOS=linux GOARCH=amd64 CGO_ENABLED=1 go build -a -v -o build/dosanco-apiserver_linux_amd64 main.go
-
 build-linux-amd64: ## build AMD64 linux binary
 	#@$(MAKE) build GOOS=linux GOARCH=amd64 LDFLAGS="-ldflags '-linkmode external -extldflags \"-static\"'"
 	@$(MAKE) build GOOS=linux GOARCH=amd64

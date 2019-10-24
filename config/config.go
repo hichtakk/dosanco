@@ -11,6 +11,7 @@ type DBConfig struct {
 	URL string `toml:"url"`
 }
 
+// Server is apiserver daemon settings
 type Server struct {
 	Port int `toml:"port"`
 }

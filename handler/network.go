@@ -33,11 +33,14 @@ func GetAllNetwork(c echo.Context) error {
 		networks = append(networks, root)
 	} else {
 		// return flat network list
-		if rfc == true {
-			db.Find(&networks)
-		} else {
-			db.Where("reserved=?", false).Find(&networks)
-		}
+		/*
+			if rfc == true {
+				db.Find(&networks)
+			} else {
+				db.Where("reserved=?", false).Find(&networks)
+			}
+		*/
+		db.Find(&networks)
 		sort.Sort(networks)
 	}
 

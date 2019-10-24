@@ -24,7 +24,7 @@ func showNetwork(cmd *cobra.Command, args []string) {
 	url := Conf.APIServer.URL + "/network"
 	tree, _ := strconv.ParseBool(cmd.Flag("tree").Value.String())
 	depth, _ := strconv.Atoi(cmd.Flag("depth").Value.String())
-	rfc, _ := strconv.ParseBool(cmd.Flag("show-rfc-reserved").Value.String())
+	//rfc, _ := strconv.ParseBool(cmd.Flag("show-rfc-reserved").Value.String())
 	if len(args) > 0 {
 		url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
 		body, err := sendRequest("GET", url, []byte{})
@@ -46,9 +46,11 @@ func showNetwork(cmd *cobra.Command, args []string) {
 				query = query + "&depth=" + cmd.Flag("depth").Value.String()
 			}
 		}
-		if rfc == true {
-			query = query + "&show-rfc-reserved=true"
-		}
+		/*
+			if rfc == true {
+				query = query + "&show-rfc-reserved=true"
+			}
+		*/
 		url = url + query
 		body, err := sendRequest("GET", url, []byte{})
 		if err != nil {
