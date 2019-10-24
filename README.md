@@ -1,4 +1,4 @@
-![](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)
+[![Build Status](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)](https://github.com/hichikaw/dosanco/actions?workflow=Build)
 
 Dosanco
 =======
