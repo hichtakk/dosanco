@@ -27,6 +27,7 @@ func main() {
 	// parse flags
 	var configfile string
 	flag.StringVarP(&configfile, "config", "c", "/etc/dosanco/config.toml", "configuration file path")
+	port := flag.UintP("port", "p", 15187, "dosanco-apiserver listening port")
 	flag.Parse()
 
 	// read configuration
@@ -146,6 +147,6 @@ func main() {
 	e.DELETE("/datacenter/rack-pdu/:id", handler.DeleteRackPDU)
 
 	// Start dosanco server
-	listenPort := strconv.Itoa(conf.Server.Port)
+	listenPort := strconv.Itoa(int(*port))
 	e.Logger.Fatal(e.Start(":" + listenPort))
 }

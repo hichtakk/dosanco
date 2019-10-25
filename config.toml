@@ -1,9 +1,6 @@
-[database]
-url = "sqlite://./dosanco.db"
-#url = "sqlite://"
-
 [server]
-port = 15187
+db_url = "sqlite://"
+#db_url = "mysql://${USER}:${PASSWORD}@(${HOST})/${DBNAME}"
 
 [feature]
 network = true

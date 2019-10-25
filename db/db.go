@@ -21,7 +21,7 @@ var (
 
 // Init initializes database connection and ORM
 func Init(c config.Config) {
-	schema = strings.Split(c.DB.URL, "://")
+	schema = strings.Split(c.Server.DatabaseURL, "://")
 	if schema[0] == "sqlite" {
 		db, err = gorm.Open("sqlite3", schema[1])
 		if err != nil {
@@ -34,6 +34,9 @@ func Init(c config.Config) {
 		if err != nil {
 			os.Exit(255)
 		}
+	} else {
+		fmt.Println("dosanco can not recognise database url")
+		os.Exit(255)
 	}
 
 	if c.Feature.Network {

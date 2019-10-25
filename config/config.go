@@ -6,14 +6,9 @@ import (
 	"github.com/BurntSushi/toml"
 )
 
-// DBConfig is struct for database configuration.
-type DBConfig struct {
-	URL string `toml:"url"`
-}
-
 // Server is apiserver daemon settings
 type Server struct {
-	Port int `toml:"port"`
+	DatabaseURL string `toml:"db_url"`
 }
 
 // Feature is struct for enabled dosanco features.
@@ -25,9 +20,8 @@ type Feature struct {
 
 // Config is struct for main configuration.
 type Config struct {
-	DB      DBConfig `toml:"database"`
-	Server  Server   `toml:"server"`
-	Feature Feature  `toml:"feature"`
+	Server  Server  `toml:"server"`
+	Feature Feature `toml:"feature"`
 }
 
 // NewConfig returns configuration instance.
@@ -39,7 +33,7 @@ func NewConfig(path string) (Config, error) {
 
 	// override configuration with environmental variables
 	if envPath := os.Getenv("DOSANCO_DB"); envPath != "" {
-		conf.DB.URL = envPath
+		conf.Server.DatabaseURL = envPath
 	}
 
 	return conf, nil
