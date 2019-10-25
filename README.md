@@ -5,7 +5,7 @@ Dosanco
 
 **Dosanco**: Simple DataCenter infrastructure database.
 
-<img src="./docs/image/logo.png" width="350">
+<img src="./docs/image/logo.png" width="300">
 
 ## Description
 Dosanco manages IT infrastructure configurations bellow.

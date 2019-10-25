@@ -5,6 +5,7 @@ import (
 
 	"github.com/labstack/echo/v4"
 	"github.com/labstack/echo/v4/middleware"
+	flag "github.com/spf13/pflag"
 	validator "gopkg.in/go-playground/validator.v9"
 
 	"github.com/hichikaw/dosanco/config"
@@ -23,8 +24,13 @@ func (v *Validator) Validate(i interface{}) error {
 }
 
 func main() {
+	// parse flags
+	var configfile string
+	flag.StringVarP(&configfile, "config", "c", "/etc/dosanco/config.toml", "configuration file path")
+	flag.Parse()
+
 	// read configuration
-	conf, err := config.NewConfig("./config.toml")
+	conf, err := config.NewConfig(configfile)
 	if err != nil {
 		panic(err.Error())
 	}
