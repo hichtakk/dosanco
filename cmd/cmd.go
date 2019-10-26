@@ -36,11 +36,12 @@ func init() {
 		NewCmdDelete(),
 		NewCmdShow(),
 		NewCmdUpdate(),
+		NewCmdConfig(),
 	)
 	homedir := os.Getenv("HOME")
 	rootCmd.SilenceUsage = true
 	rootCmd.SilenceErrors = true
-	rootCmd.PersistentFlags().StringVarP(&flagConfig, "config", "c", homedir+"/.dosanco.toml", "configuration file")
+	rootCmd.PersistentFlags().StringVarP(&flagConfig, "config", "c", homedir+"/.dosanco.json", "configuration file")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "default", "output style [default,json]")
 	rootCmd.PersistentFlags().BoolVarP(&debug, "debug", "", false, "debug output")
 }

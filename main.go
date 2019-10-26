@@ -13,6 +13,8 @@ import (
 	"github.com/hichikaw/dosanco/handler"
 )
 
+const version = "v0.0.1"
+
 // Validator echo middleware
 type Validator struct {
 	validator *validator.Validate
