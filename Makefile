@@ -7,6 +7,7 @@ THIS_GOOS=$(word 1,$(subst /, ,$(lastword $(GOVERSION))))
 THIS_GOARCH=$(word 2,$(subst /, ,$(lastword $(GOVERSION))))
 GOOS=$(THIS_GOOS)
 GOARCH=$(THIS_GOARCH)
+VERSION=$(patsubst "%",%,$(lastword $(shell grep 'const version' main.go)))
 
 .DEFAULT_GOAL := help
 BUILD_TARGETS= \
@@ -28,7 +29,6 @@ all: $(BUILD_TARGETS)
 build: $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) ## build dosanco and dosanco-apiserver
 
 build-linux-amd64: ## build AMD64 linux binary
-	#@$(MAKE) build GOOS=linux GOARCH=amd64 LDFLAGS="-ldflags '-linkmode external -extldflags \"-static\"'"
 	@$(MAKE) build GOOS=linux GOARCH=amd64
 
 build-linux-arm64: ## build ARM64 linux binary
@@ -44,6 +44,9 @@ $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH): ## Build dosanco command-line client
 $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH): ## Build dosanco api server
 	@echo '==> Build dosanco-apiserver for ${GOOS}-${GOARCH}'
 	@GO111MODULE=on CGO_ENABLED=1 go build -a -v $(LDFLAGS) -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
+
+docker-amd64: ## build docker image for AMD64 architecture
+	@docker build -t docker.pkg.github.com/hichikaw/dosanco:${VERSION} .
 
 update-package: ## Update dependency packages
 	@go mod tidy
