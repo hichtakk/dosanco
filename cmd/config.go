@@ -32,7 +32,7 @@ func initConfig() {
 	}
 	if _, err := os.Stat(viper.ConfigFileUsed()); os.IsNotExist(err) {
 		// set default configuration
-		viper.Set("endpoint.url", "http://localhost:15187")
+		viper.Set("apiserver.url", "http://localhost:15187")
 		viper.WriteConfig()
 	}
 	if err := viper.ReadInConfig(); err != nil {
