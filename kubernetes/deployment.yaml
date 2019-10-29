@@ -1,0 +1,25 @@
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  labels:
+    run: dosanco
+  name: dosanco
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      run: dosanco
+  template:
+    metadata:
+      labels:
+        run: dosanco
+    spec:
+      containers:
+      - image: hichtakk/dosanco:v0.0.1
+        name: dosanco
+        env:
+        - name: DOSANCO_DB
+          valueFrom:
+            secretKeyRef:
+              name: dosanco-db-secret
+              key: url
