@@ -179,6 +179,10 @@ func CreateDataCenterFloor(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
 	}
 	db := db.GetDB()
+	existFloor := new(model.Floor)
+	if result := db.Take(existFloor, "name=? AND data_center_id=?", floor.Name, floor.DataCenterID); result.RecordNotFound() != true {
+		return c.JSON(http.StatusConflict, returnError(fmt.Sprintf("floor '%v' is already exist in %v", floor.Name, floor.DataCenterID)))
+	}
 	if result := db.Create(&floor); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}

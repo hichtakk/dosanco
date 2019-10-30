@@ -922,13 +922,12 @@ func createDataCenterFloor(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", url+"/floor", reqJSON)
+	if reqErr != nil {
+		return reqErr
+	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
-	}
-	if reqErr != nil {
-		fmt.Println(reqErr)
-		return reqErr
 	}
 	fmt.Println(resMsg.Message)
 
