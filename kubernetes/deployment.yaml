@@ -15,7 +15,7 @@ spec:
         run: dosanco
     spec:
       containers:
-      - image: hichtakk/dosanco:v0.0.1
+      - image: hichtakk/dosanco:v0.0.2
         name: dosanco
         env:
         - name: DOSANCO_DB

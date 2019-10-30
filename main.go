@@ -15,7 +15,7 @@ import (
 	"github.com/hichikaw/dosanco/handler"
 )
 
-const version = "v0.0.1"
+const version = "v0.0.2"
 
 var revision = ""
 
