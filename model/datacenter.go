@@ -385,7 +385,7 @@ func (p PDUs) Take(id uint) (*PDU, error) {
 // RackPDU represents power distribution unit installed inside of rack
 type RackPDU struct {
 	Model
-	Name           string `gorm:"type:varchar(16)" json:"name"`
+	Name           string `gorm:"type:varchar(64)" json:"name"`
 	Description    string `gorm:"type:varchar(255)" json:"description"`
 	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
