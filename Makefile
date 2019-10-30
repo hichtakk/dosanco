@@ -51,7 +51,10 @@ $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH): ## Build dosanco api server
 	@GO111MODULE=on CGO_ENABLED=1 go build -ldflags "-X main.revision=${REVISION}"  -a -v $(LDFLAGS) -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
 	@printf "\e[m"
 
-docker-amd64: build-linux-amd64 ## build docker image for AMD64 architecture
+release-github: ## tag and release to github
+	@ghr ${VERSION} build
+
+docker-linux-amd64: build-linux-amd64 ## build docker image for AMD64 architecture
 	@docker build -t docker.pkg.github.com/hichikaw/dosanco:${VERSION} .
 
 update-package: ## Update dependency packages
