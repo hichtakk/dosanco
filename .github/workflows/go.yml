@@ -2,18 +2,18 @@ name: Build
 on: [push]
 jobs:
 
-  lint:
-    name: Lint
-    runs-on: ubuntu-latest
-    steps:
-    - name: Set up Go 1.13
-      uses: actions/setup-go@v1
-      with:
-        go-version: 1.13
-      id: go
-    - uses: actions/checkout@v1
-    - name: lint
-      run: go get -u golang.org/x/lint/golint && make lint
+  #lint:
+  #  name: Lint
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - name: Set up Go 1.13
+  #    uses: actions/setup-go@v1
+  #    with:
+  #      go-version: 1.13
+  #    id: go
+  #  - uses: actions/checkout@v1
+  #  - name: lint
+  #    run: go get -u golang.org/x/lint/golint && make lint
 
   #build:
   #  name: Build-linux
@@ -60,7 +60,7 @@ jobs:
 
   build:
     name: build
-    needs: lint
+    #needs: lint
     runs-on: ${{ matrix.os }}
     strategy:
       matrix:
