@@ -1082,6 +1082,13 @@ func CreateRackPDU(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
 	}
 	db := db.GetDB()
+
+	// validation
+	existRackPDU := new(model.RackPDU)
+	if result := db.Take(existRackPDU, "name=?", pdu.Name); result.RecordNotFound() != true {
+		return c.JSON(http.StatusConflict, returnError(fmt.Sprintf("rack-pdu '%v' is already exist", pdu.Name)))
+	}
+
 	if result := db.Create(&pdu); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}

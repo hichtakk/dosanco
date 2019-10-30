@@ -357,6 +357,9 @@ func getHostGroups(query map[string]string) (*model.HostGroups, error) {
 	if err := json.Unmarshal(body, groups); err != nil {
 		return groups, fmt.Errorf("response parse error")
 	}
+	if len(*groups) == 0 {
+		return groups, fmt.Errorf("group not found")
+	}
 
 	return groups, nil
 }

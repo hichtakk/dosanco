@@ -1186,12 +1186,13 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
 	rackName := cmd.Flag("rack").Value.String()
+	groupName := cmd.Flag("group").Value.String()
 
 	// get rack
 	rack := new(model.Rack)
 	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
 	if err != nil {
-		return fmt.Errorf("rack not found")
+		return err
 	}
 	for _, r := range *racks {
 		rack = &r
@@ -1236,7 +1237,18 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 		}
 	}
 
-	// prepare request floor model
+	// get host group
+	group := new(model.HostGroup)
+	groups, err := getHostGroups(map[string]string{"name": groupName})
+	if err != nil {
+		return err
+	}
+	for _, g := range *groups {
+		group = &g
+		break
+	}
+
+	// prepare request rack-pdu model
 	reqModel := model.RackPDU{Name: args[0], PrimaryPDUID: pPDU.ID}
 	if sPDU.ID != 0 {
 		reqModel.SecondaryPDUID = sPDU.ID
@@ -1246,18 +1258,17 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", url+"/rack-pdu", reqJSON)
+	if reqErr != nil {
+		return reqErr
+	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
 	}
-	if reqErr != nil {
-		fmt.Println(reqErr)
-		return reqErr
-	}
 	fmt.Println(resMsg.Message)
 
 	// create host
-	reqHost := model.Host{Name: args[0], RackID: rack.ID}
+	reqHost := model.Host{Name: args[0], RackID: rack.ID, GroupID: group.ID}
 	reqJSON, _ = json.Marshal(reqHost)
 	body, err = sendRequest("POST", Conf.APIServer.URL+"/host", reqJSON)
 	if err != nil {
@@ -2015,6 +2026,9 @@ func getRacks(dc, floor, hall, row, name string) (*model.Racks, error) {
 	}
 	if err := json.Unmarshal(body, racks); err != nil {
 		return &model.Racks{}, fmt.Errorf("response parse error")
+	}
+	if len(*racks) == 0 {
+		return racks, fmt.Errorf("rack not found")
 	}
 
 	return racks, nil

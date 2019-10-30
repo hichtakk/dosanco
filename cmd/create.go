@@ -270,6 +270,7 @@ func NewCmdCreateRackPDU() *cobra.Command {
 	var rack string
 	var primary string
 	var secondary string
+	var group string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu",
 		Short: "create new rack-pdu",
@@ -284,11 +285,13 @@ func NewCmdCreateRackPDU() *cobra.Command {
 	pduCmd.Flags().StringVarP(&rack, "rack", "", "", "name of rack")
 	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")
 	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "", "name of secondary power source")
+	pduCmd.Flags().StringVarP(&group, "group", "", "", "name of host group")
 	pduCmd.MarkFlagRequired("dc")
 	pduCmd.MarkFlagRequired("floor")
 	pduCmd.MarkFlagRequired("hall")
 	pduCmd.MarkFlagRequired("row")
 	pduCmd.MarkFlagRequired("rack")
+	pduCmd.MarkFlagRequired("group")
 	pduCmd.MarkFlagRequired("primary")
 
 	return pduCmd
