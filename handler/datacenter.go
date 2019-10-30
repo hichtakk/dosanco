@@ -353,7 +353,7 @@ func GetUPSs(c echo.Context) error {
 // GetRowPDUs returns datacenter floors.
 func GetRowPDUs(c echo.Context) error {
 	db := db.GetDB()
-	pdu := model.PDUs{}
+	pdu := model.RowPDUs{}
 	dcName := c.QueryParam("dc")
 	name := c.QueryParam("name")
 	if dcName != "" {
@@ -369,7 +369,7 @@ func GetRowPDUs(c echo.Context) error {
 		}
 		// get pdu
 		for _, u := range ups {
-			p := []model.PDU{}
+			p := []model.RowPDU{}
 			if name != "" {
 				db.Order("name").Find(&p, "name=? AND primary_ups_id=?", name, u.ID)
 			} else {
@@ -394,7 +394,7 @@ func GetRowPDU(c echo.Context) error {
 	if err != nil {
 		return c.JSON(http.StatusBadRequest, returnError("parse row-pdu id error"))
 	}
-	pdu := new(model.PDU)
+	pdu := new(model.RowPDU)
 	db := db.GetDB()
 	if result := db.Take(&pdu, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("row-pdu not found"))
@@ -445,7 +445,7 @@ func GetRackPDUs(c echo.Context) error {
 		}
 		// get dc pdu
 		for _, u := range ups {
-			dcPDUs := []model.PDU{}
+			dcPDUs := []model.RowPDU{}
 			if rowPduName != "" {
 				if result := db.Find(&dcPDUs, "name=? AND primary_ups_id=?", rowPduName, u.ID); result.Error != nil {
 					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row pdu '%v' not found", rowPduName)))
@@ -466,7 +466,7 @@ func GetRackPDUs(c echo.Context) error {
 			}
 		}
 	} else {
-		rowPDUs := []model.PDU{}
+		rowPDUs := []model.RowPDU{}
 		if upsName != "" {
 			ups := model.UPS{}
 			if result := db.Take(&ups, "name=?", upsName); result.Error != nil {
@@ -725,7 +725,7 @@ func GetRacks(c echo.Context) error {
 
 	if dcName != "" {
 		if pduName != "" {
-			pdu := new(model.PDU)
+			pdu := new(model.RowPDU)
 			if result := db.Take(&pdu, "name=?", pduName); result.Error != nil {
 				return c.JSON(http.StatusBadRequest, returnError("row-pdu not found"))
 			}
@@ -960,7 +960,7 @@ func UpdateUPS(c echo.Context) error {
 
 // UpdateRowPDU updates specified UPS information.
 func UpdateRowPDU(c echo.Context) error {
-	pdu := new(model.PDU)
+	pdu := new(model.RowPDU)
 	if err := c.Bind(pdu); err != nil {
 		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 	}
@@ -971,7 +971,7 @@ func UpdateRowPDU(c echo.Context) error {
 	if uint(pduID) != pdu.ID {
 		return c.JSON(http.StatusBadRequest, returnError("mismatched PDU ID between URI and request body."))
 	}
-	var p model.PDU
+	var p model.RowPDU
 	db := db.GetDB()
 	if result := db.Take(&p, "id=?", pduID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("pdu not found on database."))
@@ -1033,7 +1033,7 @@ func DeleteRowPDU(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("parsing dc pdu id error"))
 	}
 	db := db.GetDB()
-	var pdu model.PDU
+	var pdu model.RowPDU
 	if result := db.Take(&pdu, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("pdu '%v' not found", id)))
 	}
@@ -1064,7 +1064,7 @@ func DeleteRackPDU(c echo.Context) error {
 
 // CreateRowPDU creates a new rack row to specified data hall.
 func CreateRowPDU(c echo.Context) error {
-	pdu := new(model.PDU)
+	pdu := new(model.RowPDU)
 	if err := c.Bind(pdu); err != nil {
 		return c.JSON(http.StatusBadRequest, returnError("received bad request: "+err.Error()))
 	}

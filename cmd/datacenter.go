@@ -687,7 +687,7 @@ func showRowPDU(cmd *cobra.Command, args []string) {
 			fmt.Println(err.Error())
 			return
 		}
-		data := new(model.PDUs)
+		data := new(model.RowPDUs)
 		if err := json.Unmarshal(body, data); err != nil {
 			fmt.Println("parse response error")
 			return
@@ -737,7 +737,7 @@ func showRowPDU(cmd *cobra.Command, args []string) {
 			fmt.Println(err.Error())
 			return
 		}
-		data := new(model.PDUs)
+		data := new(model.RowPDUs)
 		if err := json.Unmarshal(body, data); err != nil {
 			fmt.Println("parse response error")
 			return
@@ -752,7 +752,7 @@ func showRowPDU(cmd *cobra.Command, args []string) {
 			fmt.Println("parse response error")
 			return
 		}
-		outputModel := model.PDUs{}
+		outputModel := model.RowPDUs{}
 		for _, p := range *data {
 			pups, err := ups.Take(p.PrimaryUPSID)
 			if err != nil {
@@ -850,7 +850,7 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 			fmt.Println(err.Error())
 			return
 		}
-		dcPDUs := new(model.PDUs)
+		dcPDUs := new(model.RowPDUs)
 		if err := json.Unmarshal(body, dcPDUs); err != nil {
 			fmt.Println("parse response error")
 			return
@@ -1155,7 +1155,7 @@ func createPDU(cmd *cobra.Command, args []string) error {
 	}
 
 	// prepare request floor model
-	reqModel := model.PDU{Name: args[0], PrimaryUPSID: pUPS.ID}
+	reqModel := model.RowPDU{Name: args[0], PrimaryUPSID: pUPS.ID}
 	if sUPS.ID != 0 {
 		reqModel.SecondaryUPSID = sUPS.ID
 	}
@@ -1204,11 +1204,11 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	pdus := new(model.PDUs)
+	pdus := new(model.RowPDUs)
 	if err = json.Unmarshal(body, pdus); err != nil {
 		return fmt.Errorf("response parse error")
 	}
-	pPDU := model.PDU{}
+	pPDU := model.RowPDU{}
 	for _, p := range *pdus {
 		pPDU = p
 		break
@@ -1218,13 +1218,13 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	}
 
 	// get secondary pdu
-	sPDU := model.PDU{}
+	sPDU := model.RowPDU{}
 	if sPDUName != "" {
 		body, err := sendRequest("GET", url+"/row-pdu?dc="+dcName+"&name="+sPDUName, []byte{})
 		if err != nil {
 			return err
 		}
-		pdus := new(model.PDUs)
+		pdus := new(model.RowPDUs)
 		if err = json.Unmarshal(body, pdus); err != nil {
 			return fmt.Errorf("response parse error")
 		}
@@ -1574,14 +1574,14 @@ func updatePDU(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	pdus := new(model.PDUs)
+	pdus := new(model.RowPDUs)
 	if err := json.Unmarshal(body, pdus); err != nil {
 		return fmt.Errorf("response parse error" + err.Error())
 	}
 	if len(*pdus) > 1 {
 		return fmt.Errorf("multiple pdu found")
 	}
-	pdu := new(model.PDU)
+	pdu := new(model.RowPDU)
 	for _, p := range *pdus {
 		pdu = &p
 		break
@@ -1884,14 +1884,14 @@ func deletePDU(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	pdus := new(model.PDUs)
+	pdus := new(model.RowPDUs)
 	if err := json.Unmarshal(body, pdus); err != nil {
 		return fmt.Errorf("response parse error" + err.Error())
 	}
 	if len(*pdus) > 1 {
 		return fmt.Errorf("multiple pdu found")
 	}
-	pdu := new(model.PDU)
+	pdu := new(model.RowPDU)
 	for _, p := range *pdus {
 		pdu = &p
 		break

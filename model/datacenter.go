@@ -327,8 +327,8 @@ func (u UPSs) Take(id uint) (*UPS, error) {
 	return &UPS{}, fmt.Errorf("no ups found for '%v'", id)
 }
 
-// PDU represents power distribution unit on data hall
-type PDU struct {
+// RowPDU represents power distribution unit on data hall
+type RowPDU struct {
 	Model
 	Name           string `gorm:"type:varchar(16)" json:"name"`
 	PrimaryUPSID   uint   `json:"primary_ups_id,omitempty"`
@@ -338,12 +338,12 @@ type PDU struct {
 	SecondaryUPS   UPS    `json:"secondary_ups,omitempty"`
 }
 
-func (p PDU) Write(output string) {
+func (p RowPDU) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else {
-		fmt.Printf("# DataCenter PDU\n")
+		fmt.Printf("# DataCenter RowPDU\n")
 		fmt.Printf(" ID:            %d\n", p.ID)
 		fmt.Printf(" Name:          %v\n", p.Name)
 		fmt.Printf(" Primary UPS:   %v\n", p.PrimaryUPS.Name)
@@ -351,10 +351,10 @@ func (p PDU) Write(output string) {
 	}
 }
 
-// PDUs represents slice of PDU
-type PDUs []PDU
+// RowPDUs represents slice of RowPDU
+type RowPDUs []RowPDU
 
-func (p PDUs) Write(output string) {
+func (p RowPDUs) Write(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
 		fmt.Println(string(jsonBytes))
@@ -371,15 +371,15 @@ func (p PDUs) Write(output string) {
 	}
 }
 
-// Take returns PDU specified by ID
-func (p PDUs) Take(id uint) (*PDU, error) {
+// Take returns RowPDU specified by ID
+func (p RowPDUs) Take(id uint) (*RowPDU, error) {
 	for _, pdu := range p {
 		if pdu.ID == id {
 			return &pdu, nil
 		}
 	}
 
-	return &PDU{}, fmt.Errorf("no pdu found for '%v'", id)
+	return &RowPDU{}, fmt.Errorf("no pdu found for '%v'", id)
 }
 
 // RackPDU represents power distribution unit installed inside of rack
@@ -389,8 +389,8 @@ type RackPDU struct {
 	Description    string `gorm:"type:varchar(255)" json:"description"`
 	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
 	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
-	PrimaryPDU     PDU    `json:"primary_pdu"`
-	SecondaryPDU   *PDU   `json:"secondary_pdu"`
+	PrimaryPDU     RowPDU    `json:"primary_pdu"`
+	SecondaryPDU   *RowPDU   `json:"secondary_pdu"`
 	Host           *Host  `json:"host,omitempty"`
 }
 

@@ -58,7 +58,7 @@ func initDataCenter() {
 	db.AutoMigrate(&model.RackRow{})
 	db.AutoMigrate(&model.Rack{})
 	db.AutoMigrate(&model.UPS{})
-	db.AutoMigrate(&model.PDU{})
+	db.AutoMigrate(&model.RowPDU{})
 	db.AutoMigrate(&model.RackPDU{})
 }
 
