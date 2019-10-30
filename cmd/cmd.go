@@ -7,6 +7,10 @@ import (
 	"github.com/spf13/cobra"
 )
 
+const version = "v0.0.1"
+
+var revision = ""
+
 // Cobra flags
 var (
 	rootCmd    *cobra.Command

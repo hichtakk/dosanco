@@ -1,6 +1,8 @@
 package main
 
 import (
+	"fmt"
+	"os"
 	"strconv"
 
 	"github.com/labstack/echo/v4"
@@ -15,6 +17,8 @@ import (
 
 const version = "v0.0.1"
 
+var revision = ""
+
 // Validator echo middleware
 type Validator struct {
 	validator *validator.Validate
@@ -25,12 +29,22 @@ func (v *Validator) Validate(i interface{}) error {
 	return v.validator.Struct(i)
 }
 
+func showVersion() {
+	fmt.Printf("dosanco apiserver \U0001f434, version: %s, revision: %s\n", version, revision)
+}
+
 func main() {
 	// parse flags
 	var configfile string
+	var showversion bool
 	flag.StringVarP(&configfile, "config", "c", "/etc/dosanco/config.toml", "configuration file path")
+	flag.BoolVarP(&showversion, "version", "v", false, "show dosanco apiserver version")
 	port := flag.UintP("port", "p", 15187, "dosanco-apiserver listening port")
 	flag.Parse()
+	if showversion == true {
+		showVersion()
+		os.Exit(0)
+	}
 
 	// read configuration
 	conf, err := config.NewConfig(configfile)

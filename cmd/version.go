@@ -12,7 +12,7 @@ func NewCmdVersion() *cobra.Command {
 		Use:   "version",
 		Short: "Print the version number of dosanco client",
 		Run: func(cmd *cobra.Command, args []string) {
-			fmt.Println("dosanco command-line client v0.0.1")
+			fmt.Printf("dosanco command-line client %s, revision %s\n", version, revision)
 		},
 	}
 
