@@ -13,7 +13,7 @@ jobs:
       id: go
     - uses: actions/checkout@v1
     - name: lint
-      run: go get golang.org/x/lint/golint && make lint
+      run: go get -u golang.org/x/lint/golint && make lint
 
   #build:
   #  name: Build-linux
