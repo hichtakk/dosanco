@@ -38,13 +38,18 @@ build-darwin-amd64: ## build AMD64 darwin binary
 	@$(MAKE) build GOOS=darwin GOARCH=amd64
 
 $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH): ## Build dosanco command-line client
+	@printf "\e[32m"
 	@echo "==> Build dosanco for ${GOOS}-${GOARCH}"
-	echo ${REVISION}
+	@printf "\e[90m"
 	@GO111MODULE=on go build -ldflags "-X github.com/hichikaw/dosanco/cmd.revision=${REVISION}" -a -v -o $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) cli/main.go
+	@printf "\e[m"
 
 $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH): ## Build dosanco api server
+	@printf "\e[32m"
 	@echo '==> Build dosanco-apiserver for ${GOOS}-${GOARCH}'
+	@printf "\e[90m"
 	@GO111MODULE=on CGO_ENABLED=1 go build -ldflags "-X main.revision=${REVISION}"  -a -v $(LDFLAGS) -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
+	@printf "\e[m"
 
 docker-amd64: build-linux-amd64 ## build docker image for AMD64 architecture
 	@docker build -t docker.pkg.github.com/hichikaw/dosanco:${VERSION} .
