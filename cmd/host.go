@@ -96,6 +96,7 @@ func createHost(cmd *cobra.Command, args []string) error {
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
 	rackName := cmd.Flag("rack").Value.String()
+	groupName := cmd.Flag("group").Value.String()
 	description := cmd.Flag("description").Value.String()
 	name := args[0]
 	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
@@ -107,11 +108,19 @@ func createHost(cmd *cobra.Command, args []string) error {
 		rack = &r
 		break
 	}
-	reqModel := model.Host{Name: name, Description: description, RackID: rack.ID}
+	groups, err := getHostGroups(map[string]string{"name": groupName})
+	if err != nil {
+		return err
+	}
+	var group *model.HostGroup
+	for _, g := range *groups {
+		group = &g
+		break
+	}
+	reqModel := model.Host{Name: name, Description: description, RackID: rack.ID, GroupID: group.ID}
 	reqJSON, _ := json.Marshal(reqModel)
 	body, err := sendRequest("POST", url, reqJSON)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
 	var resMsg responseMessage

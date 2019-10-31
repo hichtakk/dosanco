@@ -106,6 +106,10 @@ func CreateHost(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("received bad request. "+err.Error()))
 	}
 	db := db.GetDB()
+	h := new(model.Host)
+	if db.Take(&h).RecordNotFound() != true {
+		return c.JSON(http.StatusConflict, returnError(fmt.Sprintf("host '%v' is already exist", host.Name)))
+	}
 	if result := db.Create(&host); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError(fmt.Sprintf("%v", result.Error)))
 	}

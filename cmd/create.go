@@ -89,6 +89,7 @@ func NewCmdCreateHost() *cobra.Command {
 	var hall string
 	var row string
 	var rack string
+	var group string
 	var hostCmd = &cobra.Command{
 		Use:     "host",
 		Aliases: []string{"server"},
@@ -96,18 +97,19 @@ func NewCmdCreateHost() *cobra.Command {
 		Args:    cobra.ExactArgs(1),
 		RunE:    createHost,
 	}
-	//hostCmd.Flags().StringVarP(&location, "location", "l", "", "location of the requested host")
 	hostCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
 	hostCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
 	hostCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
 	hostCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
 	hostCmd.Flags().StringVarP(&rack, "rack", "", "", "name of rack")
-	hostCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
+	hostCmd.Flags().StringVarP(&description, "description", "d", "", "description of the host")
+	hostCmd.Flags().StringVarP(&group, "group", "g", "", "group of the host")
 	hostCmd.MarkFlagRequired("dc")
 	hostCmd.MarkFlagRequired("floor")
 	hostCmd.MarkFlagRequired("hall")
 	hostCmd.MarkFlagRequired("row")
 	hostCmd.MarkFlagRequired("rack")
+	hostCmd.MarkFlagRequired("group")
 
 	return hostCmd
 }
