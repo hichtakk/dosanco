@@ -1,4 +1,4 @@
-module dosanco
+module github.com/hichikaw/dosanco/cli/dosanco
 
 go 1.12
 
