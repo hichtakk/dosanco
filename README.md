@@ -1,7 +1,9 @@
-[![Build Status](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)](https://github.com/hichikaw/dosanco/actions?workflow=Build)
-
 Dosanco
 =======
+
+[![Build Status](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)](https://github.com/hichikaw/dosanco/actions?workflow=Build)
+
+[![container repository](https://img.shields.io/badge/docker image-v0.0.2-blue)](https://hub.docker.com/r/hichtakk/dosanco/)
 
 **Dosanco**: Simple DataCenter infrastructure database.
 
@@ -20,10 +22,15 @@ Dosanco manages IT infrastructure configurations bellow.
 - Group of hosts
 
 ### DataCenter
-- DCs
+- Data Center
+ - Floor
+ - Data Hall
 - UPS
 - Row PDUs
 - Rack PDUs
+
+## Architecture
+[architecture](docs/architecture.md)
 
 ## Usage
 Dosanco privides command-line client.
