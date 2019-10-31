@@ -35,6 +35,8 @@ Dosanco manages IT infrastructure configurations bellow.
 Dosanco privides command-line client.
 
 ## Install
+### client
+`$ go get -u github.com/hichikaw/dosanco/cli/dosanco`
 
 ## Contribution
 Please feel free to send PR to dosanco.
