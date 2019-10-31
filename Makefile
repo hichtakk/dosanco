@@ -48,7 +48,7 @@ $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH): ## Build dosanco api server
 	@printf "\e[32m"
 	@echo '==> Build dosanco-apiserver for ${GOOS}-${GOARCH}'
 	@printf "\e[90m"
-	@GO111MODULE=on CGO_ENABLED=1 go build -ldflags "-X main.revision=${REVISION}"  -a -v $(LDFLAGS) -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go
+	@GO111MODULE=on CGO_ENABLED=1 go build -ldflags "-X main.revision=${REVISION}"  -a -v $(LDFLAGS) -o $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) main.go route.go
 	@printf "\e[m"
 
 release-github: ## tag and release to github
