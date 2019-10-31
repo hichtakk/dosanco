@@ -67,17 +67,17 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 
 // NewCmdCreateVlan is subcommand represents vlan resource.
 func NewCmdCreateVlan() *cobra.Command {
-	var networkID int
+	var cidr string
 	var vlanCmd = &cobra.Command{
 		Use:     "vlan",
-		Aliases: []string{"vlan"},
+		Aliases: []string{"vl"},
 		Short:   "create new vlan",
 		Args:    cobra.ExactArgs(1),
 		RunE:    createVlan,
 	}
-	vlanCmd.Flags().IntVarP(&networkID, "network-id", "n", 0, "network id of the requested ip allocation")
+	vlanCmd.Flags().StringVarP(&cidr, "cidr", "", "", "network cidr of the requested vlan")
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
-	vlanCmd.MarkFlagRequired("network-id")
+	vlanCmd.MarkFlagRequired("cidr")
 
 	return vlanCmd
 }

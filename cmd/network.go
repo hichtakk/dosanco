@@ -177,20 +177,30 @@ func createVlan(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	vlanID, _ := strconv.ParseUint(cmd.Flag("network-id").Value.String(), 10, 32)
-	reqModel := model.Vlan{Description: description, IPv4NetworkID: uint(vlanID)}
+	//vlanID, _ := strconv.ParseUint(cmd.Flag("network-id").Value.String(), 10, 32)
+	cidr := cmd.Flag("cidr").Value.String()
+	networks, err := getNetworks(map[string]string{"cidr": cidr})
+	if err != nil {
+		return err
+	}
+	network := new(model.IPv4Network)
+	for _, n := range *networks {
+		network = &n
+		break
+	}
+	reqModel := model.Vlan{Description: description, IPv4NetworkID: uint(network.ID)}
 	reqModel.ID = uint(id)
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
 	}
 	body, reqErr := sendRequest("POST", url, reqJSON)
+	if reqErr != nil {
+		return reqErr
+	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
-	}
-	if reqErr != nil {
-		return fmt.Errorf(resMsg.Message)
 	}
 	fmt.Println(resMsg.Message)
 
@@ -452,4 +462,24 @@ func getNetwork(id uint) (*model.IPv4Network, error) {
 	}
 
 	return network, nil
+}
+
+func getNetworks(query map[string]string) (*model.IPv4Networks, error) {
+	networks := new(model.IPv4Networks)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/network?"+queryString, []byte{})
+	if err != nil {
+		return networks, err
+	}
+	if err := json.Unmarshal(body, networks); err != nil {
+		return networks, fmt.Errorf("response parse error")
+	}
+	if len(*networks) == 0 {
+		return networks, fmt.Errorf("no network found")
+	}
+
+	return networks, nil
 }

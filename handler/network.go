@@ -20,6 +20,7 @@ func GetAllNetwork(c echo.Context) error {
 	networks := model.IPv4Networks{}
 	tree, _ := strconv.ParseBool(c.QueryParam("tree"))
 	rfc, _ := strconv.ParseBool(c.QueryParam("show-rfc-reserved"))
+	cidr := c.QueryParam("cidr")
 	if tree == true {
 		// 0: all, other: specified nubmer of depth
 		depth, _ := strconv.Atoi(c.QueryParam("depth"))
@@ -33,14 +34,11 @@ func GetAllNetwork(c echo.Context) error {
 		networks = append(networks, root)
 	} else {
 		// return flat network list
-		/*
-			if rfc == true {
-				db.Find(&networks)
-			} else {
-				db.Where("reserved=?", false).Find(&networks)
-			}
-		*/
-		db.Find(&networks)
+		if cidr != "" {
+			db.Find(&networks, "c_id_r=?", cidr)
+		} else {
+			db.Find(&networks)
+		}
 		sort.Sort(networks)
 	}
 
@@ -371,9 +369,6 @@ func CreateVlan(c echo.Context) error {
 	vlan := new(model.Vlan)
 	if err := c.Bind(vlan); err != nil {
 		return c.JSON(http.StatusBadRequest, returnError("received bad request. "+err.Error()))
-	}
-	if err := c.Validate(vlan); err != nil {
-		return c.JSON(http.StatusBadRequest, returnError("request validation failed. "+err.Error()))
 	}
 	if vlan.ID > 4094 {
 		return c.JSON(http.StatusBadRequest, returnError("request validation failed. Vlan ID should be the range of 1 - 4094."))

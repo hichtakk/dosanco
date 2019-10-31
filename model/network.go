@@ -49,9 +49,9 @@ func (n IPv4Network) Write(output string) {
 // Vlan represents vlan specification.
 type Vlan struct {
 	Model
-	Description   string      `json:"description"`
-	IPv4NetworkID uint        `json:"ipv4_network_id" gorm:"unique;not null"`
-	IPv4Network   IPv4Network `json:"ipvr_network"`
+	Description   string       `json:"description"`
+	IPv4NetworkID uint         `json:"ipv4_network_id" gorm:"unique;not null"`
+	IPv4Network   *IPv4Network `json:"ipv4_network,omitempty"`
 	//IPv6NetworkID uint
 	//IPv6Network IPv6Network
 }
