@@ -240,6 +240,7 @@ func NewCmdUpdateUPS() *cobra.Command {
 func NewCmdUpdatePDU() *cobra.Command {
 	var dc string
 	var name string
+	var description string
 	var pduCmd = &cobra.Command{
 		Use:   "row-pdu [PDU_NAME]",
 		Short: "update row-pdu name",
@@ -248,8 +249,8 @@ func NewCmdUpdatePDU() *cobra.Command {
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
 	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
+	pduCmd.Flags().StringVarP(&description, "description", "d", "-", "new description of the requested row-pdu")
 	pduCmd.MarkFlagRequired("dc")
-	pduCmd.MarkFlagRequired("name")
 
 	return pduCmd
 }

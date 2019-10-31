@@ -359,14 +359,14 @@ func (p RowPDUs) Write(output string) {
 		jsonBytes, _ := json.MarshalIndent(p, "", "    ")
 		fmt.Println(string(jsonBytes))
 	} else if output == "wide" {
-		fmt.Printf("%3s   %-12s   %-10s   %-10s\n", "ID", "Name", "InputUPS#1", "InputUPS#2")
+		fmt.Printf("%3s   %-12s   %-16s   %-16s   %-32s\n", "ID", "Name", "InputUPS#1", "InputUPS#2", "Description")
 		for _, pdu := range p {
-			fmt.Printf("%3d   %-12s   %-10v   %-10v\n", pdu.ID, pdu.Name, pdu.PrimaryUPS.Name, pdu.SecondaryUPS.Name)
+			fmt.Printf("%3d   %-12s   %-16v   %-16v   %-32v\n", pdu.ID, pdu.Name, pdu.PrimaryUPS.Name, pdu.SecondaryUPS.Name, pdu.Description)
 		}
 	} else {
-		fmt.Printf("%-12s   %-10s   %-10s\n", "Name", "InputUPS#1", "InputUPS#2")
+		fmt.Printf("%-12s   %-16s   %-16s   %-32v\n", "Name", "InputUPS#1", "InputUPS#2", "Description")
 		for _, pdu := range p {
-			fmt.Printf("%-12s   %-10v   %-10v\n", pdu.Name, pdu.PrimaryUPS.Name, pdu.SecondaryUPS.Name)
+			fmt.Printf("%-12s   %-16v   %-16v   %-32v\n", pdu.Name, pdu.PrimaryUPS.Name, pdu.SecondaryUPS.Name, pdu.Description)
 		}
 	}
 }
@@ -385,13 +385,13 @@ func (p RowPDUs) Take(id uint) (*RowPDU, error) {
 // RackPDU represents power distribution unit installed inside of rack
 type RackPDU struct {
 	Model
-	Name           string `gorm:"type:varchar(64)" json:"name"`
-	Description    string `gorm:"type:varchar(255)" json:"description"`
-	PrimaryPDUID   uint   `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
-	SecondaryPDUID uint   `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
-	PrimaryPDU     RowPDU    `json:"primary_pdu"`
-	SecondaryPDU   *RowPDU   `json:"secondary_pdu"`
-	Host           *Host  `json:"host,omitempty"`
+	Name           string  `gorm:"type:varchar(64)" json:"name"`
+	Description    string  `gorm:"type:varchar(255)" json:"description"`
+	PrimaryPDUID   uint    `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
+	SecondaryPDUID uint    `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
+	PrimaryPDU     RowPDU  `json:"primary_pdu"`
+	SecondaryPDU   *RowPDU `json:"secondary_pdu"`
+	Host           *Host   `json:"host,omitempty"`
 }
 
 func (p RackPDU) Write(output string) {

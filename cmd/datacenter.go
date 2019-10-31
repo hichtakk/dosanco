@@ -1565,7 +1565,8 @@ func updateUPS(cmd *cobra.Command, args []string) error {
 func updatePDU(cmd *cobra.Command, args []string) error {
 	pduName := cmd.Flag("name").Value.String()
 	dcName := cmd.Flag("dc").Value.String()
-	if pduName == "-" {
+	description := cmd.Flag("description").Value.String()
+	if pduName == "-" && description == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
 	url := Conf.APIServer.URL + "/datacenter/row-pdu?dc=" + dcName + "&name=" + args[0]
@@ -1585,7 +1586,12 @@ func updatePDU(cmd *cobra.Command, args []string) error {
 		pdu = &p
 		break
 	}
-	pdu.Name = pduName
+	if pduName != "-" {
+		pdu.Name = pduName
+	}
+	if description != "-" {
+		pdu.Description = description
+	}
 	reqJSON, _ := json.Marshal(pdu)
 	pduID := strconv.Itoa(int(pdu.ID))
 	url = Conf.APIServer.URL + "/datacenter/row-pdu/" + pduID

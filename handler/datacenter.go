@@ -980,7 +980,7 @@ func UpdateRowPDU(c echo.Context) error {
 	if result := db.Take(&p, "id=?", pduID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("pdu not found on database."))
 	}
-	if result := db.Model(&p).Update("name", pdu.Name); result.Error != nil {
+	if result := db.Model(&p).Update("name", pdu.Name).Update("description", pdu.Description); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database write error."))
 	}
 
