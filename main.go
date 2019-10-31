@@ -14,7 +14,7 @@ import (
 	"github.com/hichikaw/dosanco/db"
 )
 
-const version = "v0.0.2"
+const version = "v0.0.3"
 
 var revision = ""
 
