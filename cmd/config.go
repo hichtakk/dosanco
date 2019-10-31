@@ -44,6 +44,7 @@ func initConfig() {
 	}
 }
 
+// NewCmdConfig is subcommand to operate dosanco configuration
 func NewCmdConfig() *cobra.Command {
 	var cfgCmd = &cobra.Command{
 		Use:   "config [SUBCOMMAND]",
@@ -57,7 +58,7 @@ func NewCmdConfig() *cobra.Command {
 	return cfgCmd
 }
 
-// NewCmdConfigShow is subcommand to display dosanco client configuration
+// NewCmdConfigView is subcommand to display dosanco client configuration
 func NewCmdConfigView() *cobra.Command {
 	var showCmd = &cobra.Command{
 		Use:   "view",
