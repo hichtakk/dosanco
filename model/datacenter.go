@@ -25,6 +25,7 @@ func (d DataCenters) Write(output string) {
 	}
 }
 
+// WriteTree displays DataCenter resources recursively in tree style
 func (d DataCenters) WriteTree(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(d, "", "    ")
@@ -88,6 +89,7 @@ func (d DataCenter) Write(output string) {
 	}
 }
 
+// WriteTree displays DataCenter resources recursively in tree style
 func (d DataCenter) WriteTree(output string) {
 	if output == "json" {
 		jsonBytes, _ := json.MarshalIndent(d, "", "    ")

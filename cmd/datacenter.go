@@ -37,27 +37,27 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 		}
 		if tree == "true" {
 			floors := new(model.Floors)
-			dc_floors, _ := getFloors(map[string]string{"dc": data.Name})
-			for _, dc_floor := range *dc_floors {
+			dcFloors, _ := getFloors(map[string]string{"dc": data.Name})
+			for _, dcFloor := range *dcFloors {
 				halls := new(model.Halls)
-				floor_halls, _ := getHalls(map[string]string{"dc": data.Name, "floor": dc_floor.Name})
-				for _, floor_hall := range *floor_halls {
+				floorHalls, _ := getHalls(map[string]string{"dc": data.Name, "floor": dcFloor.Name})
+				for _, floorHall := range *floorHalls {
 					rows := new(model.RackRows)
-					hall_rows, _ := getRows(map[string]string{"dc": data.Name, "floor": dc_floor.Name, "hall": floor_hall.Name})
-					for _, hall_row := range *hall_rows {
+					hallRows, _ := getRows(map[string]string{"dc": data.Name, "floor": dcFloor.Name, "hall": floorHall.Name})
+					for _, hallRow := range *hallRows {
 						racks := new(model.Racks)
-						row_racks, _ := getRacks(map[string]string{"dc": data.Name, "floor": dc_floor.Name, "hall": floor_hall.Name, "row": hall_row.Name})
-						for _, rack := range *row_racks {
+						rowRacks, _ := getRacks(map[string]string{"dc": data.Name, "floor": dcFloor.Name, "hall": floorHall.Name, "row": hallRow.Name})
+						for _, rack := range *rowRacks {
 							*racks = append(*racks, rack)
 						}
-						hall_row.Racks = *racks
-						*rows = append(*rows, hall_row)
+						hallRow.Racks = *racks
+						*rows = append(*rows, hallRow)
 					}
-					floor_hall.RackRows = *rows
-					*halls = append(*halls, floor_hall)
+					floorHall.RackRows = *rows
+					*halls = append(*halls, floorHall)
 				}
-				dc_floor.Halls = *halls
-				*floors = append(*floors, dc_floor)
+				dcFloor.Halls = *halls
+				*floors = append(*floors, dcFloor)
 			}
 			data.Floors = *floors
 			data.WriteTree(cmd.Flag("output").Value.String())
@@ -80,27 +80,27 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 		if tree == "true" {
 			for _, dc := range *data {
 				floors := new(model.Floors)
-				dc_floors, _ := getFloors(map[string]string{"dc": dc.Name})
-				for _, dc_floor := range *dc_floors {
+				dcFloors, _ := getFloors(map[string]string{"dc": dc.Name})
+				for _, dcFloor := range *dcFloors {
 					halls := new(model.Halls)
-					floor_halls, _ := getHalls(map[string]string{"dc": dc.Name, "floor": dc_floor.Name})
-					for _, floor_hall := range *floor_halls {
+					floorHalls, _ := getHalls(map[string]string{"dc": dc.Name, "floor": dcFloor.Name})
+					for _, floorHall := range *floorHalls {
 						rows := new(model.RackRows)
-						hall_rows, _ := getRows(map[string]string{"dc": dc.Name, "floor": dc_floor.Name, "hall": floor_hall.Name})
-						for _, hall_row := range *hall_rows {
+						hallRows, _ := getRows(map[string]string{"dc": dc.Name, "floor": dcFloor.Name, "hall": floorHall.Name})
+						for _, hallRow := range *hallRows {
 							racks := new(model.Racks)
-							row_racks, _ := getRacks(map[string]string{"dc": dc.Name, "floor": dc_floor.Name, "hall": floor_hall.Name, "row": hall_row.Name})
-							for _, rack := range *row_racks {
+							rowRacks, _ := getRacks(map[string]string{"dc": dc.Name, "floor": dcFloor.Name, "hall": floorHall.Name, "row": hallRow.Name})
+							for _, rack := range *rowRacks {
 								*racks = append(*racks, rack)
 							}
-							hall_row.Racks = *racks
-							*rows = append(*rows, hall_row)
+							hallRow.Racks = *racks
+							*rows = append(*rows, hallRow)
 						}
-						floor_hall.RackRows = *rows
-						*halls = append(*halls, floor_hall)
+						floorHall.RackRows = *rows
+						*halls = append(*halls, floorHall)
 					}
-					dc_floor.Halls = *halls
-					*floors = append(*floors, dc_floor)
+					dcFloor.Halls = *halls
+					*floors = append(*floors, dcFloor)
 				}
 				dc.Floors = *floors
 				*output = append(*output, dc)
