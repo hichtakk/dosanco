@@ -107,6 +107,7 @@ func NewCmdShowHostGroup() *cobra.Command {
 
 // NewCmdShowDataCenter is subcommand represents show datacenter resource.
 func NewCmdShowDataCenter() *cobra.Command {
+	var tree bool
 	var dcCmd = &cobra.Command{
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
@@ -114,6 +115,7 @@ func NewCmdShowDataCenter() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		Run:     showDataCenter,
 	}
+	dcCmd.Flags().BoolVarP(&tree, "tree", "t", false, "display dc tree")
 
 	return dcCmd
 }

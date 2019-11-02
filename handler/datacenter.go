@@ -114,8 +114,18 @@ func DeleteDataCenter(c echo.Context) error {
 // GetAllDataCenterFloors returns all of datacenter floors.
 func GetAllDataCenterFloors(c echo.Context) error {
 	db := db.GetDB()
+	dcName := c.QueryParam("dc")
 	flrs := []model.Floor{}
-	db.Find(&flrs)
+
+	if dcName != "" {
+		dc := new(model.DataCenter)
+		if db.Take(&dc, "name=?", dcName).RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("dc '%v' not found", dcName)))
+		}
+		db.Find(&flrs, "data_center_id=?", dc.ID)
+	} else {
+		db.Find(&flrs)
+	}
 
 	return c.JSON(http.StatusOK, flrs)
 }

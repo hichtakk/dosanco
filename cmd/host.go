@@ -43,10 +43,10 @@ func showHost(cmd *cobra.Command, args []string) {
 		if err != nil {
 			fmt.Println("datacenter not found")
 		}
-		floor.DataCenter = *dc
-		hall.Floor = *floor
-		row.Hall = *hall
-		rack.RackRow = *row
+		floor.DataCenter = dc
+		hall.Floor = floor
+		row.Hall = hall
+		rack.RackRow = row
 		host.Rack = *rack
 
 		if host.GroupID != 0 {
@@ -99,7 +99,7 @@ func createHost(cmd *cobra.Command, args []string) error {
 	groupName := cmd.Flag("group").Value.String()
 	description := cmd.Flag("description").Value.String()
 	name := args[0]
-	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
+	racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
 	if err != nil {
 		return fmt.Errorf("rack not found for specified location")
 	}

@@ -11,6 +11,7 @@ import (
 )
 
 func showDataCenter(cmd *cobra.Command, args []string) {
+	tree := cmd.Flag("tree").Value.String()
 	url := Conf.APIServer.URL + "/datacenter"
 	if len(args) > 0 {
 		// show specified datacenter
@@ -47,7 +48,39 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 			fmt.Println("json unmarshall error:", err)
 			return
 		}
-		data.Write(cmd.Flag("output").Value.String())
+		output := new(model.DataCenters)
+		if tree == "true" {
+			for _, dc := range *data {
+				floors := new(model.Floors)
+				dc_floors, _ := getFloors(map[string]string{"dc": dc.Name})
+				for _, dc_floor := range *dc_floors {
+					halls := new(model.Halls)
+					floor_halls, _ := getHalls(map[string]string{"dc": dc.Name, "floor": dc_floor.Name})
+					for _, floor_hall := range *floor_halls {
+						rows := new(model.RackRows)
+						hall_rows, _ := getRows(map[string]string{"dc": dc.Name, "floor": dc_floor.Name, "hall": floor_hall.Name})
+						for _, hall_row := range *hall_rows {
+							racks := new(model.Racks)
+							row_racks, _ := getRacks(map[string]string{"dc": dc.Name, "floor": dc_floor.Name, "hall": floor_hall.Name, "row": hall_row.Name})
+							for _, rack := range *row_racks {
+								*racks = append(*racks, rack)
+							}
+							hall_row.Racks = *racks
+							*rows = append(*rows, hall_row)
+						}
+						floor_hall.RackRows = *rows
+						*halls = append(*halls, floor_hall)
+					}
+					dc_floor.Halls = *halls
+					*floors = append(*floors, dc_floor)
+				}
+				dc.Floors = *floors
+				*output = append(*output, dc)
+			}
+			output.WriteTree(cmd.Flag("output").Value.String())
+		} else {
+			data.Write(cmd.Flag("output").Value.String())
+		}
 	}
 }
 
@@ -117,7 +150,7 @@ func showDataCenterFloor(cmd *cobra.Command, args []string) {
 			}
 			outputModel := model.Floors{}
 			for _, f := range *data {
-				f.DataCenter = *dc
+				f.DataCenter = dc
 				outputModel = append(outputModel, f)
 			}
 			outputModel.Write(cmd.Flag("output").Value.String())
@@ -152,7 +185,7 @@ func showDataCenterFloor(cmd *cobra.Command, args []string) {
 					fmt.Println(err.Error())
 					return
 				}
-				f.DataCenter = *dc
+				f.DataCenter = dc
 				outputModel = append(outputModel, f)
 			}
 
@@ -261,7 +294,7 @@ func showDataCenterHall(cmd *cobra.Command, args []string) {
 					}
 					if len(floor.Halls) > 0 {
 						for _, h := range floor.Halls {
-							h.Floor = *floor
+							h.Floor = floor
 							halls = append(halls, h)
 						}
 					}
@@ -287,7 +320,7 @@ func showDataCenterHall(cmd *cobra.Command, args []string) {
 				}
 				outputModel := model.Halls{}
 				for _, h := range floor.Halls {
-					h.Floor = *floor
+					h.Floor = floor
 					outputModel = append(outputModel, h)
 				}
 				outputModel.Write(cmd.Flag("output").Value.String())
@@ -323,7 +356,7 @@ func showDataCenterHall(cmd *cobra.Command, args []string) {
 					fmt.Println(err)
 					return
 				}
-				h.Floor = *floor
+				h.Floor = floor
 				outputModel = append(outputModel, h)
 			}
 			outputModel.Write(cmd.Flag("output").Value.String())
@@ -443,9 +476,9 @@ func showRackRow(cmd *cobra.Command, args []string) {
 			}
 			f, _ := floors.Take(hall.FloorID)
 			d, _ := dcs.Take(f.DataCenterID)
-			f.DataCenter = *d
-			hall.Floor = *f
-			r.Hall = *hall
+			f.DataCenter = d
+			hall.Floor = f
+			r.Hall = hall
 			outputModel = append(outputModel, r)
 		}
 		outputModel.Write(cmd.Flag("output").Value.String())
@@ -593,10 +626,10 @@ func showRack(cmd *cobra.Command, args []string) {
 			h, _ := halls.Take(row.HallID)
 			f, _ := floors.Take(h.FloorID)
 			d, _ := dcs.Take(f.DataCenterID)
-			f.DataCenter = *d
-			h.Floor = *f
-			row.Hall = *h
-			r.RackRow = *row
+			f.DataCenter = d
+			h.Floor = f
+			row.Hall = h
+			r.RackRow = row
 			outputModel = append(outputModel, r)
 		}
 
@@ -1189,7 +1222,7 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 
 	// get rack
 	rack := new(model.Rack)
-	racks, err := getRacks(dcName, floorName, hallName, rowName, rackName)
+	racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
 	if err != nil {
 		return err
 	}
@@ -1979,6 +2012,26 @@ func getFloor(id uint) (*model.Floor, error) {
 	return floor, nil
 }
 
+func getFloors(query map[string]string) (*model.Floors, error) {
+	floors := new(model.Floors)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/floor?"+queryString, []byte{})
+	if err != nil {
+		return floors, err
+	}
+	if err := json.Unmarshal(body, floors); err != nil {
+		return floors, fmt.Errorf("response parse error")
+	}
+	if len(*floors) == 0 {
+		return floors, fmt.Errorf("floor not found")
+	}
+
+	return floors, nil
+}
+
 func getHall(id uint) (*model.Hall, error) {
 	hall := new(model.Hall)
 	idStr := strconv.Itoa(int(id))
@@ -1991,6 +2044,26 @@ func getHall(id uint) (*model.Hall, error) {
 	}
 
 	return hall, nil
+}
+
+func getHalls(query map[string]string) (*model.Halls, error) {
+	halls := new(model.Halls)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/hall?"+queryString, []byte{})
+	if err != nil {
+		return halls, err
+	}
+	if err := json.Unmarshal(body, halls); err != nil {
+		return halls, fmt.Errorf("response parse error")
+	}
+	if len(*halls) == 0 {
+		return halls, fmt.Errorf("hall not found")
+	}
+
+	return halls, nil
 }
 
 func getRow(id uint) (*model.RackRow, error) {
@@ -2007,6 +2080,26 @@ func getRow(id uint) (*model.RackRow, error) {
 	return row, nil
 }
 
+func getRows(query map[string]string) (*model.RackRows, error) {
+	rows := new(model.RackRows)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/row?"+queryString, []byte{})
+	if err != nil {
+		return rows, err
+	}
+	if err := json.Unmarshal(body, rows); err != nil {
+		return rows, fmt.Errorf("response parse error")
+	}
+	if len(*rows) == 0 {
+		return rows, fmt.Errorf("row not found")
+	}
+
+	return rows, nil
+}
+
 func getRack(id uint) (*model.Rack, error) {
 	rack := new(model.Rack)
 	idStr := strconv.Itoa(int(id))
@@ -2021,11 +2114,13 @@ func getRack(id uint) (*model.Rack, error) {
 	return rack, nil
 }
 
-func getRacks(dc, floor, hall, row, name string) (*model.Racks, error) {
+func getRacks(query map[string]string) (*model.Racks, error) {
 	racks := new(model.Racks)
-	url := Conf.APIServer.URL + "/datacenter/rack"
-	url = url + "?dc=" + dc + "&floor=" + floor + "&hall=" + hall + "&row=" + row + "&name=" + name
-	body, err := sendRequest("GET", url, []byte{})
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/rack?"+queryString, []byte{})
 	if err != nil {
 		return &model.Racks{}, err
 	}
@@ -2044,8 +2139,8 @@ func loadRackLocation(rack *model.Rack) {
 	hall, _ := getHall(row.HallID)
 	floor, _ := getFloor(hall.FloorID)
 	dc, _ := getDataCenter(floor.DataCenterID)
-	floor.DataCenter = *dc
-	hall.Floor = *floor
-	row.Hall = *hall
-	rack.RackRow = *row
+	floor.DataCenter = dc
+	hall.Floor = floor
+	row.Hall = hall
+	rack.RackRow = row
 }

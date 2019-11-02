@@ -25,6 +25,31 @@ func (d DataCenters) Write(output string) {
 	}
 }
 
+func (d DataCenters) WriteTree(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(d, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		for _, dc := range d {
+			fmt.Println(dc.Name)
+			for _, floor := range dc.Floors {
+				fmt.Printf("  %-v\n", floor.Name)
+				for _, hall := range floor.Halls {
+					fmt.Printf("    %-v\n", hall.Name)
+					for _, row := range hall.RackRows {
+						fmt.Printf("      %-v:", row.Name)
+						for _, rack := range row.Racks {
+							fmt.Printf(" %v", rack.Name)
+						}
+						fmt.Println()
+					}
+				}
+			}
+			fmt.Println()
+		}
+	}
+}
+
 // Take returns DataCenter matches specified ID
 func (d DataCenters) Take(id uint) (*DataCenter, error) {
 	for _, dc := range d {
@@ -66,10 +91,10 @@ func (d DataCenter) Write(output string) {
 // Floor represents datacenter floor or area.
 type Floor struct {
 	Model
-	Name         string `gorm:"type:varchar(16);unique_dc_floor" json:"name"`
-	DataCenterID uint   `gorm:"unique_dc_floor" json:"datacenter_id"`
-	DataCenter   DataCenter
-	Halls        Halls `json:"halls,omitempty"`
+	Name         string      `gorm:"type:varchar(16);unique_dc_floor" json:"name"`
+	DataCenterID uint        `gorm:"unique_dc_floor" json:"datacenter_id"`
+	DataCenter   *DataCenter `json:"datacenter,omitempty"`
+	Halls        Halls       `json:"halls,omitempty"`
 }
 
 func (f Floor) Write(output string) {
@@ -129,7 +154,7 @@ type Hall struct {
 	Model
 	Name     string    `gorm:"type:varchar(16)" json:"name"`
 	FloorID  uint      `json:"floor_id"`
-	Floor    Floor     `json:"floor"`
+	Floor    *Floor    `json:"floor,omitempty"`
 	RackRows []RackRow `json:"rows,omitempty"`
 }
 
@@ -176,7 +201,7 @@ type RackRow struct {
 	Model
 	Name   string `gorm:"type:varchar(16)" json:"name"`
 	HallID uint   `json:"hall_id"`
-	Hall   Hall   `json:"hall"`
+	Hall   *Hall  `json:"hall,omitempty"`
 	Racks  Racks  `json:"racks,omitempty"`
 }
 
@@ -230,7 +255,7 @@ type Rack struct {
 	RowID       uint     `json:"row_id"`
 	RackPDUs    RackPDUs `json:"rack_pdus,omitempty"`
 	Description string   `gorm:"type:varchar(255)" json:"description"`
-	RackRow     RackRow  `json:"row"`
+	RackRow     *RackRow `json:"row,omitempty"`
 }
 
 func (r Rack) Write(output string) {
