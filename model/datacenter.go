@@ -88,6 +88,28 @@ func (d DataCenter) Write(output string) {
 	}
 }
 
+func (d DataCenter) WriteTree(output string) {
+	if output == "json" {
+		jsonBytes, _ := json.MarshalIndent(d, "", "    ")
+		fmt.Println(string(jsonBytes))
+	} else {
+		fmt.Println(d.Name)
+		for _, floor := range d.Floors {
+			fmt.Printf("  %-v\n", floor.Name)
+			for _, hall := range floor.Halls {
+				fmt.Printf("    %-v\n", hall.Name)
+				for _, row := range hall.RackRows {
+					fmt.Printf("      %-v:", row.Name)
+					for _, rack := range row.Racks {
+						fmt.Printf(" %v", rack.Name)
+					}
+					fmt.Println()
+				}
+			}
+		}
+	}
+}
+
 // Floor represents datacenter floor or area.
 type Floor struct {
 	Model

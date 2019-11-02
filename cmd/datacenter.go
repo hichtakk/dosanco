@@ -35,7 +35,35 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 			fmt.Println("response parse error", err)
 			return
 		}
-		data.Write(cmd.Flag("output").Value.String())
+		if tree == "true" {
+			floors := new(model.Floors)
+			dc_floors, _ := getFloors(map[string]string{"dc": data.Name})
+			for _, dc_floor := range *dc_floors {
+				halls := new(model.Halls)
+				floor_halls, _ := getHalls(map[string]string{"dc": data.Name, "floor": dc_floor.Name})
+				for _, floor_hall := range *floor_halls {
+					rows := new(model.RackRows)
+					hall_rows, _ := getRows(map[string]string{"dc": data.Name, "floor": dc_floor.Name, "hall": floor_hall.Name})
+					for _, hall_row := range *hall_rows {
+						racks := new(model.Racks)
+						row_racks, _ := getRacks(map[string]string{"dc": data.Name, "floor": dc_floor.Name, "hall": floor_hall.Name, "row": hall_row.Name})
+						for _, rack := range *row_racks {
+							*racks = append(*racks, rack)
+						}
+						hall_row.Racks = *racks
+						*rows = append(*rows, hall_row)
+					}
+					floor_hall.RackRows = *rows
+					*halls = append(*halls, floor_hall)
+				}
+				dc_floor.Halls = *halls
+				*floors = append(*floors, dc_floor)
+			}
+			data.Floors = *floors
+			data.WriteTree(cmd.Flag("output").Value.String())
+		} else {
+			data.Write(cmd.Flag("output").Value.String())
+		}
 	} else {
 		// show all datacenters
 		body, err := sendRequest("GET", url, []byte{})
