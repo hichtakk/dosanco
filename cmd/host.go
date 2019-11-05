@@ -96,22 +96,30 @@ func showHostGroup(cmd *cobra.Command, args []string) {
 func createHost(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/host"
 	// get options
-	dcName := cmd.Flag("dc").Value.String()
-	floorName := cmd.Flag("floor").Value.String()
-	hallName := cmd.Flag("hall").Value.String()
-	rowName := cmd.Flag("row").Value.String()
-	rackName := cmd.Flag("rack").Value.String()
+	location := cmd.Flag("location").Value.String()
 	groupName := cmd.Flag("group").Value.String()
 	description := cmd.Flag("description").Value.String()
 	name := args[0]
-	racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
-	if err != nil {
-		return fmt.Errorf("rack not found for specified location")
-	}
+
 	rack := new(model.Rack)
-	for _, r := range *racks {
-		rack = &r
-		break
+	if location != "" {
+		locSlice := strings.Split(location, "/")
+		if len(locSlice) != 5 {
+			return fmt.Errorf("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
+		}
+		dcName := locSlice[0]
+		floorName := locSlice[1]
+		hallName := locSlice[2]
+		rowName := locSlice[3]
+		rackName := locSlice[4]
+		racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
+		if err != nil {
+			return fmt.Errorf("rack not found for specified location")
+		}
+		for _, r := range *racks {
+			rack = &r
+			break
+		}
 	}
 	groups, err := getHostGroups(map[string]string{"name": groupName})
 	if err != nil {

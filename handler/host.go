@@ -107,7 +107,7 @@ func CreateHost(c echo.Context) error {
 	}
 	db := db.GetDB()
 	h := new(model.Host)
-	if db.Take(&h).RecordNotFound() != true {
+	if db.Take(&h, "name=?", host.Name).RecordNotFound() != true {
 		return c.JSON(http.StatusConflict, returnError(fmt.Sprintf("host '%v' is already exist", host.Name)))
 	}
 	if result := db.Create(&host); result.Error != nil {
