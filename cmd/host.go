@@ -24,31 +24,35 @@ func showHost(cmd *cobra.Command, args []string) {
 			fmt.Println("unmarshal host error:", err)
 			return
 		}
-		rack, err := getRack(host.RackID)
-		if err != nil {
-			fmt.Println("rack not found")
+		if host.RackID != 0 {
+			rack, err := getRack(host.RackID)
+			if err != nil {
+				fmt.Println("rack not found")
+			}
+			row, err := getRow(rack.RowID)
+			if err != nil {
+				fmt.Println("row not found")
+			}
+			hall, err := getHall(row.HallID)
+			if err != nil {
+				fmt.Println("hall not found")
+			}
+			floor, err := getFloor(hall.FloorID)
+			if err != nil {
+				fmt.Println("floor not found")
+			}
+			dc, err := getDataCenter(floor.DataCenterID)
+			if err != nil {
+				fmt.Println("datacenter not found")
+			}
+			floor.DataCenter = dc
+			hall.Floor = floor
+			row.Hall = hall
+			rack.RackRow = row
+			host.Rack = *rack
+		} else {
+			host.Rack = model.Rack{}
 		}
-		row, err := getRow(rack.RowID)
-		if err != nil {
-			fmt.Println("row not found")
-		}
-		hall, err := getHall(row.HallID)
-		if err != nil {
-			fmt.Println("hall not found")
-		}
-		floor, err := getFloor(hall.FloorID)
-		if err != nil {
-			fmt.Println("floor not found")
-		}
-		dc, err := getDataCenter(floor.DataCenterID)
-		if err != nil {
-			fmt.Println("datacenter not found")
-		}
-		floor.DataCenter = dc
-		hall.Floor = floor
-		row.Hall = hall
-		rack.RackRow = row
-		host.Rack = *rack
 
 		if host.GroupID != 0 {
 			group, err := getHostGroup(host.GroupID)
@@ -199,7 +203,9 @@ func updateHost(cmd *cobra.Command, args []string) error {
 		}
 	}
 	// update location
-	if location != "-" {
+	if location == "" {
+		host.RackID = 0
+	} else if location != "-" {
 		locSlice := strings.Split(location, "/")
 		if len(locSlice) != 5 {
 			return fmt.Errorf("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")

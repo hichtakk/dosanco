@@ -296,6 +296,9 @@ func (r Rack) Write(output string) {
 
 // GetLocationPath returns location of rack including datacenter, floor, hall and row
 func (r Rack) GetLocationPath() string {
+	if r.ID == 0 {
+		return "-"
+	}
 	row := r.RackRow.Name
 	hall := r.RackRow.Hall.Name
 	floor := r.RackRow.Hall.Floor.Name
