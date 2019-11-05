@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"errors"
+
 	"github.com/spf13/cobra"
 )
 
@@ -55,8 +57,13 @@ func NewCmdShowIPAM() *cobra.Command {
 		Use:     "ip [CIDR]",
 		Aliases: []string{"ip-alloc"},
 		Short:   "show ip allocation",
-		Args:    cobra.ExactArgs(1),
-		Run:     showIPAllocation,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				return errors.New("network cidr is required")
+			}
+			return nil
+		},
+		Run: showIPAllocation,
 	}
 	ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
 

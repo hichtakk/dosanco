@@ -43,7 +43,7 @@ func init() {
 		NewCmdConfig(),
 	)
 	homedir := os.Getenv("HOME")
-	rootCmd.SilenceUsage = true
+	rootCmd.SilenceUsage = false
 	rootCmd.SilenceErrors = true
 	rootCmd.PersistentFlags().StringVarP(&flagConfig, "config", "c", homedir+"/.dosanco.json", "configuration file")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "default", "output style [default,json]")
