@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -198,9 +199,28 @@ func updateHost(cmd *cobra.Command, args []string) error {
 		}
 	}
 	// update location
-	if location != "" {
-		//query := map[string]string{"name": location}
-
+	if location != "-" {
+		locSlice := strings.Split(location, "/")
+		if len(locSlice) != 5 {
+			return fmt.Errorf("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
+		}
+		dcName := locSlice[0]
+		floorName := locSlice[1]
+		hallName := locSlice[2]
+		rowName := locSlice[3]
+		rackName := locSlice[4]
+		racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
+		if err != nil {
+			return err
+		}
+		if len(*racks) > 1 {
+			return fmt.Errorf("multiple rack found")
+		}
+		rack := new(model.Rack)
+		for _, r := range *racks {
+			rack = &r
+		}
+		host.RackID = rack.ID
 	}
 	reqJSON, _ := json.Marshal(host)
 	url = Conf.APIServer.URL + "/host/" + id

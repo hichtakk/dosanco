@@ -31,9 +31,7 @@ func (h Host) Write(output string) {
 		fmt.Printf("# Host Data\n")
 		fmt.Printf(" ID:             %d\n", h.ID)
 		fmt.Printf(" Name:           %v\n", h.Name)
-		if h.Group != nil {
-			fmt.Printf(" Group:          %v\n", h.Group.Name)
-		}
+		fmt.Printf(" Group:          %v\n", h.Group.Name)
 		fmt.Printf(" RackLocation:   %v\n", h.Rack.GetLocationPath())
 		fmt.Printf(" Description:    %v\n\n", h.Description)
 		if h.IPv4Allocations.Len() > 0 {

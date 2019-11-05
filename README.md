@@ -69,8 +69,9 @@ $ dosanco ${SUBCOMMAND} ${RESOURCE} [arguments/options]
 # example 1: display data center information
 $ dosanco show datacenter
 Name            Address
-DBrown          1640 Riverside Drive, Hill Valley, CA
-AvengersHQ      890 Fifth Avenue, Manhattan, NY
+EMT             1640 Riverside Drive, Hill Valley, CA
+AHQ             890 Fifth Avenue, Manhattan, NY
+JKR             1165 Shakespeare Ave, The Bronx, NY
 ```
 
 ```

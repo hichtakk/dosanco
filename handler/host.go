@@ -152,7 +152,7 @@ func UpdateHost(c echo.Context) error {
 	if result := db.Model(&h).Update("name", host.Name).Update("description", host.Description); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database error"))
 	}
-	if result := db.Model(&h).Update("group_id", host.GroupID); result.Error != nil {
+	if result := db.Model(&h).Update("group_id", host.GroupID).Update("rack_id", host.RackID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database error"))
 	}
 
