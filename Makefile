@@ -15,7 +15,7 @@ BUILD_TARGETS= \
 	build-linux-arm \
 	build-darwin-amd64
 
-.PHONY: help clean build all fmt lint $(BUILD_TARGETS)
+.PHONY: help clean update-package docker-linux-amd64 build all fmt lint $(BUILD_TARGETS)
 
 fmt: ## format
 	go fmt
@@ -62,7 +62,9 @@ update-package: ## Update dependency packages
 	@go get -u
 
 clean: ## Clean up built files
+	@printf "\e[32m"
 	@echo '==> Remove built files ./build/...'
+	@printf "\e[m"
 	@rm -rf build/*
 
 help: ## Makefile
