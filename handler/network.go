@@ -67,25 +67,6 @@ func GetIPv4Network(c echo.Context) error {
 	return c.JSON(http.StatusOK, network)
 }
 
-// GetIPv4NetworkByCIDR returns a specified CIDR network information.
-func GetIPv4NetworkByCIDR(c echo.Context) error {
-	var network model.IPv4Network
-	cidr := strings.Replace(c.Param("cidr"), "-", "/", 1)
-	db := db.GetDB()
-	if result := db.Take(&network, "c_id_r=?", cidr); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, returnError("network not found"))
-	}
-	subnets := getSubnetworks(network.ID, 1, uint(0), false)
-	if len(*subnets) > 0 {
-		network.Subnetworks = *subnets
-	}
-	allocs := getIPAllocations(network.ID)
-	if len(*allocs) > 0 {
-		network.Allocations = *allocs
-	}
-	return c.JSON(http.StatusOK, network)
-}
-
 // CreateIPv4Network creates a new network with given json data.
 func CreateIPv4Network(c echo.Context) error {
 	network := new(model.IPv4Network)
@@ -213,13 +194,25 @@ func DeleteIPv4Network(c echo.Context) error {
 
 // GetIPv4Allocations returns ip allocation data for specified network.
 func GetIPv4Allocations(c echo.Context) error {
-	nid, err := strconv.Atoi(c.Param("network_id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+	db := db.GetDB()
+	allocs := new(model.IPv4Allocations)
+	cidr := c.QueryParam("cidr")
+	networks := new(model.IPv4Networks)
+	if cidr != "" {
+		db.Find(networks, "c_id_r=?", cidr)
+		if len(*networks) == 0 {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("network '%v' not found", cidr)))
+		}
+		network := new(model.IPv4Network)
+		for _, n := range *networks {
+			network = &n
+		}
+		db.Find(allocs, "ipv4_network_id=?", network.ID)
+		sort.Sort(allocs)
+		return c.JSON(http.StatusOK, allocs)
+	} else {
+		return c.JSON(http.StatusBadRequest, returnError("query 'cidr' is required"))
 	}
-	addr := getIPAllocations(uint(nid))
-
-	return c.JSON(http.StatusOK, addr)
 }
 
 // CreateIPv4Allocation creates a new ipv4 allocation to specified network.

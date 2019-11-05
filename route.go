@@ -12,14 +12,14 @@ func setRoute(e *echo.Echo) {
 	e.GET("/network/:id", handler.GetIPv4Network)
 	e.PUT("/network/:id", handler.UpdateIPv4Network)
 	e.DELETE("/network/:id", handler.DeleteIPv4Network)
-	e.GET("/network/cidr/:cidr", handler.GetIPv4NetworkByCIDR)
 
+	e.GET("/ip/v4", handler.GetIPv4Allocations)
 	e.POST("/ip/v4", handler.CreateIPv4Allocation)
 	e.PUT("/ip/v4/:allocation_id", handler.UpdateIPv4Allocation)
 	e.DELETE("/ip/v4/:allocation_id", handler.DeleteIPv4Allocation)
-	e.GET("/ip/v4/network/:network_id", handler.GetIPv4Allocations)
-	e.GET("/ip/v4/host/:hostname", handler.GetHostIPv4Allocations)
-	e.GET("/ip/v4/addr/:address", handler.GetIPv4AllocationByAddress)
+	//e.GET("/ip/v4/network/:network_id", handler.GetIPv4Allocations)
+	//e.GET("/ip/v4/host/:hostname", handler.GetHostIPv4Allocations)
+	//e.GET("/ip/v4/addr/:address", handler.GetIPv4AllocationByAddress)
 
 	e.GET("/vlan", handler.GetAllVlan)
 	e.POST("/vlan", handler.CreateVlan)
@@ -32,7 +32,7 @@ func setRoute(e *echo.Echo) {
 	e.GET("/host/:id", handler.GetHost)
 	e.PUT("/host/:id", handler.UpdateHost)
 	e.DELETE("/host/:id", handler.DeleteHost)
-	e.GET("/host/name/:hostname", handler.GetHostByName)
+	//e.GET("/host/name/:hostname", handler.GetHostByName)
 
 	// host groups
 	e.GET("/host/group", handler.GetHostGroups)
@@ -47,13 +47,13 @@ func setRoute(e *echo.Echo) {
 	e.POST("/datacenter", handler.CreateDataCenter)
 	e.PUT("/datacenter/:id", handler.UpdateDataCenter)
 	e.DELETE("/datacenter/:id", handler.DeleteDataCenter)
-	e.GET("/datacenter/name/:name", handler.GetDataCenterByName)
+	//e.GET("/datacenter/name/:name", handler.GetDataCenterByName)
 
 	// datacenter floor
 	e.GET("/datacenter/floor", handler.GetAllDataCenterFloors)
-	e.GET("/datacenter/:id/floor", handler.GetDataCenterFloorsByDC)
+	//e.GET("/datacenter/:id/floor", handler.GetDataCenterFloorsByDC)
 	e.GET("/datacenter/floor/:id", handler.GetDataCenterFloor)
-	e.GET("/datacenter/floor/name/:name", handler.GetDataCenterFloorByName)
+	//e.GET("/datacenter/floor/name/:name", handler.GetDataCenterFloorByName)
 	e.POST("/datacenter/floor", handler.CreateDataCenterFloor)
 	e.PUT("/datacenter/floor/:id", handler.UpdateDataCenterFloor)
 	e.DELETE("/datacenter/floor/:id", handler.DeleteDataCenterFloor)

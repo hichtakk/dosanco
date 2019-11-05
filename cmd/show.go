@@ -35,7 +35,6 @@ func NewCmdShow() *cobra.Command {
 func NewCmdShowNetwork() *cobra.Command {
 	var tree bool
 	var depth int
-	var rfc bool
 	var networkCmd = &cobra.Command{
 		Use:     "network [CIDR]",
 		Aliases: []string{"net", "nw"},
@@ -44,7 +43,6 @@ func NewCmdShowNetwork() *cobra.Command {
 		Run:     showNetwork,
 	}
 	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
-	networkCmd.Flags().BoolVarP(&rfc, "show-rfc-reserved", "", false, "show networks defined and reserved in RFC")
 	networkCmd.Flags().IntVarP(&depth, "depth", "d", 0, "depth for network tree. this option only work with --tree,-t option")
 
 	return networkCmd
@@ -52,7 +50,7 @@ func NewCmdShowNetwork() *cobra.Command {
 
 // NewCmdShowIPAM is subcommand represents show ip allocation resource.
 func NewCmdShowIPAM() *cobra.Command {
-	var host bool
+	//var host bool
 	var ipCmd = &cobra.Command{
 		Use:     "ip [CIDR]",
 		Aliases: []string{"ip-alloc"},
@@ -65,7 +63,7 @@ func NewCmdShowIPAM() *cobra.Command {
 		},
 		Run: showIPAllocation,
 	}
-	ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
+	//ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
 
 	return ipCmd
 }

@@ -8,7 +8,6 @@ import (
 	"io/ioutil"
 	"net/http"
 	"strconv"
-	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -24,20 +23,18 @@ func showNetwork(cmd *cobra.Command, args []string) {
 	url := Conf.APIServer.URL + "/network"
 	tree, _ := strconv.ParseBool(cmd.Flag("tree").Value.String())
 	depth, _ := strconv.Atoi(cmd.Flag("depth").Value.String())
-	//rfc, _ := strconv.ParseBool(cmd.Flag("show-rfc-reserved").Value.String())
 	if len(args) > 0 {
-		url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
-		body, err := sendRequest("GET", url, []byte{})
+		query := map[string]string{"cidr": args[0]}
+		networks, err := getNetworks(query)
 		if err != nil {
-			fmt.Println(err)
+			fmt.Println(err.Error())
 			return
 		}
-		nw := new(model.IPv4Network)
-		if err := json.Unmarshal(body, nw); err != nil {
-			fmt.Println("json unmarshal error:", err)
-			return
+		network := new(model.IPv4Network)
+		for _, nw := range *networks {
+			network = &nw
 		}
-		nw.Write(cmd.Flag("output").Value.String())
+		network.Write(cmd.Flag("output").Value.String())
 	} else {
 		query := "?"
 		if tree == true {
@@ -46,11 +43,6 @@ func showNetwork(cmd *cobra.Command, args []string) {
 				query = query + "&depth=" + cmd.Flag("depth").Value.String()
 			}
 		}
-		/*
-			if rfc == true {
-				query = query + "&show-rfc-reserved=true"
-			}
-		*/
 		url = url + query
 		body, err := sendRequest("GET", url, []byte{})
 		if err != nil {
@@ -88,20 +80,16 @@ func createNetwork(cmd *cobra.Command, args []string) error {
 }
 
 func updateNetwork(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/network"
-	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
-	body, err := sendRequest("GET", url, []byte{})
+	query := map[string]string{"cidr": args[0]}
+	networks, err := getNetworks(query)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	nw := new(model.IPv4Network)
-	if err := json.Unmarshal(body, nw); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return err
+	network := new(model.IPv4Network)
+	for _, nw := range *networks {
+		network = &nw
 	}
-
-	url = Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
+	url := Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(network.ID), 10)
 	reqModel := model.IPv4Network{Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
@@ -121,21 +109,17 @@ func updateNetwork(cmd *cobra.Command, args []string) error {
 }
 
 func deleteNetwork(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/network"
-	url = url + "/cidr/" + strings.Replace(args[0], "/", "-", 1)
-	body, err := sendRequest("GET", url, []byte{})
+	query := map[string]string{"cidr": args[0]}
+	networks, err := getNetworks(query)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	nw := new(model.IPv4Network)
-	if err := json.Unmarshal(body, nw); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return err
+	network := new(model.IPv4Network)
+	for _, nw := range *networks {
+		network = &nw
 	}
-
-	url = Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(nw.ID), 10)
-	body, err = sendRequest("DELETE", url, []byte{})
+	url := Conf.APIServer.URL + "/network/" + strconv.FormatUint(uint64(network.ID), 10)
+	body, err := sendRequest("DELETE", url, []byte{})
 	if err != nil {
 		return fmt.Errorf(err.Error())
 	}
@@ -246,52 +230,23 @@ func deleteVlan(cmd *cobra.Command, args []string) error {
 
 func showIPAllocation(cmd *cobra.Command, args []string) {
 	// get network
-	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network", []byte{})
+	query := map[string]string{"cidr": args[0]}
+	networks, err := getNetworks(query)
 	if err != nil {
-		fmt.Println(err)
+		fmt.Println(err.Error())
 		return
 	}
-	data := new([]model.IPv4Network)
-	if err := json.Unmarshal(nBody, data); err != nil {
-		fmt.Println("json unmarshal err:", err)
-		return
+	network := new(model.IPv4Network)
+	for _, nw := range *networks {
+		network = &nw
 	}
+	allocQuery := map[string]string{}
+	allocQuery["cidr"] = network.CIDR
 
-	url := Conf.APIServer.URL + "/ip/v4"
-	if cmd.Flag("host").Value.String() == "true" {
-		url = url + "/host/" + args[0]
-	} else {
-		targetNW := model.IPv4Network{}
-		for _, n := range *data {
-			if n.CIDR == args[0] {
-				targetNW = n
-			}
-		}
-		if targetNW.ID == 0 {
-			fmt.Printf("network %v not found\n", args[0])
-			return
-		}
-		url = url + "/network/" + strconv.Itoa(int(targetNW.ID))
-	}
-	resp, err := http.Get(url)
-	if err != nil {
-	}
-	body, err := ioutil.ReadAll(resp.Body)
-	if err != nil {
-	}
-	allocs := new(model.IPv4Allocations)
-	if err := json.Unmarshal(body, allocs); err != nil {
-	}
-
+	allocs, _ := getIPv4Allocations(allocQuery)
 	output := model.IPv4Allocations{}
-	netMap := make(map[uint]*model.IPv4Network)
 	for _, alloc := range *allocs {
-		network, ok := netMap[alloc.IPv4NetworkID]
-		if ok != true {
-			network, _ = getNetwork(alloc.IPv4NetworkID)
-			netMap[alloc.IPv4NetworkID] = network
-		}
-		alloc.IPv4Network = netMap[alloc.IPv4NetworkID]
+		alloc.IPv4Network = network
 		output = append(output, alloc)
 	}
 
@@ -306,18 +261,19 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 		return fmt.Errorf("ip allocation type error")
 	}
 	// get network
-	nBody, err := sendRequest("GET", Conf.APIServer.URL+"/network/cidr/"+strings.Replace(cidr, "/", "-", 1), []byte{})
+	query := map[string]string{"cidr": cidr}
+	networks, err := getNetworks(query)
 	if err != nil {
-		fmt.Println(err)
 		return err
 	}
-	data := new(model.IPv4Network)
-	if err := json.Unmarshal(nBody, data); err != nil {
-		return fmt.Errorf("json unmarshal err: %v", err)
+	network := new(model.IPv4Network)
+	for _, nw := range *networks {
+		network = &nw
 	}
+
 	addr := args[0]
 	url := Conf.APIServer.URL + "/ip/v4"
-	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: data.ID, Address: addr, Type: allocType, Description: description}
+	reqModel := model.IPv4Allocation{Name: hostname, IPv4NetworkID: network.ID, Address: addr, Type: allocType, Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
@@ -482,4 +438,24 @@ func getNetworks(query map[string]string) (*model.IPv4Networks, error) {
 	}
 
 	return networks, nil
+}
+
+func getIPv4Allocations(query map[string]string) (*model.IPv4Allocations, error) {
+	allocs := new(model.IPv4Allocations)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/ip/v4?"+queryString, []byte{})
+	if err != nil {
+		return allocs, err
+	}
+	if err := json.Unmarshal(body, allocs); err != nil {
+		return allocs, fmt.Errorf("response parse error")
+	}
+	if len(*allocs) == 0 {
+		return allocs, fmt.Errorf("no allocation found")
+	}
+
+	return allocs, nil
 }
