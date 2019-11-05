@@ -88,6 +88,7 @@ func NewCmdShowVlan() *cobra.Command {
 // NewCmdShowHost is subcommand represents show host resource.
 func NewCmdShowHost() *cobra.Command {
 	var group string
+	var location string
 	var hostCmd = &cobra.Command{
 		Use:     "host [NAME]",
 		Aliases: []string{"server"},
@@ -95,7 +96,8 @@ func NewCmdShowHost() *cobra.Command {
 		Args:    cobra.MaximumNArgs(1),
 		Run:     showHost,
 	}
-	hostCmd.Flags().StringVarP(&group, "group", "", "", "specify host group")
+	hostCmd.Flags().StringVarP(&group, "group", "g", "", "specify host group")
+	hostCmd.Flags().StringVarP(&location, "location", "l", "", "specify host installed location. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
 
 	return hostCmd
 }

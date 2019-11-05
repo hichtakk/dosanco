@@ -3,7 +3,9 @@ package handler
 import (
 	"fmt"
 	"net/http"
+	"net/url"
 	"strconv"
+	"strings"
 
 	"github.com/labstack/echo/v4"
 
@@ -32,25 +34,67 @@ func GetHost(c echo.Context) error {
 
 // GetHosts returns specified host information.
 func GetHosts(c echo.Context) error {
-	groupName := c.QueryParam("group")
-	if groupName == "" {
-		return c.JSON(http.StatusBadRequest, returnError("group name is required"))
-	}
-	groups := new(model.HostGroups)
 	db := db.GetDB()
-	if result := db.Find(&groups, "name=?", groupName); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, returnError("group not found"))
-	}
-	if len(*groups) > 1 {
-		return c.JSON(http.StatusInternalServerError, returnError("multiple group found"))
+	groupName := c.QueryParam("group")
+	location := c.QueryParam("location")
+
+	hosts := new(model.Hosts)
+	if groupName == "" && location == "" {
+		return c.JSON(http.StatusBadRequest, returnError("query 'group' or 'location' is required"))
 	}
 	group := new(model.HostGroup)
-	for _, g := range *groups {
-		group = &g
-		break
+	if groupName != "" {
+		if result := db.Take(group, "name=?", groupName); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("group '%v' not found", groupName)))
+		}
 	}
-	hosts := new(model.Hosts)
-	db.Find(&hosts, "group_id=?", group.ID)
+	rack := new(model.Rack)
+	if location != "" {
+		location, err := url.QueryUnescape(location)
+		if err != nil {
+			return c.JSON(http.StatusBadRequest, returnError(err.Error()))
+		}
+		locSlice := strings.Split(location, "/")
+		if len(locSlice) != 5 {
+			return c.JSON(http.StatusBadRequest, returnError("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'"))
+		}
+		dcName := locSlice[0]
+		floorName := locSlice[1]
+		hallName := locSlice[2]
+		rowName := locSlice[3]
+		rackName := locSlice[4]
+		// datacenter
+		dc := new(model.DataCenter)
+		if result := db.Take(dc, "name=?", dcName); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		}
+		// floor
+		floor := new(model.Floor)
+		if result := db.Take(floor, "name=? AND data_center_id=?", floorName, dc.ID); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", floorName)))
+		}
+		// hall
+		hall := new(model.Hall)
+		if result := db.Take(hall, "name=? AND floor_id=?", hallName, floor.ID); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", hallName)))
+		}
+		// row
+		row := new(model.RackRow)
+		if result := db.Take(row, "name=? AND hall_id=?", rowName, hall.ID); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("row '%v' not found", rowName)))
+		}
+		// rack
+		if result := db.Take(rack, "name=? AND row_id=?", rackName, row.ID); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack '%v' not found", rackName)))
+		}
+	}
+	if group.ID != 0 && rack.ID != 0 {
+		db.Find(hosts, "group_id=? AND rack_id=?", group.ID, rack.ID)
+	} else if group.ID != 0 && rack.ID == 0 {
+		db.Find(hosts, "group_id=?", group.ID)
+	} else if group.ID == 0 && rack.ID != 0 {
+		db.Find(hosts, "rack_id=?", rack.ID)
+	}
 
 	return c.JSON(http.StatusOK, hosts)
 }

@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -53,7 +54,6 @@ func showHost(cmd *cobra.Command, args []string) {
 		} else {
 			host.Rack = model.Rack{}
 		}
-
 		if host.GroupID != 0 {
 			group, err := getHostGroup(host.GroupID)
 			if err != nil {
@@ -61,10 +61,22 @@ func showHost(cmd *cobra.Command, args []string) {
 			}
 			host.Group = group
 		}
-
 		host.Write(cmd.Flag("output").Value.String())
 	} else {
-		hosts, err := getHosts(map[string]string{"group": cmd.Flag("group").Value.String()})
+		location := cmd.Flag("location").Value.String()
+		group := cmd.Flag("group").Value.String()
+		query := map[string]string{}
+		if location != "" {
+			query["location"] = url.QueryEscape(location)
+		}
+		if group != "" {
+			query["group"] = group
+		}
+		if len(query) == 0 {
+			fmt.Println("flag 'group' or 'location' is required")
+			return
+		}
+		hosts, err := getHosts(query)
 		if err != nil {
 			fmt.Println(err)
 			return
