@@ -4,6 +4,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"strings"
 
 	"github.com/spf13/cobra"
 	"github.com/spf13/viper"
@@ -89,10 +90,11 @@ func configView(_ *cobra.Command, _ []string) {
 }
 
 func configSetEndpoint(cmd *cobra.Command, args []string) {
-	viper.Set("apiserver.url", args[0])
+	ep := strings.TrimRight(strings.TrimSpace(args[0]), "/")
+	viper.Set("apiserver.url", ep)
 	if err := viper.WriteConfig(); err != nil {
 		fmt.Println(err)
 		os.Exit(255)
 	}
-	fmt.Println("endpoint was updated to " + args[0])
+	fmt.Println("endpoint was updated to " + ep)
 }
