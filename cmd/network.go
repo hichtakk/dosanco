@@ -1,12 +1,8 @@
 package cmd
 
 import (
-	"bytes"
 	"encoding/json"
-	"errors"
 	"fmt"
-	"io/ioutil"
-	"net/http"
 	"strconv"
 
 	"github.com/spf13/cobra"
@@ -292,18 +288,12 @@ func createIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func updateIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/ip/v4/addr/" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
 	alloc := new(model.IPv4Allocation)
-	if err := json.Unmarshal(body, alloc); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return err
+	allocs, _ := getIPv4Allocations(map[string]string{"address": args[0]})
+	for _, a := range *allocs {
+		alloc = &a
+		break
 	}
-	url = Conf.APIServer.URL + "/ip/v4/" + strconv.Itoa(int(alloc.ID))
 	name := cmd.Flag("name").Value.String()
 	description := cmd.Flag("description").Value.String()
 	if name != "-" && name != alloc.Name {
@@ -319,32 +309,14 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", alloc)
 	}
-	req, err := http.NewRequest(
-		"PUT",
-		url,
-		bytes.NewBuffer(reqJSON),
-	)
+	url := Conf.APIServer.URL + "/ip/v4/" + strconv.Itoa(int(alloc.ID))
+	body, err := sendRequest("PUT", url, reqJSON)
 	if err != nil {
 		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		//fmt.Errorf(err.Error())
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
-		return fmt.Errorf(err.Error())
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(resMsg.Message)
+		return err
 	}
 	fmt.Println(resMsg.Message)
 
@@ -352,44 +324,20 @@ func updateIPAllocation(cmd *cobra.Command, args []string) error {
 }
 
 func deleteIPAllocation(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/ip/v4/addr/" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
 	alloc := new(model.IPv4Allocation)
-	if err := json.Unmarshal(body, alloc); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return err
+	allocs, _ := getIPv4Allocations(map[string]string{"address": args[0]})
+	for _, a := range *allocs {
+		alloc = &a
+		break
 	}
-	url = Conf.APIServer.URL + "/ip/v4/" + strconv.Itoa(int(alloc.ID))
-	req, err := http.NewRequest(
-		"DELETE",
-		url,
-		bytes.NewBuffer([]byte{}),
-	)
+	url := Conf.APIServer.URL + "/ip/v4/" + strconv.Itoa(int(alloc.ID))
+	body, err := sendRequest("DELETE", url, []byte{})
 	if err != nil {
 		return err
-	}
-	req.Header.Set("Content-Type", "application/json")
-	client := &http.Client{}
-	resp, err := client.Do(req)
-	if err != nil {
-		return err
-	}
-	defer resp.Body.Close()
-
-	body, err = ioutil.ReadAll(resp.Body)
-	if err != nil {
-		//fmt.Errorf(err.Error())
 	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
-		return fmt.Errorf(err.Error())
-	}
-	if resp.StatusCode != 200 {
-		return errors.New(resMsg.Message)
+		return err
 	}
 	fmt.Println(resMsg.Message)
 
@@ -438,6 +386,20 @@ func getNetworks(query map[string]string) (*model.IPv4Networks, error) {
 	}
 
 	return networks, nil
+}
+
+func getIPv4Allocation(id uint) (*model.IPv4Allocation, error) {
+	alloc := new(model.IPv4Allocation)
+	idStr := strconv.Itoa(int(id))
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/ip/v4/"+idStr, []byte{})
+	if err != nil {
+		return alloc, err
+	}
+	if err := json.Unmarshal(body, alloc); err != nil {
+		return alloc, fmt.Errorf("response parse error")
+	}
+
+	return alloc, nil
 }
 
 func getIPv4Allocations(query map[string]string) (*model.IPv4Allocations, error) {

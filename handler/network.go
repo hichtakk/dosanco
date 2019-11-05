@@ -197,6 +197,7 @@ func GetIPv4Allocations(c echo.Context) error {
 	db := db.GetDB()
 	allocs := new(model.IPv4Allocations)
 	cidr := c.QueryParam("cidr")
+	address := c.QueryParam("address")
 	networks := new(model.IPv4Networks)
 	if cidr != "" {
 		db.Find(networks, "c_id_r=?", cidr)
@@ -210,8 +211,11 @@ func GetIPv4Allocations(c echo.Context) error {
 		db.Find(allocs, "ipv4_network_id=?", network.ID)
 		sort.Sort(allocs)
 		return c.JSON(http.StatusOK, allocs)
+	} else if address != "" {
+		db.Find(allocs, "address=?", address)
+		return c.JSON(http.StatusOK, allocs)
 	} else {
-		return c.JSON(http.StatusBadRequest, returnError("query 'cidr' is required"))
+		return c.JSON(http.StatusBadRequest, returnError("query 'cidr' or 'address' is required"))
 	}
 }
 
@@ -289,26 +293,6 @@ func UpdateIPv4Allocation(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, returnMessage("allocation update"))
-}
-
-// GetHostIPv4Allocations returns ipv4 allocations associated with specified hostname.
-func GetHostIPv4Allocations(c echo.Context) error {
-	hostname := c.Param("hostname")
-	addr := []model.IPv4Allocation{}
-	d := db.GetDB()
-	d.Find(&addr, "name=?", hostname)
-
-	return c.JSON(http.StatusOK, addr)
-}
-
-// GetIPv4AllocationByAddress returns ipv4 allocation associated with specified address.
-func GetIPv4AllocationByAddress(c echo.Context) error {
-	ipv4 := c.Param("address")
-	addr := model.IPv4Allocation{}
-	d := db.GetDB()
-	d.Find(&addr, "address=?", ipv4)
-
-	return c.JSON(http.StatusOK, addr)
 }
 
 func getSubnetworks(id uint, depth uint, step uint, rfc bool) *model.IPv4Networks {
