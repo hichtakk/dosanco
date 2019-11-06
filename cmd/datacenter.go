@@ -930,8 +930,10 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 			} else {
 				p.SecondaryPDU = nil
 			}
-			host, err := getHostByName(p.Name)
-			if err != nil {
+			host := new(model.Host)
+			hosts, _ := getHosts(map[string]string{"name": p.Name})
+			for _, h := range *hosts {
+				host = &h
 			}
 			rack, _ := getRack(host.RackID)
 			loadRackLocation(rack)

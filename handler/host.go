@@ -35,12 +35,16 @@ func GetHost(c echo.Context) error {
 // GetHosts returns specified host information.
 func GetHosts(c echo.Context) error {
 	db := db.GetDB()
+	hostName := c.QueryParam("name")
 	groupName := c.QueryParam("group")
 	location := c.QueryParam("location")
 
 	hosts := new(model.Hosts)
-	if groupName == "" && location == "" {
-		return c.JSON(http.StatusBadRequest, returnError("query 'group' or 'location' is required"))
+	if hostName == "" && groupName == "" && location == "" {
+		return c.JSON(http.StatusBadRequest, returnError("query 'name', 'group' or 'location' is required"))
+	}
+	if hostName != "" {
+		db.Find(hosts, "name=?", hostName)
 	}
 	group := new(model.HostGroup)
 	if groupName != "" {

@@ -14,16 +14,15 @@ import (
 
 func showHost(cmd *cobra.Command, args []string) {
 	if len(args) > 0 {
-		url := Conf.APIServer.URL + "/host/name/" + args[0]
-		resJSON, err := sendRequest("GET", url, []byte{})
-		if err != nil {
-			fmt.Println(err)
+		host := new(model.Host)
+		hosts, _ := getHosts(map[string]string{"name": args[0]})
+		if len(*hosts) > 1 {
+			fmt.Println("multiple hosts found")
 			return
 		}
-		host := new(model.Host)
-		if err := json.Unmarshal(resJSON, host); err != nil {
-			fmt.Println("unmarshal host error:", err)
-			return
+		for _, h := range *hosts {
+			host = &h
+			break
 		}
 		if host.RackID != 0 {
 			rack, err := getRack(host.RackID)
@@ -177,18 +176,6 @@ func createHostGroup(cmd *cobra.Command, args []string) error {
 }
 
 func updateHost(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/host/name/" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
-	if err != nil {
-		fmt.Println(err)
-		return err
-	}
-	host := new(model.Host)
-	if err := json.Unmarshal(body, host); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return err
-	}
-	id := strconv.Itoa(int(host.ID))
 	name := cmd.Flag("name").Value.String()
 	location := cmd.Flag("location").Value.String()
 	description := cmd.Flag("description").Value.String()
@@ -196,12 +183,22 @@ func updateHost(cmd *cobra.Command, args []string) error {
 	if name == "-" && description == "-" && location == "-" && group == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
+
+	host := new(model.Host)
+	hosts, _ := getHosts(map[string]string{"name": args[0]})
+	if len(*hosts) == 0 {
+		return fmt.Errorf("host not found")
+	} else if len(*hosts) > 1 {
+		return fmt.Errorf("multiple hosts are found")
+	}
+	for _, h := range *hosts {
+		host = &h
+	}
 	if name != "-" {
 		host.Name = name
 		// ensure the new name is not already exists in database
-		url = Conf.APIServer.URL + "/host/name/" + name
-		body, err = sendRequest("GET", url, []byte{})
-		if err == nil {
+		exist, _ := getHosts(map[string]string{"name": name})
+		if len(*exist) != 0 {
 			fmt.Printf("host '%v' is already exist\n", name)
 			return fmt.Errorf("host '%v' is already exist", name)
 		}
@@ -249,8 +246,8 @@ func updateHost(cmd *cobra.Command, args []string) error {
 		host.RackID = rack.ID
 	}
 	reqJSON, _ := json.Marshal(host)
-	url = Conf.APIServer.URL + "/host/" + id
-	body, err = sendRequest("PUT", url, reqJSON)
+	url := Conf.APIServer.URL + "/host/" + strconv.Itoa(int(host.ID))
+	body, err := sendRequest("PUT", url, reqJSON)
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -307,19 +304,20 @@ func updateHostGroup(cmd *cobra.Command, args []string) error {
 }
 
 func deleteHost(cmd *cobra.Command, args []string) error {
-	url := Conf.APIServer.URL + "/host/name/" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
+	hosts, err := getHosts(map[string]string{"name": args[0]})
 	if err != nil {
-		fmt.Println(err)
 		return err
+	}
+	if len(*hosts) == 0 {
+		return fmt.Errorf("host '%v' not found", args[0])
 	}
 	host := new(model.Host)
-	if err := json.Unmarshal(body, host); err != nil {
-		fmt.Println("json unmarshal error:", err)
-		return err
+	for _, h := range *hosts {
+		host = &h
+		break
 	}
-	url = Conf.APIServer.URL + "/host/" + strconv.Itoa(int(host.ID))
-	body, err = sendRequest("DELETE", url, []byte{})
+	url := Conf.APIServer.URL + "/host/" + strconv.Itoa(int(host.ID))
+	body, err := sendRequest("DELETE", url, []byte{})
 	if err != nil {
 		fmt.Println(err)
 		return err
@@ -353,19 +351,6 @@ func deleteHostGroup(cmd *cobra.Command, args []string) error {
 	fmt.Println(resMsg.Message)
 
 	return nil
-}
-
-func getHostByName(name string) (*model.Host, error) {
-	host := new(model.Host)
-	body, err := sendRequest("GET", Conf.APIServer.URL+"/host/name/"+name, []byte{})
-	if err != nil {
-		return host, err
-	}
-	if err := json.Unmarshal(body, host); err != nil {
-		return host, fmt.Errorf("response parse error")
-	}
-
-	return host, nil
 }
 
 func getHostGroup(id uint) (*model.HostGroup, error) {
