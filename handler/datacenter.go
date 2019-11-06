@@ -48,6 +48,7 @@ func GetDataCenter(c echo.Context) error {
 	return c.JSON(http.StatusOK, dc)
 }
 
+/*
 // GetDataCenterByName returns specified host information.
 func GetDataCenterByName(c echo.Context) error {
 	dc := new(model.DataCenter)
@@ -58,6 +59,7 @@ func GetDataCenterByName(c echo.Context) error {
 
 	return c.JSON(http.StatusOK, dc)
 }
+*/
 
 // CreateDataCenter creates a new data center.
 func CreateDataCenter(c echo.Context) error {
@@ -115,6 +117,7 @@ func DeleteDataCenter(c echo.Context) error {
 func GetAllDataCenterFloors(c echo.Context) error {
 	db := db.GetDB()
 	dcName := c.QueryParam("dc")
+	name := c.QueryParam("name")
 	flrs := []model.Floor{}
 
 	if dcName != "" {
@@ -122,7 +125,11 @@ func GetAllDataCenterFloors(c echo.Context) error {
 		if db.Take(&dc, "name=?", dcName).RecordNotFound() == true {
 			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("dc '%v' not found", dcName)))
 		}
-		db.Find(&flrs, "data_center_id=?", dc.ID)
+		if name != "" {
+			db.Find(&flrs, "data_center_id=? AND name=?", dc.ID, name)
+		} else {
+			db.Find(&flrs, "data_center_id=?", dc.ID)
+		}
 	} else {
 		db.Find(&flrs)
 	}

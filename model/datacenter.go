@@ -190,7 +190,7 @@ func (h Hall) Write(output string) {
 		fmt.Printf("# Hall\n")
 		fmt.Printf(" ID:      %d\n", h.ID)
 		fmt.Printf(" Name:    %v\n", h.Name)
-		fmt.Printf(" FloorID: %v\n", h.FloorID)
+		fmt.Printf(" Floor:   %v\n", h.Floor.Name)
 	}
 }
 

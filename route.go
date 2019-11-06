@@ -30,7 +30,6 @@ func setRoute(e *echo.Echo) {
 	e.GET("/host/:id", handler.GetHost)
 	e.PUT("/host/:id", handler.UpdateHost)
 	e.DELETE("/host/:id", handler.DeleteHost)
-	//e.GET("/host/name/:hostname", handler.GetHostByName)
 
 	// host groups
 	e.GET("/host/group", handler.GetHostGroups)

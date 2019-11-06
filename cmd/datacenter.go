@@ -15,38 +15,27 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 	url := Conf.APIServer.URL + "/datacenter"
 	if len(args) > 0 {
 		// show specified datacenter
-		body, err := sendRequest("GET", url+"/name/"+args[0], []byte{})
-		if err != nil {
-			fmt.Println(err)
+		dcs, _ := getDataCenters(map[string]string{"name": args[0]})
+		if len(*dcs) == 0 {
+			fmt.Println("datacenter not found")
 			return
 		}
 		dc := new(model.DataCenter)
-		if err = json.Unmarshal(body, dc); err != nil {
-			fmt.Println("response parse error", err)
-		}
-		url = url + "/" + strconv.Itoa(int(dc.ID))
-		body, err = sendRequest("GET", url, []byte{})
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		data := new(model.DataCenter)
-		if err := json.Unmarshal(body, data); err != nil {
-			fmt.Println("response parse error", err)
-			return
+		for _, d := range *dcs {
+			dc = &d
 		}
 		if tree == "true" {
 			floors := new(model.Floors)
-			dcFloors, _ := getFloors(map[string]string{"dc": data.Name})
+			dcFloors, _ := getFloors(map[string]string{"dc": dc.Name})
 			for _, dcFloor := range *dcFloors {
 				halls := new(model.Halls)
-				floorHalls, _ := getHalls(map[string]string{"dc": data.Name, "floor": dcFloor.Name})
+				floorHalls, _ := getHalls(map[string]string{"dc": dc.Name, "floor": dcFloor.Name})
 				for _, floorHall := range *floorHalls {
 					rows := new(model.RackRows)
-					hallRows, _ := getRows(map[string]string{"dc": data.Name, "floor": dcFloor.Name, "hall": floorHall.Name})
+					hallRows, _ := getRows(map[string]string{"dc": dc.Name, "floor": dcFloor.Name, "hall": floorHall.Name})
 					for _, hallRow := range *hallRows {
 						racks := new(model.Racks)
-						rowRacks, _ := getRacks(map[string]string{"dc": data.Name, "floor": dcFloor.Name, "hall": floorHall.Name, "row": hallRow.Name})
+						rowRacks, _ := getRacks(map[string]string{"dc": dc.Name, "floor": dcFloor.Name, "hall": floorHall.Name, "row": hallRow.Name})
 						for _, rack := range *rowRacks {
 							*racks = append(*racks, rack)
 						}
@@ -59,10 +48,10 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 				dcFloor.Halls = *halls
 				*floors = append(*floors, dcFloor)
 			}
-			data.Floors = *floors
-			data.WriteTree(cmd.Flag("output").Value.String())
+			dc.Floors = *floors
+			dc.WriteTree(cmd.Flag("output").Value.String())
 		} else {
-			data.Write(cmd.Flag("output").Value.String())
+			dc.Write(cmd.Flag("output").Value.String())
 		}
 	} else {
 		// show all datacenters
@@ -121,17 +110,17 @@ func showDataCenterFloor(cmd *cobra.Command, args []string) {
 			fmt.Println("datacenter name is required for showing specific floor")
 			return
 		}
-		body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
-		if err != nil {
-			fmt.Println(err)
+		dcs, _ := getDataCenters(map[string]string{"name": args[0]})
+		if len(*dcs) == 0 {
+			fmt.Println("datacenter not found")
 			return
 		}
 		dc := new(model.DataCenter)
-		if err = json.Unmarshal(body, dc); err != nil {
-			fmt.Println("response parse error", err)
+		for _, d := range *dcs {
+			dc = &d
 		}
 		dcID := strconv.Itoa(int(dc.ID))
-		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
+		body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
 		if err != nil {
 			fmt.Println(err)
 			return
@@ -155,33 +144,26 @@ func showDataCenterFloor(cmd *cobra.Command, args []string) {
 	} else {
 		if dcName != "" {
 			// show all datacenter floors
-			url = Conf.APIServer.URL + "/datacenter/name/" + dcName
-			body, err := sendRequest("GET", url, []byte{})
-			if err != nil {
-				fmt.Println(err)
+			dcs, _ := getDataCenters(map[string]string{"name": dcName})
+			if len(*dcs) == 0 {
+				fmt.Println("datacenter not found")
 				return
 			}
 			dc := new(model.DataCenter)
-			if err = json.Unmarshal(body, dc); err != nil {
-				fmt.Println("response parse error", err)
+			for _, d := range *dcs {
+				dc = &d
 			}
-			dcID := strconv.Itoa(int(dc.ID))
-			body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-			if err != nil {
-				fmt.Println(err)
+			floors, _ := getFloors(map[string]string{"dc": dc.Name})
+			if len(*floors) == 0 {
+				fmt.Println("floor not found")
 				return
 			}
-			data := new(model.Floors)
-			if err := json.Unmarshal(body, data); err != nil {
-				fmt.Println("response parse error:", err)
-				return
-			}
-			outputModel := model.Floors{}
-			for _, f := range *data {
+			output := model.Floors{}
+			for _, f := range *floors {
 				f.DataCenter = dc
-				outputModel = append(outputModel, f)
+				output = append(output, f)
 			}
-			outputModel.Write(cmd.Flag("output").Value.String())
+			output.Write(cmd.Flag("output").Value.String())
 		} else {
 			// show all datacenter floors
 			body, err := sendRequest("GET", url, []byte{})
@@ -223,7 +205,7 @@ func showDataCenterFloor(cmd *cobra.Command, args []string) {
 }
 
 func showDataCenterHall(cmd *cobra.Command, args []string) {
-	url := Conf.APIServer.URL + "/datacenter/hall"
+	//url := Conf.APIServer.URL + "/datacenter/hall"
 	dcName := cmd.Flag("dc").Value.String()
 	floorName := cmd.Flag("floor").Value.String()
 	if len(args) > 0 {
@@ -236,108 +218,42 @@ func showDataCenterHall(cmd *cobra.Command, args []string) {
 			fmt.Println("floor name is required for showing specific hall")
 			return
 		}
-		body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+		hall := new(model.Hall)
+		halls, err := getHalls(map[string]string{"dc": dcName, "floor": floorName, "name": args[0]})
 		if err != nil {
 			fmt.Println(err)
-			return
 		}
-		dc := new(model.DataCenter)
-		if err = json.Unmarshal(body, dc); err != nil {
-			fmt.Println("response parse error", err)
+		for _, h := range *halls {
+			floor, _ := getFloor(h.FloorID)
+			h.Floor = floor
+			hall = &h
 		}
-		dcID := strconv.Itoa(int(dc.ID))
-		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		data := new(model.Floors)
-		if err := json.Unmarshal(body, data); err != nil {
-			fmt.Println("response parse error:", err)
-			return
-		}
-		floor := model.Floor{}
-		for _, flr := range *data {
-			if flr.Name == floorName {
-				floor = flr
-			}
-		}
-		if floor.ID == 0 {
-			fmt.Println("floor not found")
-		}
-
-		fID := strconv.Itoa(int(floor.ID))
-		f := new(model.Floor)
-		body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/floor/"+fID, []byte{})
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		if err = json.Unmarshal(body, f); err != nil {
-			fmt.Println(err)
-			return
-		}
-		for _, h := range f.Halls {
-			if h.Name == args[0] {
-				h.Write(cmd.Flag("output").Value.String())
-			}
-		}
+		hall.Write(cmd.Flag("output").Value.String())
 	} else {
 		if dcName != "" {
 			// show all halls of specified datacenter
-			url = Conf.APIServer.URL + "/datacenter/name/" + dcName
-			body, err := sendRequest("GET", url, []byte{})
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			dc := new(model.DataCenter)
-			if err = json.Unmarshal(body, dc); err != nil {
-				fmt.Println("response parse error", err)
-			}
-			dcID := strconv.Itoa(int(dc.ID))
-			body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			data := new(model.Floors)
-			if err := json.Unmarshal(body, data); err != nil {
-				fmt.Println("response parse error:", err)
-				return
-			}
+			floors, _ := getFloors(map[string]string{"dc": dcName})
 			if floorName == "" {
 				halls := model.Halls{}
-				for _, f := range *data {
-					floor := new(model.Floor)
-					fID := strconv.Itoa(int(f.ID))
-					body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/floor/"+fID, []byte{})
-					if err != nil {
-						fmt.Println(err)
-						return
-					}
-					if err = json.Unmarshal(body, floor); err != nil {
-						fmt.Println(err)
-						return
-					}
-					if len(floor.Halls) > 0 {
-						for _, h := range floor.Halls {
-							h.Floor = floor
-							halls = append(halls, h)
-						}
+				for _, floor := range *floors {
+					flr := floor
+					hls, _ := getHalls(map[string]string{"dc": dcName, "floor": floor.Name})
+					for _, h := range *hls {
+						h.Floor = &flr
+						halls = append(halls, h)
 					}
 				}
 				halls.Write(cmd.Flag("output").Value.String())
 			} else {
 				floor := new(model.Floor)
-				for _, f := range *data {
+				for _, f := range *floors {
 					if f.Name == floorName {
 						floor = &f
 						break
 					}
 				}
 				fID := strconv.Itoa(int(floor.ID))
-				body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/floor/"+fID, []byte{})
+				body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/floor/"+fID, []byte{})
 				if err != nil {
 					fmt.Println(err)
 					return
@@ -355,39 +271,29 @@ func showDataCenterHall(cmd *cobra.Command, args []string) {
 			}
 		} else {
 			// show all datacenter halls
-			body, err := sendRequest("GET", url, []byte{})
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			data := new(model.Halls)
-			if err := json.Unmarshal(body, data); err != nil {
-				fmt.Println("response parse error:", err)
-				return
-			}
-			// get all floors
-			url = Conf.APIServer.URL + "/datacenter/floor"
-			body, err = sendRequest("GET", url, []byte{})
-			if err != nil {
-				fmt.Println(err)
-				return
-			}
-			floors := new(model.Floors)
-			if err := json.Unmarshal(body, floors); err != nil {
-				fmt.Println("response parse error:", err)
-				return
-			}
-			outputModel := model.Halls{}
-			for _, h := range *data {
-				floor, err := floors.Take(h.FloorID)
-				if err != nil {
-					fmt.Println(err)
-					return
+			if floorName != "" {
+				// TODO: get halls specifing only floor name
+				/*
+					floor, _ := getFloors(map[string]string{"name": floorName})
+					for _, f := range *floor {
+					}
+				*/
+			} else {
+				outputModel := model.Halls{}
+				dcs, _ := getDataCenters(map[string]string{})
+				for _, dc := range *dcs {
+					floors, _ := getFloors(map[string]string{"dc": dc.Name})
+					for _, floor := range *floors {
+						halls, _ := getHalls(map[string]string{"dc": dc.Name, "floor": floor.Name})
+						for _, hall := range *halls {
+							flr := floor
+							hall.Floor = &flr
+							outputModel = append(outputModel, hall)
+						}
+					}
 				}
-				h.Floor = floor
-				outputModel = append(outputModel, h)
+				outputModel.Write(cmd.Flag("output").Value.String())
 			}
-			outputModel.Write(cmd.Flag("output").Value.String())
 		}
 	}
 }
@@ -970,13 +876,11 @@ func createDataCenterFloor(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	// get datacenter
 	dcName := cmd.Flag("dc").Value.String()
-	body, err := sendRequest("GET", url+"/name/"+dcName, []byte{})
-	if err != nil {
-		return err
-	}
 	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error")
+	dcs, _ := getDataCenters(map[string]string{"name": dcName})
+	for _, d := range *dcs {
+		dc = &d
+		break
 	}
 	// prepare request floor model
 	reqModel := model.Floor{Name: args[0], DataCenterID: dc.ID}
@@ -1001,45 +905,20 @@ func createDataCenterHall(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	// get datacenter
 	dcName := cmd.Flag("dc").Value.String()
-	body, err := sendRequest("GET", url+"/name/"+dcName, []byte{})
-	if err != nil {
-		return err
-	}
-	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error")
-	}
-	// get datacenter floor
-	dcID := strconv.Itoa(int(dc.ID))
 	floorName := cmd.Flag("floor").Value.String()
-	body, err = sendRequest("GET", url+"/"+dcID+"/floor", []byte{})
-	if err != nil {
-		return err
-	}
-	floors := new(model.Floors)
-	if err = json.Unmarshal(body, floors); err != nil {
-		return fmt.Errorf("response parse error")
-	}
-	var floorID uint
-	for _, floor := range *floors {
-		if floor.Name == floorName {
-			floorID = floor.ID
-			break
-		}
-	}
-	if floorID == 0 {
+	floor := new(model.Floor)
+	floors, _ := getFloors(map[string]string{"dc": dcName, "name": floorName})
+	if len(*floors) == 0 {
 		return fmt.Errorf("floor not found")
+	} else if len(*floors) > 1 {
+		return fmt.Errorf("multiple floors are found")
 	}
-	// hall type
-	/*
-		hallType := cmd.Flag("type").Value.String()
-		if (hallType != "generic") && (hallType != "network") {
-			return fmt.Errorf("type must be 'network' or 'generic'")
-		}
-	*/
-
+	for _, f := range *floors {
+		floor = &f
+		break
+	}
 	// prepare request hall model
-	reqModel := model.Hall{Name: args[0], FloorID: floorID}
+	reqModel := model.Hall{Name: args[0], FloorID: floor.ID}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)
@@ -1150,13 +1029,11 @@ func createUPS(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	// get datacenter
 	dcName := cmd.Flag("dc").Value.String()
-	body, err := sendRequest("GET", url+"/name/"+dcName, []byte{})
-	if err != nil {
-		return err
-	}
 	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error")
+	dcs, _ := getDataCenters(map[string]string{"name": dcName})
+	for _, d := range *dcs {
+		dc = &d
+		break
 	}
 	// prepare request floor model
 	reqModel := model.UPS{Name: args[0], DataCenterID: dc.ID}
@@ -1382,40 +1259,23 @@ func updateDataCenter(cmd *cobra.Command, args []string) error {
 func updateDataCenterFloor(cmd *cobra.Command, args []string) error {
 	floorName := cmd.Flag("name").Value.String()
 	dcName := cmd.Flag("dc").Value.String()
-	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
-	if err != nil {
-		return err
-	}
-	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error: " + err.Error())
-	}
-	dcID := strconv.Itoa(int(dc.ID))
-	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-	if err != nil {
-		return err
-	}
-	data := new(model.Floors)
-	if err := json.Unmarshal(body, data); err != nil {
-		return fmt.Errorf("response parse error:" + err.Error())
-	}
-	floor := model.Floor{}
-	for _, flr := range *data {
-		if flr.Name == args[0] {
-			floor = flr
-		}
-	}
-	if floor.ID == 0 {
-		return fmt.Errorf("floor not found")
-	}
 	if floorName == "-" {
 		return fmt.Errorf("nothing to be updated")
+	}
+	floors, err := getFloors(map[string]string{"dc": dcName, "name": args[0]})
+	if err != nil {
+		return err
+	}
+	floor := new(model.Floor)
+	for _, f := range *floors {
+		floor = &f
+		break
 	}
 	floor.Name = floorName
 	reqJSON, _ := json.Marshal(floor)
 	floorID := strconv.Itoa(int(floor.ID))
 	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
-	body, err = sendRequest("PUT", url, reqJSON)
+	body, err := sendRequest("PUT", url, reqJSON)
 	if err != nil {
 		return err
 	}
@@ -1435,59 +1295,23 @@ func updateDataCenterHall(cmd *cobra.Command, args []string) error {
 	if hallName == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
-	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
+	hall := new(model.Hall)
+	halls, err := getHalls(map[string]string{"dc": dcName, "floor": floorName, "name": args[0]})
 	if err != nil {
 		return err
 	}
-
-	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error: " + err.Error())
-	}
-	dcID := strconv.Itoa(int(dc.ID))
-	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-	if err != nil {
-		return err
-	}
-	data := new(model.Floors)
-	if err := json.Unmarshal(body, data); err != nil {
-		return fmt.Errorf("response parse error:" + err.Error())
-	}
-	floor := model.Floor{}
-	for _, flr := range *data {
-		if flr.Name == floorName {
-			floor = flr
-			break
-		}
-	}
-	if floor.ID == 0 {
-		return fmt.Errorf("floor not found")
-	}
-	floorID := strconv.Itoa(int(floor.ID))
-	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
-	body, err = sendRequest("GET", url, []byte{})
-	if err != nil {
-		return err
-	}
-	f := new(model.Floor)
-	if err := json.Unmarshal(body, f); err != nil {
-		return fmt.Errorf("response parse error: " + err.Error())
-	}
-	hall := model.Hall{}
-	for _, h := range f.Halls {
-		if h.Name == args[0] {
-			hall = h
-			break
-		}
-	}
-	if hall.ID == 0 {
+	if len(*halls) == 0 {
 		return fmt.Errorf("hall not found")
+	}
+	for _, h := range *halls {
+		hall = &h
+		break
 	}
 	hall.Name = hallName
 	reqJSON, _ := json.Marshal(hall)
 	hallID := strconv.Itoa(int(hall.ID))
-	url = Conf.APIServer.URL + "/datacenter/hall/" + hallID
-	body, err = sendRequest("PUT", url, reqJSON)
+	url := Conf.APIServer.URL + "/datacenter/hall/" + hallID
+	body, err := sendRequest("PUT", url, reqJSON)
 	if err != nil {
 		return err
 	}
@@ -1729,30 +1553,13 @@ func deleteDataCenter(cmd *cobra.Command, args []string) error {
 
 func deleteDataCenterFloor(cmd *cobra.Command, args []string) error {
 	dcName := cmd.Flag("dc").Value.String()
-	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
-	if err != nil {
-		return err
+	floor := new(model.Floor)
+	floors, _ := getFloors(map[string]string{"dc": dcName, "name": args[0]})
+	for _, f := range *floors {
+		floor = &f
+		break
 	}
-	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error: " + err.Error())
-	}
-	dcID := strconv.Itoa(int(dc.ID))
-	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-	if err != nil {
-		return err
-	}
-	data := new(model.Floors)
-	if err := json.Unmarshal(body, data); err != nil {
-		return fmt.Errorf("response parse error:" + err.Error())
-	}
-	floor := model.Floor{}
-	for _, flr := range *data {
-		if flr.Name == args[0] {
-			floor = flr
-		}
-	}
-	if floor.ID == 0 {
+	if len(*floors) == 0 {
 		return fmt.Errorf("floor not found")
 	}
 	floorID := strconv.Itoa(int(floor.ID))
@@ -1773,56 +1580,17 @@ func deleteDataCenterFloor(cmd *cobra.Command, args []string) error {
 func deleteDataCenterHall(cmd *cobra.Command, args []string) error {
 	dcName := cmd.Flag("dc").Value.String()
 	floorName := cmd.Flag("floor").Value.String()
-	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/name/"+dcName, []byte{})
-	if err != nil {
-		return err
+	hall := new(model.Hall)
+	halls, _ := getHalls(map[string]string{"dc": dcName, "floor": floorName, "name": args[0]})
+	for _, h := range *halls {
+		hall = &h
+		break
 	}
-	dc := new(model.DataCenter)
-	if err = json.Unmarshal(body, dc); err != nil {
-		return fmt.Errorf("response parse error: " + err.Error())
-	}
-	dcID := strconv.Itoa(int(dc.ID))
-	body, err = sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-	if err != nil {
-		return err
-	}
-	data := new(model.Floors)
-	if err := json.Unmarshal(body, data); err != nil {
-		return fmt.Errorf("response parse error:" + err.Error())
-	}
-	floor := model.Floor{}
-	for _, flr := range *data {
-		if flr.Name == floorName {
-			floor = flr
-		}
-	}
-	if floor.ID == 0 {
-		return fmt.Errorf("floor not found")
-	}
-	floorID := strconv.Itoa(int(floor.ID))
-	url := Conf.APIServer.URL + "/datacenter/floor/" + floorID
-
-	f := new(model.Floor)
-	body, err = sendRequest("GET", url, []byte{})
-	if err != nil {
-		return err
-	}
-	if err := json.Unmarshal(body, f); err != nil {
-		return err
-	}
-
-	hall := model.Hall{}
-	for _, h := range f.Halls {
-		if h.Name == args[0] {
-			hall = h
-			break
-		}
-	}
-	if hall.ID == 0 {
+	if len(*halls) == 0 {
 		return fmt.Errorf("hall not found")
 	}
 	hallID := strconv.Itoa(int(hall.ID))
-	url = Conf.APIServer.URL + "/datacenter/hall/" + hallID
+	url := Conf.APIServer.URL + "/datacenter/hall/" + hallID
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
@@ -2026,6 +1794,23 @@ func getDataCenter(id uint) (*model.DataCenter, error) {
 	}
 
 	return dc, nil
+}
+
+func getDataCenters(query map[string]string) (*model.DataCenters, error) {
+	dcs := new(model.DataCenters)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter?"+queryString, []byte{})
+	if err != nil {
+		return dcs, err
+	}
+	if err := json.Unmarshal(body, dcs); err != nil {
+		return dcs, fmt.Errorf("response parse error")
+	}
+
+	return dcs, nil
 }
 
 func getFloor(id uint) (*model.Floor, error) {
