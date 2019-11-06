@@ -48,19 +48,6 @@ func GetDataCenter(c echo.Context) error {
 	return c.JSON(http.StatusOK, dc)
 }
 
-/*
-// GetDataCenterByName returns specified host information.
-func GetDataCenterByName(c echo.Context) error {
-	dc := new(model.DataCenter)
-	db := db.GetDB()
-	if result := db.Take(&dc, "name=?", c.Param("name")); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
-	}
-
-	return c.JSON(http.StatusOK, dc)
-}
-*/
-
 // CreateDataCenter creates a new data center.
 func CreateDataCenter(c echo.Context) error {
 	dc := new(model.DataCenter)
@@ -137,26 +124,6 @@ func GetAllDataCenterFloors(c echo.Context) error {
 	return c.JSON(http.StatusOK, flrs)
 }
 
-// GetDataCenterFloorsByDC returns datacenter floors of specified datacenter.
-func GetDataCenterFloorsByDC(c echo.Context) error {
-	id, err := strconv.Atoi(c.Param("id"))
-	if err != nil {
-		return c.JSON(http.StatusBadRequest, returnError("parse dc id error"))
-	}
-	dc := new(model.DataCenter)
-	db := db.GetDB()
-	if result := db.Take(&dc, "id=?", id); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
-	}
-
-	flrs := new(model.Floors)
-	if result := db.Find(&flrs, "data_center_id=?", dc.ID); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, returnError("database error"))
-	}
-
-	return c.JSON(http.StatusOK, flrs)
-}
-
 // GetDataCenterFloor returns specified datacenter floor.
 func GetDataCenterFloor(c echo.Context) error {
 	id, err := strconv.Atoi(c.Param("id"))
@@ -172,18 +139,6 @@ func GetDataCenterFloor(c echo.Context) error {
 	halls := new([]model.Hall)
 	if db.Find(&halls, "floor_id=?", flr.ID).RecordNotFound() == false {
 		flr.Halls = *halls
-	}
-
-	return c.JSON(http.StatusOK, flr)
-}
-
-// GetDataCenterFloorByName returns specified datacenter floor.
-func GetDataCenterFloorByName(c echo.Context) error {
-	name, _ := strconv.Atoi(c.Param("name"))
-	flr := new(model.Floor)
-	db := db.GetDB()
-	if result := db.Take(&flr, "name=?", name); result.Error != nil {
-		return c.JSON(http.StatusBadRequest, returnError("floor not found"))
 	}
 
 	return c.JSON(http.StatusOK, flr)
