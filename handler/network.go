@@ -198,6 +198,7 @@ func GetIPv4Allocations(c echo.Context) error {
 	allocs := new(model.IPv4Allocations)
 	cidr := c.QueryParam("cidr")
 	address := c.QueryParam("address")
+	name := c.QueryParam("name")
 	networks := new(model.IPv4Networks)
 	if cidr != "" {
 		db.Find(networks, "c_id_r=?", cidr)
@@ -214,8 +215,11 @@ func GetIPv4Allocations(c echo.Context) error {
 	} else if address != "" {
 		db.Find(allocs, "address=?", address)
 		return c.JSON(http.StatusOK, allocs)
+	} else if name != "" {
+		db.Find(allocs, "name=?", name)
+		return c.JSON(http.StatusOK, allocs)
 	} else {
-		return c.JSON(http.StatusBadRequest, returnError("query 'cidr' or 'address' is required"))
+		return c.JSON(http.StatusBadRequest, returnError("query 'cidr', 'address' or 'name' is required"))
 	}
 }
 

@@ -60,6 +60,23 @@ func showHost(cmd *cobra.Command, args []string) {
 			}
 			host.Group = group
 		}
+		networks := map[uint]model.IPv4Network{}
+		allocs, _ := getIPv4Allocations(map[string]string{"name": host.Name})
+		resAllocs := new(model.IPv4Allocations)
+		if len(*allocs) > 0 {
+			for _, alloc := range *allocs {
+				if network, ok := networks[alloc.IPv4NetworkID]; ok {
+					alloc.IPv4Network = &network
+				} else {
+					nw, _ := getNetwork(alloc.IPv4NetworkID)
+					networks[alloc.IPv4NetworkID] = *nw
+					alloc.IPv4Network = nw
+				}
+				*resAllocs = append(*resAllocs, alloc)
+			}
+			host.IPv4Allocations = *resAllocs
+		}
+
 		host.Write(cmd.Flag("output").Value.String())
 	} else {
 		location := cmd.Flag("location").Value.String()

@@ -34,11 +34,13 @@ func (h Host) Write(output string) {
 		fmt.Printf(" Group:          %v\n", h.Group.Name)
 		fmt.Printf(" RackLocation:   %v\n", h.Rack.GetLocationPath())
 		fmt.Printf(" Description:    %v\n\n", h.Description)
+		fmt.Println("# IP Allocations")
 		if h.IPv4Allocations.Len() > 0 {
-			fmt.Println("# IP Allocations")
 			for _, a := range h.IPv4Allocations {
-				fmt.Printf(" %-15v %v\n", a.Address, a.Description)
+				fmt.Printf(" %-15v %-15v %v\n", a.IPv4Network.CIDR, a.Address, a.Description)
 			}
+		} else {
+			fmt.Println(" allocation not found")
 		}
 	}
 }

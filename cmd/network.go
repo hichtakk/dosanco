@@ -415,9 +415,9 @@ func getIPv4Allocations(query map[string]string) (*model.IPv4Allocations, error)
 	if err := json.Unmarshal(body, allocs); err != nil {
 		return allocs, fmt.Errorf("response parse error")
 	}
-	if len(*allocs) == 0 {
-		return allocs, fmt.Errorf("no allocation found")
-	}
+	//if len(*allocs) == 0 {
+	//	return allocs, fmt.Errorf("no allocation found")
+	//}
 
 	return allocs, nil
 }
