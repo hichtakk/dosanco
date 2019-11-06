@@ -110,37 +110,16 @@ func showDataCenterFloor(cmd *cobra.Command, args []string) {
 			fmt.Println("datacenter name is required for showing specific floor")
 			return
 		}
-		dcs, _ := getDataCenters(map[string]string{"name": args[0]})
-		if len(*dcs) == 0 {
-			fmt.Println("datacenter not found")
-			return
+		floor := new(model.Floor)
+		floors, _ := getFloors(map[string]string{"dc": dcName, "name": args[0]})
+		if len(*floors) == 0 {
+			fmt.Println(fmt.Sprintf("floor '%v' not found at '%v'", args[0], dcName))
 		}
-		dc := new(model.DataCenter)
-		for _, d := range *dcs {
-			dc = &d
+		for _, f := range *floors {
+			floor = &f
+			break
 		}
-		dcID := strconv.Itoa(int(dc.ID))
-		body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/"+dcID+"/floor", []byte{})
-		if err != nil {
-			fmt.Println(err)
-			return
-		}
-		data := new(model.Floors)
-		if err := json.Unmarshal(body, data); err != nil {
-			fmt.Println("response parse error:", err)
-			return
-		}
-		floor := model.Floor{}
-		for _, flr := range *data {
-			if flr.Name == args[0] {
-				floor = flr
-			}
-		}
-		if floor.ID != 0 {
-			floor.Write(cmd.Flag("output").Value.String())
-		} else {
-			fmt.Println("floor not found")
-		}
+		floor.Write(cmd.Flag("output").Value.String())
 	} else {
 		if dcName != "" {
 			// show all datacenter floors

@@ -7,6 +7,10 @@ import (
 )
 
 func setRoute(e *echo.Echo) {
+	/*
+	 * Network
+	 */
+
 	// routing network
 	e.GET("/network", handler.GetAllNetwork)
 	e.POST("/network", handler.CreateIPv4Network)
@@ -14,15 +18,21 @@ func setRoute(e *echo.Echo) {
 	e.PUT("/network/:id", handler.UpdateIPv4Network)
 	e.DELETE("/network/:id", handler.DeleteIPv4Network)
 
+	// routing ipv4 allocation
 	e.GET("/ip/v4", handler.GetIPv4Allocations)
 	e.POST("/ip/v4", handler.CreateIPv4Allocation)
 	e.PUT("/ip/v4/:allocation_id", handler.UpdateIPv4Allocation)
 	e.DELETE("/ip/v4/:allocation_id", handler.DeleteIPv4Allocation)
 
+	// routing vlan
 	e.GET("/vlan", handler.GetAllVlan)
 	e.POST("/vlan", handler.CreateVlan)
 	e.PUT("/vlan/:id", handler.UpdateVlan)
 	e.DELETE("/vlan/:id", handler.DeleteVlan)
+
+	/*
+	 * Host
+	 */
 
 	// routing host
 	e.GET("/host", handler.GetHosts)
@@ -38,19 +48,20 @@ func setRoute(e *echo.Echo) {
 	e.PUT("/host/group/:id", handler.UpdateHostGroup)
 	e.DELETE("/host/group/:id", handler.DeleteHostGroup)
 
+	/*
+	 * DataCenter
+	 */
+
 	// routing datacenter
 	e.GET("/datacenter", handler.GetDataCenters)
 	e.GET("/datacenter/:id", handler.GetDataCenter)
 	e.POST("/datacenter", handler.CreateDataCenter)
 	e.PUT("/datacenter/:id", handler.UpdateDataCenter)
 	e.DELETE("/datacenter/:id", handler.DeleteDataCenter)
-	//e.GET("/datacenter/name/:name", handler.GetDataCenterByName)
 
 	// datacenter floor
 	e.GET("/datacenter/floor", handler.GetAllDataCenterFloors)
-	//e.GET("/datacenter/:id/floor", handler.GetDataCenterFloorsByDC)
 	e.GET("/datacenter/floor/:id", handler.GetDataCenterFloor)
-	//e.GET("/datacenter/floor/name/:name", handler.GetDataCenterFloorByName)
 	e.POST("/datacenter/floor", handler.CreateDataCenterFloor)
 	e.PUT("/datacenter/floor/:id", handler.UpdateDataCenterFloor)
 	e.DELETE("/datacenter/floor/:id", handler.DeleteDataCenterFloor)
@@ -76,7 +87,6 @@ func setRoute(e *echo.Echo) {
 	e.PUT("/datacenter/rack/:id", handler.UpdateRack)
 	e.DELETE("/datacenter/rack/:id", handler.DeleteRack)
 
-	// datacenter power
 	// routing UPS
 	e.GET("/datacenter/ups", handler.GetUPSs)
 	e.GET("/datacenter/ups/:id", handler.GetUPS)
