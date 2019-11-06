@@ -158,7 +158,7 @@ func CreateDataCenterFloor(c echo.Context) error {
 	if result := db.Create(&floor); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
-	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("floor created. ID: %d, Address: %s", floor.ID, floor.Name)))
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("floor created. ID: %d, Name: %s", floor.ID, floor.Name)))
 }
 
 // UpdateDataCenterFloor updates specified datacenter floor information.
