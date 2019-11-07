@@ -2,7 +2,7 @@ Dosanco
 =======
 
 [![Build Status](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)](https://github.com/hichikaw/dosanco/actions?workflow=Build)
-[![container repository](https://img.shields.io/badge/docker-v0.0.3-blue)](https://hub.docker.com/r/hichtakk/dosanco/)
+[![container repository](https://img.shields.io/badge/docker-v0.1.0-blue)](https://hub.docker.com/r/hichtakk/dosanco/tags)
 
 **Dosanco**: Simple DataCenter infrastructure database.
 
@@ -19,9 +19,9 @@ Dosanco manages these entities as follows.
 - IP address allocations
 - VLANs
 
-### Node
-- Node
-- Node Group
+### Host
+- Host
+- Group
 
 ### DataCenter
 - Data Center
@@ -69,9 +69,10 @@ $ dosanco ${SUBCOMMAND} ${RESOURCE} [arguments/options]
 # example 1: display data center information
 $ dosanco show datacenter
 Name            Address
-EMT             1640 Riverside Drive, Hill Valley, CA
-AHQ             890 Fifth Avenue, Manhattan, NY
+BTF             1640 Riverside Drive, Hill Valley, CA
 JKR             1165 Shakespeare Ave, The Bronx, NY
+AVE             890 Fifth Avenue, Manhattan, NY
+HRRY            Platform 9 3/4
 ```
 
 ```

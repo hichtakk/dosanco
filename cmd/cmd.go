@@ -7,7 +7,7 @@ import (
 	"github.com/spf13/cobra"
 )
 
-const version = "v0.0.3"
+const version = "v0.1.0"
 
 var revision = ""
 
@@ -56,6 +56,6 @@ func newRootCmd() *cobra.Command {
 	return &cobra.Command{
 		Use:   "dosanco",
 		Short: "dosanco command-line client",
-		Long:  "dosanco controls Dosanco infrastructure database \U0001f434",
+		Long:  "Dosanco: Simple infrastructure database \U0001f434",
 	}
 }
