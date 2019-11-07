@@ -26,8 +26,10 @@ var Conf Config
 // This is called by main.main(). It only needs to happen once to the rootCmd.
 func Execute() {
 	if err := rootCmd.Execute(); err != nil {
-		fmt.Println(err)
+		//fmt.Printf("\033[31m" + err.Error() + "\033[0m\n")
+		fmt.Printf("\033[31m" + err.Error() + "\n")
 		os.Exit(255)
+		fmt.Printf("\033[0m\n")
 	}
 }
 
@@ -43,7 +45,7 @@ func init() {
 		NewCmdConfig(),
 	)
 	homedir := os.Getenv("HOME")
-	rootCmd.SilenceUsage = false
+	rootCmd.SilenceUsage = true
 	rootCmd.SilenceErrors = true
 	rootCmd.PersistentFlags().StringVarP(&flagConfig, "config", "c", homedir+"/.dosanco.json", "configuration file")
 	rootCmd.PersistentFlags().StringVarP(&output, "output", "o", "default", "output style [default,json]")

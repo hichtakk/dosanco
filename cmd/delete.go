@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -32,11 +34,17 @@ func NewCmdDelete() *cobra.Command {
 // NewCmdDeleteNetwork is subcommand represents delete network resource.
 func NewCmdDeleteNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
-		Use:     "network [CIDR]",
+		Use:     "network ${CIDR}",
 		Aliases: []string{"net", "nw"},
 		Short:   "delete network description",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteNetwork,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("cidr style network is required 'XXX.XXX.XXX.XXX/XX'")
+			}
+			return nil
+		},
+		RunE: deleteNetwork,
 	}
 
 	return networkCmd
@@ -45,11 +53,17 @@ func NewCmdDeleteNetwork() *cobra.Command {
 // NewCmdDeleteIPAllocation is subcommand represents delete ip allocation resource.
 func NewCmdDeleteIPAllocation() *cobra.Command {
 	var ipCmd = &cobra.Command{
-		Use:     "ip [ADDRESS]",
+		Use:     "ip ${ADDRESS}",
 		Aliases: []string{"ip-alloc"},
 		Short:   "delete new ip allocation",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteIPAllocation,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("ip address is required 'XXX.XXX.XXX.XXX'")
+			}
+			return nil
+		},
+		RunE: deleteIPAllocation,
 	}
 
 	return ipCmd
@@ -58,11 +72,17 @@ func NewCmdDeleteIPAllocation() *cobra.Command {
 // NewCmdDeleteVlan is subcommand represents delete vlan resource.
 func NewCmdDeleteVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
+		Use:     "vlan ${VLAN_ID}",
 		Aliases: []string{"vlan"},
 		Short:   "delete vlan",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteVlan,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("vlan id is required")
+			}
+			return nil
+		},
+		RunE: deleteVlan,
 	}
 
 	return vlanCmd
@@ -71,11 +91,17 @@ func NewCmdDeleteVlan() *cobra.Command {
 // NewCmdDeleteHost is subcommand represents delete vlan resource.
 func NewCmdDeleteHost() *cobra.Command {
 	var hostCmd = &cobra.Command{
-		Use:     "host [NAME]",
+		Use:     "host ${NAME}",
 		Aliases: []string{"server"},
 		Short:   "delete host",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteHost,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("hostname is required")
+			}
+			return nil
+		},
+		RunE: deleteHost,
 	}
 
 	return hostCmd
@@ -84,10 +110,16 @@ func NewCmdDeleteHost() *cobra.Command {
 // NewCmdDeleteHostGroup is subcommand represents delete vlan resource.
 func NewCmdDeleteHostGroup() *cobra.Command {
 	var groupCmd = &cobra.Command{
-		Use:   "group [NAME]",
+		Use:   "group ${NAME}",
 		Short: "delete host-group",
-		Args:  cobra.ExactArgs(1),
-		RunE:  deleteHostGroup,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("group is required")
+			}
+			return nil
+		},
+		RunE: deleteHostGroup,
 	}
 
 	return groupCmd
@@ -96,11 +128,17 @@ func NewCmdDeleteHostGroup() *cobra.Command {
 // NewCmdDeleteDataCenter is subcommand represents delete datacenter resource.
 func NewCmdDeleteDataCenter() *cobra.Command {
 	var dcCmd = &cobra.Command{
-		Use:     "datacenter",
+		Use:     "datacenter ${DC_NAME}",
 		Aliases: []string{"dc"},
 		Short:   "delete datacenter",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteDataCenter,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: deleteDataCenter,
 	}
 
 	return dcCmd
@@ -110,13 +148,23 @@ func NewCmdDeleteDataCenter() *cobra.Command {
 func NewCmdDeleteDataCenterFloor() *cobra.Command {
 	var dc string
 	var flrCmd = &cobra.Command{
-		Use:     "floor",
+		Use:     "floor ${FLOOR_NAME} --dc ${DC_NAME}",
 		Aliases: []string{"dc-floor"},
 		Short:   "delete datacenter floor",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteDataCenterFloor,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: deleteDataCenterFloor,
 	}
-	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	flrCmd.MarkFlagRequired("dc")
 
 	return flrCmd
@@ -127,14 +175,28 @@ func NewCmdDeleteDataCenterHall() *cobra.Command {
 	var dc string
 	var floor string
 	var hallCmd = &cobra.Command{
-		Use:     "hall",
+		Use:     "hall ${HALL_NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME}",
 		Aliases: []string{"dc-hall"},
 		Short:   "delete datacenter hall",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteDataCenterHall,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			return nil
+		},
+		RunE: deleteDataCenterHall,
 	}
-	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
 	hallCmd.MarkFlagRequired("dc")
 	hallCmd.MarkFlagRequired("floor")
 
@@ -147,15 +209,33 @@ func NewCmdDeleteRackRow() *cobra.Command {
 	var floor string
 	var hall string
 	var rowCmd = &cobra.Command{
-		Use:     "row",
+		Use:     "row ${ROW_NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME} --hall ${HALL_NAME}",
 		Aliases: []string{"rack-row"},
 		Short:   "delete rack row",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteRackRow,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("row name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if hall == "" {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			return nil
+		},
+		RunE: deleteRackRow,
 	}
-	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall")
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
+	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall [REQUIRED]")
 	rowCmd.MarkFlagRequired("dc")
 	rowCmd.MarkFlagRequired("floor")
 	rowCmd.MarkFlagRequired("hall")
@@ -170,16 +250,38 @@ func NewCmdDeleteRack() *cobra.Command {
 	var hall string
 	var row string
 	var rackCmd = &cobra.Command{
-		Use:     "rack [RACK_NAME]",
+		Use:     "rack ${RACK_NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME} --hall ${HALL_NAME} --row ${ROW_NAME}",
 		Aliases: []string{"rack-row"},
 		Short:   "delete rack row",
-		Args:    cobra.ExactArgs(1),
-		RunE:    deleteRack,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("rack name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if hall == "" {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			if row == "" {
+				cmd.Help()
+				return fmt.Errorf("row name is required")
+			}
+			return nil
+		},
+		RunE: deleteRack,
 	}
-	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall")
-	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
+	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
+	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall [REQUIRED]")
+	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row [REQUIRED]")
 	rackCmd.MarkFlagRequired("dc")
 	rackCmd.MarkFlagRequired("floor")
 	rackCmd.MarkFlagRequired("hall")
@@ -192,12 +294,22 @@ func NewCmdDeleteRack() *cobra.Command {
 func NewCmdDeleteUPS() *cobra.Command {
 	var dc string
 	var upsCmd = &cobra.Command{
-		Use:   "ups [RACK_NAME]",
+		Use:   "ups ${UPS_NAME} --dc ${DC_NAME}",
 		Short: "delete ups",
-		Args:  cobra.ExactArgs(1),
-		RunE:  deleteUPS,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("ups name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: deleteUPS,
 	}
-	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	upsCmd.MarkFlagRequired("dc")
 
 	return upsCmd
@@ -207,12 +319,22 @@ func NewCmdDeleteUPS() *cobra.Command {
 func NewCmdDeletePDU() *cobra.Command {
 	var dc string
 	var pduCmd = &cobra.Command{
-		Use:   "row-pdu [PDU_NAME]",
+		Use:   "row-pdu ${PDU_NAME} --dc ${DC_NAME}",
 		Short: "delete row-pdu",
-		Args:  cobra.ExactArgs(1),
-		RunE:  deletePDU,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("row-pdu name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: deletePDU,
 	}
-	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.MarkFlagRequired("dc")
 
 	return pduCmd
@@ -222,12 +344,18 @@ func NewCmdDeletePDU() *cobra.Command {
 func NewCmdDeleteRackPDU() *cobra.Command {
 	var dc string
 	var pduCmd = &cobra.Command{
-		Use:   "rack-pdu [RACK_PDU_NAME]",
+		Use:   "rack-pdu ${RACK_PDU_NAME} --dc ${DC_NAME}",
 		Short: "delete rack-pdu",
-		Args:  cobra.ExactArgs(1),
-		RunE:  deleteRackPDU,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("rack-pdu name is required")
+			}
+			return nil
+		},
+		RunE: deleteRackPDU,
 	}
-	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.MarkFlagRequired("dc")
 
 	return pduCmd

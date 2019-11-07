@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -32,12 +34,18 @@ func NewCmdCreate() *cobra.Command {
 // NewCmdCreateNetwork is subcommand represents network resource.
 func NewCmdCreateNetwork() *cobra.Command {
 	var networkCmd = &cobra.Command{
-		Use:     "network [CIDR]",
+		Use:     "network ${CIDR}",
 		Aliases: []string{"net", "nw"},
 		Short:   "create new network",
 		Long:    "create new network",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createNetwork,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("cidr style network is required 'XXX.XXX.XXX.XXX/XX'")
+			}
+			return nil
+		},
+		RunE: createNetwork,
 	}
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
 
@@ -50,15 +58,21 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 	var network string
 	var allocType string
 	var ipCmd = &cobra.Command{
-		Use:     "ip [ADDRESS]",
+		Use:     "ip ${IP_ADDRESS} --name ${NAME} --network ${CIDR}",
 		Aliases: []string{"ip-alloc"},
 		Short:   "create new ip allocation",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createIPAllocation,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("ip address is required 'XXX.XXX.XXX.XXX'")
+			}
+			return nil
+		},
+		RunE: createIPAllocation,
 	}
-	ipCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested ip allocation")
-	ipCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address")
-	ipCmd.Flags().StringVarP(&network, "network", "", "", "network CIDR for the ip address")
+	ipCmd.Flags().StringVarP(&description, "description", "d", "", "description for the requested ip allocation")
+	ipCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address. [REQUIRED] in case allocation type is generic.")
+	ipCmd.Flags().StringVarP(&network, "network", "", "", "network CIDR for the ip address. [REQUIRED]")
 	ipCmd.Flags().StringVarP(&allocType, "type", "t", "generic", "type of address. use 'reserved' or 'generic'")
 	ipCmd.MarkFlagRequired("network")
 
@@ -67,15 +81,24 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 
 // NewCmdCreateVlan is subcommand represents vlan resource.
 func NewCmdCreateVlan() *cobra.Command {
-	var cidr string
+	var network string
 	var vlanCmd = &cobra.Command{
-		Use:     "vlan",
-		Aliases: []string{"vl"},
-		Short:   "create new vlan",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createVlan,
+		Use:   "vlan ${VLAN_ID} --network XXX.XXX.XXX.XXX/XX",
+		Short: "create new vlan",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("vlan id is required")
+			}
+			if network == "" {
+				cmd.Help()
+				return fmt.Errorf("network cidr for the vlan is required")
+			}
+			return nil
+		},
+		RunE: createVlan,
 	}
-	vlanCmd.Flags().StringVarP(&cidr, "cidr", "", "", "network cidr of the requested vlan")
+	vlanCmd.Flags().StringVarP(&network, "network", "", "", "network cidr of the requested vlan [REQUIRED]")
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
 	vlanCmd.MarkFlagRequired("cidr")
 
@@ -87,15 +110,21 @@ func NewCmdCreateHost() *cobra.Command {
 	var location string
 	var group string
 	var hostCmd = &cobra.Command{
-		Use:     "host",
-		Aliases: []string{"server"},
+		Use:     "host ${NAME} --group ${GROUP}",
+		Aliases: []string{"server", "node"},
 		Short:   "create new host",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createHost,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("hostname is required")
+			}
+			return nil
+		},
+		RunE: createHost,
 	}
 	hostCmd.Flags().StringVarP(&location, "location", "l", "", "location of host installed. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
 	hostCmd.Flags().StringVarP(&description, "description", "d", "", "description of the host")
-	hostCmd.Flags().StringVarP(&group, "group", "g", "", "group of the host")
+	hostCmd.Flags().StringVarP(&group, "group", "g", "", "group of the host [REQUIRED]")
 	hostCmd.MarkFlagRequired("group")
 
 	return hostCmd
@@ -104,10 +133,16 @@ func NewCmdCreateHost() *cobra.Command {
 // NewCmdCreateHostGroup is subcommand represents vlan resource.
 func NewCmdCreateHostGroup() *cobra.Command {
 	var groupCmd = &cobra.Command{
-		Use:   "group [NAME]",
+		Use:   "group ${NAME}",
 		Short: "create new host group",
-		Args:  cobra.ExactArgs(1),
-		RunE:  createHostGroup,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("group is required")
+			}
+			return nil
+		},
+		RunE: createHostGroup,
 	}
 	groupCmd.Flags().StringVarP(&description, "description", "d", "", "name of host group")
 
@@ -118,11 +153,17 @@ func NewCmdCreateHostGroup() *cobra.Command {
 func NewCmdCreateDataCenter() *cobra.Command {
 	var address string
 	var dcCmd = &cobra.Command{
-		Use:     "datacenter",
+		Use:     "datacenter ${NAME}",
 		Aliases: []string{"dc"},
 		Short:   "create new datacenter",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createDataCenter,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: createDataCenter,
 	}
 	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of data center")
 	dcCmd.MarkFlagRequired("address")
@@ -134,13 +175,23 @@ func NewCmdCreateDataCenter() *cobra.Command {
 func NewCmdCreateDataCenterFloor() *cobra.Command {
 	var dc string
 	var flrCmd = &cobra.Command{
-		Use:     "floor",
+		Use:     "floor ${NAME} --dc ${DC_NAME}",
 		Aliases: []string{"dc-floor", "area"},
 		Short:   "create new floor to datacenter",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createDataCenterFloor,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: createDataCenterFloor,
 	}
-	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	flrCmd.MarkFlagRequired("dc")
 
 	return flrCmd
@@ -150,20 +201,31 @@ func NewCmdCreateDataCenterFloor() *cobra.Command {
 func NewCmdCreateDataCenterHall() *cobra.Command {
 	var dc string
 	var floor string
-	//var hallType string
 	var hallCmd = &cobra.Command{
-		Use:     "hall",
+		Use:     "hall ${NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME}",
 		Aliases: []string{"dc-hall"},
 		Short:   "create new hall to datacenter floor",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createDataCenterHall,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			return nil
+		},
+		RunE: createDataCenterHall,
 	}
-	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	//hallCmd.Flags().StringVarP(&hallType, "type", "", "", "type of data hall (network/generic)")
+	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
 	hallCmd.MarkFlagRequired("dc")
 	hallCmd.MarkFlagRequired("floor")
-	//hallCmd.MarkFlagRequired("type")
 
 	return hallCmd
 }
@@ -174,15 +236,33 @@ func NewCmdCreateRackRow() *cobra.Command {
 	var floor string
 	var hall string
 	var rowCmd = &cobra.Command{
-		Use:     "row",
+		Use:     "row ${NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME} --hall ${HALL_NAME}",
 		Aliases: []string{"rack-row"},
 		Short:   "create new hall to datacenter floor",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createRackRow,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("row name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if hall == "" {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			return nil
+		},
+		RunE: createRackRow,
 	}
-	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
+	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall [REQUIRED]")
 	rowCmd.MarkFlagRequired("dc")
 	rowCmd.MarkFlagRequired("floor")
 	rowCmd.MarkFlagRequired("hall")
@@ -197,16 +277,38 @@ func NewCmdCreateRack() *cobra.Command {
 	var hall string
 	var row string
 	var rackCmd = &cobra.Command{
-		Use:     "rack [RACK_NAME]",
+		Use:     "rack ${RACK_NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME} --hall ${HALL_NAME} --row ${ROW_NAME}",
 		Aliases: []string{""},
 		Short:   "create new rack to row",
-		Args:    cobra.ExactArgs(1),
-		RunE:    createRack,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("rack name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if hall == "" {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			if row == "" {
+				cmd.Help()
+				return fmt.Errorf("row name is required")
+			}
+			return nil
+		},
+		RunE: createRack,
 	}
-	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
-	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of row")
+	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
+	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall [REQUIRED]")
+	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of row [REQUIRED]")
 	rackCmd.MarkFlagRequired("dc")
 	rackCmd.MarkFlagRequired("floor")
 	rackCmd.MarkFlagRequired("hall")
@@ -219,12 +321,22 @@ func NewCmdCreateRack() *cobra.Command {
 func NewCmdCreateUPS() *cobra.Command {
 	var dc string
 	var upsCmd = &cobra.Command{
-		Use:   "ups",
+		Use:   "ups ${UPS_NAME} --dc ${DC_NAME}",
 		Short: "create new ups",
-		Args:  cobra.ExactArgs(1),
-		RunE:  createUPS,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("ups name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: createUPS,
 	}
-	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	upsCmd.MarkFlagRequired("dc")
 
 	return upsCmd
@@ -236,13 +348,27 @@ func NewCmdCreatePDU() *cobra.Command {
 	var primary string
 	var secondary string
 	var pduCmd = &cobra.Command{
-		Use:   "row-pdu",
+		Use:   "row-pdu ${ROW_PDU_NAME} --dc ${DC_NAME} --primary ${UPS_NAME} [--secondary ${UPS_NAME}]",
 		Short: "create new row-pdu",
-		Args:  cobra.ExactArgs(1),
-		RunE:  createPDU,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("row-pdu name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if primary == "" {
+				cmd.Help()
+				return fmt.Errorf("primary ups name is required")
+			}
+			return nil
+		},
+		RunE: createPDU,
 	}
-	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source [REQUIRED]")
 	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "", "name of secondary power source")
 	pduCmd.MarkFlagRequired("dc")
 	pduCmd.MarkFlagRequired("primary")
@@ -252,29 +378,39 @@ func NewCmdCreatePDU() *cobra.Command {
 
 // NewCmdCreateRackPDU is subcommand represents pdu resource.
 func NewCmdCreateRackPDU() *cobra.Command {
-	var dc string
-	var floor string
-	var hall string
-	var row string
-	var rack string
+	var location string
 	var primary string
 	var secondary string
 	var group string
 	var pduCmd = &cobra.Command{
-		Use:   "rack-pdu",
+		Use:   "rack-pdu ${RACK_PDU_NAME} --location ${LOCATION_PATH} --group ${GROUP_NAME} --primary ${ROW_PDU_NAME} [--secondary ${ROW_PDU_NAME}]",
 		Short: "create new rack-pdu",
 		Long:  `create new rack-pdu dosanco create rack-pdu --dc DC1 --primary ROW-PDU-1 rack-pdu01.dosanco`,
-		Args:  cobra.ExactArgs(1),
-		RunE:  createRackPDU,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("rack-pdu name is required")
+			}
+			if location == "" {
+				cmd.Help()
+				return fmt.Errorf("location path is required")
+			}
+			if group == "" {
+				cmd.Help()
+				return fmt.Errorf("group name is required")
+			}
+			if primary == "" {
+				cmd.Help()
+				return fmt.Errorf("primary row-pdu name is required")
+			}
+			return nil
+		},
+		RunE: createRackPDU,
 	}
-	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	pduCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	pduCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall")
-	pduCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
-	pduCmd.Flags().StringVarP(&rack, "rack", "", "", "name of rack")
-	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")
+	pduCmd.Flags().StringVarP(&location, "location", "l", "", "location of host installed. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
+	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source [REQUIRED]")
 	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "", "name of secondary power source")
-	pduCmd.Flags().StringVarP(&group, "group", "", "", "name of host group")
+	pduCmd.Flags().StringVarP(&group, "group", "", "", "name of host group [REQUIRED]")
 	pduCmd.MarkFlagRequired("dc")
 	pduCmd.MarkFlagRequired("floor")
 	pduCmd.MarkFlagRequired("hall")

@@ -1,6 +1,8 @@
 package cmd
 
 import (
+	"fmt"
+
 	"github.com/spf13/cobra"
 )
 
@@ -35,8 +37,14 @@ func NewCmdUpdateNetwork() *cobra.Command {
 		Use:     "network [CIDR]",
 		Aliases: []string{"net", "nw"},
 		Short:   "update network description",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateNetwork,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("cidr style is required 'XXX.XXX.XXX.XXX/XX'")
+			}
+			return nil
+		},
+		RunE: updateNetwork,
 	}
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
 
@@ -51,8 +59,14 @@ func NewCmdUpdateIPAllocation() *cobra.Command {
 		Use:     "ip [ADDRESS]",
 		Aliases: []string{"ip-alloc"},
 		Short:   "update ip allocation data",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateIPAllocation,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("ip address is required 'XXX.XXX.XXX.XXX'")
+			}
+			return nil
+		},
+		RunE: updateIPAllocation,
 	}
 	ipCmd.Flags().StringVarP(&description, "description", "d", "-", "new description of the requested ip allocation")
 	ipCmd.Flags().StringVarP(&name, "name", "n", "-", "new hostname of the allocation")
@@ -65,8 +79,14 @@ func NewCmdUpdateVlan() *cobra.Command {
 	var vlanCmd = &cobra.Command{
 		Use:   "vlan [VLAN_ID]",
 		Short: "update vlan description",
-		Args:  cobra.ExactArgs(1),
-		RunE:  updateVlan,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("vlan id is required")
+			}
+			return nil
+		},
+		RunE: updateVlan,
 	}
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
 
@@ -82,8 +102,14 @@ func NewCmdUpdateHost() *cobra.Command {
 		Use:     "host [NAME]",
 		Aliases: []string{"server"},
 		Short:   "update host information",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateHost,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("hostname is required")
+			}
+			return nil
+		},
+		RunE: updateHost,
 	}
 	hostCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "-", "location of the requested host")
@@ -100,8 +126,14 @@ func NewCmdUpdateHostGroup() *cobra.Command {
 	var groupCmd = &cobra.Command{
 		Use:   "group [NAME]",
 		Short: "update host group information",
-		Args:  cobra.ExactArgs(1),
-		RunE:  updateHostGroup,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("group is required")
+			}
+			return nil
+		},
+		RunE: updateHostGroup,
 	}
 	groupCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host group")
 	groupCmd.Flags().StringVarP(&description, "description", "d", "-", "description of the requested host group")
@@ -116,8 +148,14 @@ func NewCmdUpdateDataCenter() *cobra.Command {
 		Use:     "datacenter",
 		Aliases: []string{"dc"},
 		Short:   "update datacenter address",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateDataCenter,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: updateDataCenter,
 	}
 	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of the datacenter")
 	dcCmd.MarkFlagRequired("address")
@@ -133,10 +171,20 @@ func NewCmdUpdateDataCenterFloor() *cobra.Command {
 		Use:     "floor",
 		Aliases: []string{"dc-floor", "area"},
 		Short:   "update datacenter address",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateDataCenterFloor,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: updateDataCenterFloor,
 	}
-	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	flrCmd.Flags().StringVarP(&name, "name", "n", "-", "name of datacenter floor")
 	flrCmd.MarkFlagRequired("dc")
 	flrCmd.MarkFlagRequired("name")
@@ -153,11 +201,25 @@ func NewCmdUpdateDataCenterHall() *cobra.Command {
 		Use:     "hall",
 		Aliases: []string{"dc-hall"},
 		Short:   "update data hall name",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateDataCenterHall,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			return nil
+		},
+		RunE: updateDataCenterHall,
 	}
-	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
+	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
 	hallCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of data hall")
 	hallCmd.MarkFlagRequired("dc")
 	hallCmd.MarkFlagRequired("floor")
@@ -176,12 +238,30 @@ func NewCmdUpdateRackRow() *cobra.Command {
 		Use:     "row",
 		Aliases: []string{"rack-row"},
 		Short:   "update rack row name",
-		Args:    cobra.ExactArgs(1),
-		RunE:    updateRackRow,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("row name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if hall == "" {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			return nil
+		},
+		RunE: updateRackRow,
 	}
-	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall")
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
+	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall [REQUIRED]")
 	rowCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack row")
 	rowCmd.MarkFlagRequired("dc")
 	rowCmd.MarkFlagRequired("floor")
@@ -201,13 +281,35 @@ func NewCmdUpdateRack() *cobra.Command {
 	var rackCmd = &cobra.Command{
 		Use:   "rack [RACK_NAME]",
 		Short: "update rack name",
-		Args:  cobra.ExactArgs(1),
-		RunE:  updateRack,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("rack name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			if floor == "" {
+				cmd.Help()
+				return fmt.Errorf("floor name is required")
+			}
+			if hall == "" {
+				cmd.Help()
+				return fmt.Errorf("hall name is required")
+			}
+			if row == "" {
+				cmd.Help()
+				return fmt.Errorf("row name is required")
+			}
+			return nil
+		},
+		RunE: updateRack,
 	}
-	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor")
-	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall")
-	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row")
+	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
+	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall [REQUIRED]")
+	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row [REQUIRED]")
 	rackCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
 	rackCmd.MarkFlagRequired("dc")
 	rackCmd.MarkFlagRequired("floor")
@@ -225,10 +327,20 @@ func NewCmdUpdateUPS() *cobra.Command {
 	var upsCmd = &cobra.Command{
 		Use:   "ups [UPS_NAME]",
 		Short: "update ups name",
-		Args:  cobra.ExactArgs(1),
-		RunE:  updateUPS,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("ups name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			return nil
+		},
+		RunE: updateUPS,
 	}
-	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	upsCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
 	upsCmd.MarkFlagRequired("dc")
 	upsCmd.MarkFlagRequired("name")
@@ -244,11 +356,27 @@ func NewCmdUpdatePDU() *cobra.Command {
 	var pduCmd = &cobra.Command{
 		Use:   "row-pdu [PDU_NAME]",
 		Short: "update row-pdu name",
-		Args:  cobra.ExactArgs(1),
-		RunE:  updatePDU,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("row-pdu name is required")
+			}
+			if dc == "" {
+				cmd.Help()
+				return fmt.Errorf("datacenter name is required")
+			}
+			/*
+				if primary == "" {
+					cmd.Help()
+					return fmt.Errorf("primary ups name is required")
+				}
+			*/
+			return nil
+		},
+		RunE: updatePDU,
 	}
-	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
-	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
+	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of row-pdu")
 	pduCmd.Flags().StringVarP(&description, "description", "d", "-", "new description of the requested row-pdu")
 	pduCmd.MarkFlagRequired("dc")
 
@@ -262,10 +390,30 @@ func NewCmdUpdateRackPDU() *cobra.Command {
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu [RACK_PDU_NAME]",
 		Short: "update rack-pdu name",
-		Args:  cobra.ExactArgs(1),
-		RunE:  updateRackPDU,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				cmd.Help()
+				return fmt.Errorf("rack-pdu name is required")
+			}
+			/*
+				if location == "" {
+					cmd.Help()
+					return fmt.Errorf("location path is required")
+				}
+				if group == "" {
+					cmd.Help()
+					return fmt.Errorf("group name is required")
+				}
+				if primary == "" {
+					cmd.Help()
+					return fmt.Errorf("primary row-pdu name is required")
+				}
+			*/
+			return nil
+		},
+		RunE: updateRackPDU,
 	}
-	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter")
+	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
 	pduCmd.MarkFlagRequired("dc")
 	pduCmd.MarkFlagRequired("name")

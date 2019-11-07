@@ -2,6 +2,7 @@ package cmd
 
 import (
 	"errors"
+	"fmt"
 
 	"github.com/spf13/cobra"
 )
@@ -57,6 +58,7 @@ func NewCmdShowIPAM() *cobra.Command {
 		Short:   "show ip allocation",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
+				cmd.Help()
 				return errors.New("network cidr is required")
 			}
 			return nil
@@ -91,8 +93,18 @@ func NewCmdShowHost() *cobra.Command {
 		Use:     "host [NAME]",
 		Aliases: []string{"server"},
 		Short:   "show host",
-		Args:    cobra.MaximumNArgs(1),
-		Run:     showHost,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				group := cmd.Flag("group").Value.String()
+				location := cmd.Flag("location").Value.String()
+				if group == "" && location == "" {
+					cmd.Help()
+					return fmt.Errorf("'group' or 'location' flag is required to show hosts without specifing hostname")
+				}
+			}
+			return nil
+		},
+		Run: showHost,
 	}
 	hostCmd.Flags().StringVarP(&group, "group", "g", "", "specify host group")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "", "specify host installed location. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
@@ -116,13 +128,21 @@ func NewCmdShowHostGroup() *cobra.Command {
 func NewCmdShowDataCenter() *cobra.Command {
 	var tree bool
 	var dcCmd = &cobra.Command{
-		Use:     "datacenter",
+		Use:     "datacenter [DC_NAME]",
 		Aliases: []string{"dc"},
-		Short:   "show datacenter",
-		Args:    cobra.MaximumNArgs(1),
-		Run:     showDataCenter,
+		Short:   "show datacenter building",
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				if cmd.Flag("tree").Value.String() == "true" {
+					cmd.Help()
+					return fmt.Errorf("datacenter name is required to show in tree style")
+				}
+			}
+			return nil
+		},
+		Run: showDataCenter,
 	}
-	dcCmd.Flags().BoolVarP(&tree, "tree", "t", false, "display dc tree")
+	dcCmd.Flags().BoolVarP(&tree, "tree", "t", false, "display datacenter building resource recursively in tree style")
 
 	return dcCmd
 }
@@ -131,7 +151,7 @@ func NewCmdShowDataCenter() *cobra.Command {
 func NewCmdShowDataCenterFloor() *cobra.Command {
 	var dc string
 	var dcCmd = &cobra.Command{
-		Use:     "floor",
+		Use:     "floor [FLOOR_NAME]",
 		Aliases: []string{"dc-floor"},
 		Short:   "show datacenter floor",
 		Args:    cobra.MaximumNArgs(1),
@@ -168,10 +188,19 @@ func NewCmdShowRackRow() *cobra.Command {
 		Use:     "row [ROW_NAME]",
 		Aliases: []string{"rack-row"},
 		Short:   "show row of racks",
-		Args:    cobra.MaximumNArgs(1),
-		Run:     showRackRow,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				dc := cmd.Flag("dc").Value.String()
+				if dc == "" {
+					cmd.Help()
+					return fmt.Errorf("'dc' flag is required to show rack row")
+				}
+			}
+			return nil
+		},
+		Run: showRackRow,
 	}
-	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
 	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "specify datacenter hall")
 	rowCmd.MarkFlagRequired("dc")
@@ -190,15 +219,23 @@ func NewCmdShowRack() *cobra.Command {
 		Use:     "rack [RACK_NAME]",
 		Aliases: []string{""},
 		Short:   "show rack",
-		Args:    cobra.MaximumNArgs(1),
-		Run:     showRack,
+		Args: func(cmd *cobra.Command, args []string) error {
+			if len(args) < 1 {
+				if cmd.Flag("dc").Value.String() == "" {
+					cmd.Help()
+					return fmt.Errorf("'dc' flag is required")
+				}
+			}
+			return nil
+		},
+		Run: showRack,
 	}
-	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
+	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
 	rowCmd.Flags().StringVarP(&hall, "hall", "", "", "specify datacenter hall")
 	rowCmd.Flags().StringVarP(&row, "row", "", "", "specify rack row")
 	rowCmd.Flags().StringVarP(&pdu, "row-pdu", "", "", "specify source row-pdu")
-	rowCmd.MarkFlagRequired("dc")
+	//rowCmd.MarkFlagRequired("dc")
 
 	return rowCmd
 }

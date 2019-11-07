@@ -4,6 +4,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"strconv"
+	"strings"
 
 	"github.com/spf13/cobra"
 
@@ -1099,19 +1100,42 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	pPDUName := cmd.Flag("primary").Value.String()
 	sPDUName := cmd.Flag("secondary").Value.String()
-	dcName := cmd.Flag("dc").Value.String()
-	floorName := cmd.Flag("floor").Value.String()
-	hallName := cmd.Flag("hall").Value.String()
-	rowName := cmd.Flag("row").Value.String()
-	rackName := cmd.Flag("rack").Value.String()
+	/*
+		dcName := cmd.Flag("dc").Value.String()
+		floorName := cmd.Flag("floor").Value.String()
+		hallName := cmd.Flag("hall").Value.String()
+		rowName := cmd.Flag("row").Value.String()
+		rackName := cmd.Flag("rack").Value.String()
+	*/
+	location := cmd.Flag("location").Value.String()
 	groupName := cmd.Flag("group").Value.String()
 
-	// get rack
-	rack := new(model.Rack)
+	/*
+		// get rack
+		rack := new(model.Rack)
+		racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
+		if err != nil {
+			return err
+		}
+		for _, r := range *racks {
+			rack = &r
+			break
+		}
+	*/
+	locSlice := strings.Split(location, "/")
+	if len(locSlice) != 5 {
+		return fmt.Errorf("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
+	}
+	dcName := locSlice[0]
+	floorName := locSlice[1]
+	hallName := locSlice[2]
+	rowName := locSlice[3]
+	rackName := locSlice[4]
 	racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
 	if err != nil {
-		return err
+		return fmt.Errorf("rack not found for specified location")
 	}
+	rack := new(model.Rack)
 	for _, r := range *racks {
 		rack = &r
 		break

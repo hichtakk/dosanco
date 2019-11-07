@@ -157,8 +157,7 @@ func createVlan(cmd *cobra.Command, args []string) error {
 	if err != nil {
 		return err
 	}
-	//vlanID, _ := strconv.ParseUint(cmd.Flag("network-id").Value.String(), 10, 32)
-	cidr := cmd.Flag("cidr").Value.String()
+	cidr := cmd.Flag("network").Value.String()
 	networks, err := getNetworks(map[string]string{"cidr": cidr})
 	if err != nil {
 		return err
