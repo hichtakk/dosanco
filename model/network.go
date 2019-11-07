@@ -1,6 +1,7 @@
 package model
 
 import (
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"net"
@@ -79,6 +80,27 @@ func (n IPv4Network) GetNetwork() *net.IPNet {
 func (n IPv4Network) GetNetworkAddress() string {
 	ipNet := n.GetNetwork()
 	return ipNet.IP.String()
+}
+
+// GetBroadcastAddress returns network address string for the network.
+func (n IPv4Network) GetBroadcastAddress() string {
+	ipNet := n.GetNetwork()
+	ipStr := ipNet.IP.String()
+	binAddress := ""
+	octets := strings.Split(ipStr, ".")
+	for _, octet := range octets {
+		i, _ := strconv.Atoi(octet)
+		binAddress = binAddress + fmt.Sprintf("%08b", i)
+	}
+	net_u64, _ := strconv.ParseUint(binAddress, 2, 32)
+	length := n.GetPrefixLength()
+	mask := 1<<(32-uint(length)) - 1
+	broadAddrUint := uint32(net_u64 + uint64(mask))
+	ipByte := make([]byte, 4)
+	binary.BigEndian.PutUint32(ipByte, broadAddrUint)
+	ip := net.IP(ipByte)
+
+	return ip.String()
 }
 
 // GetPrefixLength returns prefix size of the network.

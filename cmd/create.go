@@ -33,11 +33,11 @@ func NewCmdCreate() *cobra.Command {
 
 // NewCmdCreateNetwork is subcommand represents network resource.
 func NewCmdCreateNetwork() *cobra.Command {
+	var init bool
 	var networkCmd = &cobra.Command{
 		Use:     "network ${CIDR}",
 		Aliases: []string{"net", "nw"},
 		Short:   "create new network",
-		Long:    "create new network",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				cmd.Help()
@@ -48,6 +48,7 @@ func NewCmdCreateNetwork() *cobra.Command {
 		RunE: createNetwork,
 	}
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
+	networkCmd.Flags().BoolVarP(&init, "init", "", false, "initialize new network with network and broadcast address allocations")
 
 	return networkCmd
 }

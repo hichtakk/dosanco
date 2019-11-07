@@ -55,6 +55,7 @@ func showNetwork(cmd *cobra.Command, args []string) {
 }
 
 func createNetwork(cmd *cobra.Command, args []string) error {
+	init := cmd.Flag("init").Value.String()
 	url := Conf.APIServer.URL + "/network"
 	reqModel := model.IPv4Network{CIDR: args[0], Description: description}
 	reqJSON, err := json.Marshal(reqModel)
@@ -71,6 +72,33 @@ func createNetwork(cmd *cobra.Command, args []string) error {
 		return reqErr
 	}
 	fmt.Println(resMsg.Message)
+
+	if reqModel.GetPrefixLength() >= 31 && init == "true" {
+		fmt.Printf("INITIALIZE IGNORED: '%v' is too small to initialize with network and broadcast address\n", reqModel.CIDR)
+		return nil
+	}
+
+	// create network address and broadcast address allocation
+	if init == "true" {
+		network := new(model.IPv4Network)
+		networks, _ := getNetworks(map[string]string{"cidr": reqModel.CIDR})
+		for _, n := range *networks {
+			network = &n
+		}
+		netAddr := network.GetNetworkAddress()
+		broadAddr := network.GetBroadcastAddress()
+		netAlloc := model.IPv4Allocation{Type: "reserved", Address: netAddr, Description: "network address", IPv4NetworkID: network.ID}
+		broadAlloc := model.IPv4Allocation{Type: "reserved", Address: broadAddr, Description: "broadcast address", IPv4NetworkID: network.ID}
+		url = Conf.APIServer.URL + "/ip/v4"
+		for _, alloc := range []model.IPv4Allocation{netAlloc, broadAlloc} {
+			reqJSON, _ := json.Marshal(alloc)
+			_, err := sendRequest("POST", url, reqJSON)
+			if err != nil {
+				return err
+			}
+		}
+		fmt.Printf("network '%v' is initialized with network address '%v' and broadcast address '%v'\n", network.CIDR, netAddr, broadAddr)
+	}
 
 	return nil
 }
