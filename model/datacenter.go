@@ -461,6 +461,12 @@ func (p RackPDU) Write(output string) {
 			fmt.Printf(" Input#2:     %v\n", "-")
 		}
 		fmt.Printf(" Description: %v\n", p.Description)
+		if p.Host != nil {
+			fmt.Println()
+			p.Host.Write(output)
+		} else {
+			fmt.Println(p.Host)
+		}
 	}
 }
 

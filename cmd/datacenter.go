@@ -765,6 +765,17 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 			} else {
 				p.SecondaryPDU = nil
 			}
+			hosts, _ := getHosts(map[string]string{"name": p.Name})
+			for _, h := range *hosts {
+				grp, _ := getHostGroup(h.GroupID)
+				h.Group = grp
+				rck, _ := getRack(h.RackID)
+				loadRackLocation(rck)
+				h.Rack = *rck
+				p.Host = &h
+				break
+			}
+
 			p.Write(cmd.Flag("output").Value.String())
 		}
 	} else {
