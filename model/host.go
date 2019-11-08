@@ -19,6 +19,7 @@ type Host struct {
 	IPv4Allocations IPv4Allocations `json:"ipv4_allocations"`
 	RackID          uint            `json:"rack_id"`
 	Rack            Rack            `json:"rack,omitempty"`
+	Type            string          `json:"type" gorm:"default:'generic';not null"`
 }
 
 // Write does output to standard output.
