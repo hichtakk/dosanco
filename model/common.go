@@ -11,3 +11,9 @@ type Model struct {
 	UpdatedAt time.Time  `gorm:"updated_at" json:"updated_at"`
 	DeletedAt *time.Time `gorm:"deleted_at" json:"deleted_at,omitempty"`
 }
+
+// Version is dosanco api server version response definition
+type Version struct {
+	Version  string `json:"version"`
+	Revision string `json:"revision"`
+}

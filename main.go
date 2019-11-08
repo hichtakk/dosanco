@@ -2,6 +2,7 @@ package main
 
 import (
 	"fmt"
+	"net/http"
 	"os"
 	"strconv"
 
@@ -12,6 +13,7 @@ import (
 
 	"github.com/hichikaw/dosanco/config"
 	"github.com/hichikaw/dosanco/db"
+	"github.com/hichikaw/dosanco/model"
 )
 
 const version = "v0.1.0"
@@ -62,6 +64,9 @@ func main() {
 
 	// initialize logger middleware
 	e.Use(middleware.Logger())
+	e.GET("/version", func(c echo.Context) error {
+		return c.JSON(http.StatusOK, model.Version{Version: version, Revision: revision})
+	})
 	setRoute(e)
 
 	// Start dosanco server
