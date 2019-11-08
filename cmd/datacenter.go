@@ -1415,30 +1415,34 @@ func updateRack(cmd *cobra.Command, args []string) error {
 func updateUPS(cmd *cobra.Command, args []string) error {
 	upsName := cmd.Flag("name").Value.String()
 	dcName := cmd.Flag("dc").Value.String()
-	if upsName == "-" {
+	description := cmd.Flag("description").Value.String()
+	if upsName == "-" && description == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
-	url := Conf.APIServer.URL + "/datacenter/ups?dc=" + dcName + "&name=" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
+	ups := new(model.UPS)
+	upss, err := getUPSs(map[string]string{"dc": dcName, "name": args[0]})
 	if err != nil {
 		return err
 	}
-	upss := new(model.UPSs)
-	if err := json.Unmarshal(body, upss); err != nil {
-		return fmt.Errorf("response parse error" + err.Error())
+	if len(*upss) == 0 {
+		return fmt.Errorf("ups not found")
 	}
 	if len(*upss) > 1 {
-		return fmt.Errorf("multiple ups found")
+		return fmt.Errorf("multiple ups are found")
 	}
-	ups := new(model.UPS)
-	for _, r := range *upss {
-		ups = &r
+	for _, u := range *upss {
+		ups = &u
 		break
 	}
-	ups.Name = upsName
+	if upsName != "-" {
+		ups.Name = upsName
+	}
+	if description != "-" {
+		ups.Description = description
+	}
 	reqJSON, _ := json.Marshal(ups)
 	upsID := strconv.Itoa(int(ups.ID))
-	url = Conf.APIServer.URL + "/datacenter/ups/" + upsID
+	url := Conf.APIServer.URL + "/datacenter/ups/" + upsID
 	body, reqErr := sendRequest("PUT", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
@@ -1952,6 +1956,22 @@ func getRacks(query map[string]string) (*model.Racks, error) {
 	return racks, nil
 }
 
+func getUPSs(query map[string]string) (*model.UPSs, error) {
+	upss := new(model.UPSs)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/ups?"+queryString, []byte{})
+	if err != nil {
+		return &model.UPSs{}, err
+	}
+	if err := json.Unmarshal(body, upss); err != nil {
+		return &model.UPSs{}, fmt.Errorf("response parse error")
+	}
+
+	return upss, nil
+}
 func loadRackLocation(rack *model.Rack) {
 	row, _ := getRow(rack.RowID)
 	hall, _ := getHall(row.HallID)

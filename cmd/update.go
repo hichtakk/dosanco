@@ -324,9 +324,10 @@ func NewCmdUpdateRack() *cobra.Command {
 func NewCmdUpdateUPS() *cobra.Command {
 	var dc string
 	var name string
+	var description string
 	var upsCmd = &cobra.Command{
 		Use:   "ups [UPS_NAME]",
-		Short: "update ups name",
+		Short: "update ups information",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
 				cmd.Help()
@@ -341,9 +342,9 @@ func NewCmdUpdateUPS() *cobra.Command {
 		RunE: updateUPS,
 	}
 	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
-	upsCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
+	upsCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of ups")
+	upsCmd.Flags().StringVarP(&description, "description", "d", "-", "new description for the ups")
 	upsCmd.MarkFlagRequired("dc")
-	upsCmd.MarkFlagRequired("name")
 
 	return upsCmd
 }

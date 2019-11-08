@@ -927,11 +927,11 @@ func UpdateUPS(c echo.Context) error {
 	if result := db.Take(&u, "id=?", upsID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("ups not found on database."))
 	}
-	if result := db.Model(&u).Update("name", ups.Name); result.Error != nil {
+	if result := db.Model(&u).Update("name", ups.Name).Update("description", ups.Description); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database write error."))
 	}
 
-	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("ups updated. ID: %d, Name: %s", ups.ID, ups.Name)))
+	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("ups updated. ID: %d, Name: %s, Description: %s", ups.ID, ups.Name, ups.Description)))
 }
 
 // UpdateRowPDU updates specified UPS information.
