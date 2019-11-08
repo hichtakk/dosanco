@@ -275,6 +275,8 @@ func NewCmdShowRackPDU() *cobra.Command {
 	var dc string
 	var ups string
 	var pdu string
+	var location string
+	var group string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu [RACK_PDU_NAME]",
 		Short: "show rack-pdu",
@@ -284,6 +286,8 @@ func NewCmdShowRackPDU() *cobra.Command {
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter name")
 	pduCmd.Flags().StringVarP(&ups, "ups", "", "", "specify ups name")
 	pduCmd.Flags().StringVarP(&pdu, "pdu", "", "", "specify datacenter pdu name")
+	pduCmd.Flags().StringVarP(&location, "location", "l", "", "specify rack-pdu location. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
+	pduCmd.Flags().StringVarP(&group, "group", "g", "", "specify host group")
 
 	return pduCmd
 }

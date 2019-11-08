@@ -3,6 +3,7 @@ package cmd
 import (
 	"encoding/json"
 	"fmt"
+	"net/url"
 	"strconv"
 	"strings"
 
@@ -720,6 +721,7 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 	dcName := cmd.Flag("dc").Value.String()
 	upsName := cmd.Flag("ups").Value.String()
 	pduName := cmd.Flag("pdu").Value.String()
+	location := cmd.Flag("location").Value.String()
 	if len(args) > 0 {
 		// show specified rack pdu
 		url := Conf.APIServer.URL + "/datacenter/rack-pdu?name=" + args[0]
@@ -767,67 +769,102 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 		}
 	} else {
 		// show list of pdus
-		url := Conf.APIServer.URL + "/datacenter/rack-pdu?"
-		if dcName != "" {
-			url = url + "&dc=" + dcName
-		}
-		if upsName != "" {
-			url = url + "&ups=" + upsName
-		}
-		if pduName != "" {
-			url = url + "&row-pdu=" + pduName
-		}
-		body, err := sendRequest("GET", url, []byte{})
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		data := new(model.RackPDUs)
-		if err := json.Unmarshal(body, data); err != nil {
-			fmt.Println("parse response error")
-			return
-		}
-		// get row pdu
-		rowPduURL := Conf.APIServer.URL + "/datacenter/row-pdu"
-		if dcName != "" {
-			rowPduURL = rowPduURL + "?dc=" + dcName
-		}
-		body, err = sendRequest("GET", rowPduURL, []byte{})
-		if err != nil {
-			fmt.Println(err.Error())
-			return
-		}
-		dcPDUs := new(model.RowPDUs)
-		if err := json.Unmarshal(body, dcPDUs); err != nil {
-			fmt.Println("parse response error")
-			return
-		}
-		outputModel := model.RackPDUs{}
-		for _, p := range *data {
-			pdcpdu, err := dcPDUs.Take(p.PrimaryPDUID)
+		if location != "" {
+			query := map[string]string{}
+			query["location"] = url.QueryEscape(location)
+			group := cmd.Flag("group").Value.String()
+			if group == "" {
+				fmt.Println("flag 'group' is required")
+				return
+			}
+			query["group"] = group
+			hosts, err := getHosts(query)
 			if err != nil {
+				fmt.Println(err)
+				return
 			}
-			p.PrimaryPDU = *pdcpdu
-			sdcpdu, err := dcPDUs.Take(p.SecondaryPDUID)
-			if err != nil {
-			}
-			if sdcpdu.ID != 0 {
-				p.SecondaryPDU = sdcpdu
-			} else {
-				p.SecondaryPDU = nil
-			}
-			host := new(model.Host)
-			hosts, _ := getHosts(map[string]string{"name": p.Name})
+			output := new(model.RackPDUs)
 			for _, h := range *hosts {
-				host = &h
+				rack, _ := getRack(h.RackID)
+				loadRackLocation(rack)
+				h.Rack = *rack
+				pdus, _ := getRackPDUs(map[string]string{"name": h.Name})
+				for _, p := range *pdus {
+					pdu := p
+					pdu.Host = &h
+					rowPDU, _ := getRowPDU(pdu.PrimaryPDUID)
+					pdu.PrimaryPDU = *rowPDU
+					if pdu.SecondaryPDUID != 0 {
+						srowPDU, _ := getRowPDU(pdu.SecondaryPDUID)
+						pdu.SecondaryPDU = srowPDU
+					}
+					*output = append(*output, pdu)
+				}
 			}
-			rack, _ := getRack(host.RackID)
-			loadRackLocation(rack)
-			host.Rack = *rack
-			p.Host = host
-			outputModel = append(outputModel, p)
+			output.Write(cmd.Flag("output").Value.String())
+		} else {
+			url := Conf.APIServer.URL + "/datacenter/rack-pdu?"
+			if dcName != "" {
+				url = url + "&dc=" + dcName
+			}
+			if upsName != "" {
+				url = url + "&ups=" + upsName
+			}
+			if pduName != "" {
+				url = url + "&row-pdu=" + pduName
+			}
+			body, err := sendRequest("GET", url, []byte{})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			data := new(model.RackPDUs)
+			if err := json.Unmarshal(body, data); err != nil {
+				fmt.Println("parse response error")
+				return
+			}
+			// get row pdu
+			rowPduURL := Conf.APIServer.URL + "/datacenter/row-pdu"
+			if dcName != "" {
+				rowPduURL = rowPduURL + "?dc=" + dcName
+			}
+			body, err = sendRequest("GET", rowPduURL, []byte{})
+			if err != nil {
+				fmt.Println(err.Error())
+				return
+			}
+			dcPDUs := new(model.RowPDUs)
+			if err := json.Unmarshal(body, dcPDUs); err != nil {
+				fmt.Println("parse response error")
+				return
+			}
+			outputModel := model.RackPDUs{}
+			for _, p := range *data {
+				pdcpdu, err := dcPDUs.Take(p.PrimaryPDUID)
+				if err != nil {
+				}
+				p.PrimaryPDU = *pdcpdu
+				sdcpdu, err := dcPDUs.Take(p.SecondaryPDUID)
+				if err != nil {
+				}
+				if sdcpdu.ID != 0 {
+					p.SecondaryPDU = sdcpdu
+				} else {
+					p.SecondaryPDU = nil
+				}
+				host := new(model.Host)
+				hosts, _ := getHosts(map[string]string{"name": p.Name})
+				for _, h := range *hosts {
+					host = &h
+				}
+				rack, _ := getRack(host.RackID)
+				loadRackLocation(rack)
+				host.Rack = *rack
+				p.Host = host
+				outputModel = append(outputModel, p)
+			}
+			outputModel.Write(cmd.Flag("output").Value.String())
 		}
-		outputModel.Write(cmd.Flag("output").Value.String())
 	}
 }
 
@@ -1972,6 +2009,55 @@ func getUPSs(query map[string]string) (*model.UPSs, error) {
 
 	return upss, nil
 }
+
+func getRowPDU(id uint) (*model.RowPDU, error) {
+	rowPDU := new(model.RowPDU)
+	idStr := strconv.Itoa(int(id))
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/row-pdu/"+idStr, []byte{})
+	if err != nil {
+		return rowPDU, err
+	}
+	if err := json.Unmarshal(body, rowPDU); err != nil {
+		return rowPDU, fmt.Errorf("response parse error")
+	}
+
+	return rowPDU, nil
+}
+
+func getRowPDUs(query map[string]string) (*model.RowPDUs, error) {
+	pdus := new(model.RowPDUs)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/row-pdu?"+queryString, []byte{})
+	if err != nil {
+		return &model.RowPDUs{}, err
+	}
+	if err := json.Unmarshal(body, pdus); err != nil {
+		return &model.RowPDUs{}, fmt.Errorf("response parse error")
+	}
+
+	return pdus, nil
+}
+
+func getRackPDUs(query map[string]string) (*model.RackPDUs, error) {
+	pdus := new(model.RackPDUs)
+	queryString := ""
+	for key, val := range query {
+		queryString = queryString + "&" + key + "=" + val
+	}
+	body, err := sendRequest("GET", Conf.APIServer.URL+"/datacenter/rack-pdu?"+queryString, []byte{})
+	if err != nil {
+		return &model.RackPDUs{}, err
+	}
+	if err := json.Unmarshal(body, pdus); err != nil {
+		return &model.RackPDUs{}, fmt.Errorf("response parse error")
+	}
+
+	return pdus, nil
+}
+
 func loadRackLocation(rack *model.Rack) {
 	row, _ := getRow(rack.RowID)
 	hall, _ := getHall(row.HallID)
