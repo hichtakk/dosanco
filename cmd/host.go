@@ -16,6 +16,10 @@ func showHost(cmd *cobra.Command, args []string) {
 	if len(args) > 0 {
 		host := new(model.Host)
 		hosts, _ := getHosts(map[string]string{"name": args[0]})
+		if len(*hosts) == 0 {
+			fmt.Printf("host '%v' not found. It might be registered only ip allocation.\n", args[0])
+			return
+		}
 		if len(*hosts) > 1 {
 			fmt.Println("multiple hosts found")
 			return
