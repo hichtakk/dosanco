@@ -783,12 +783,7 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 		if location != "" {
 			query := map[string]string{}
 			query["location"] = url.QueryEscape(location)
-			group := cmd.Flag("group").Value.String()
-			if group == "" {
-				fmt.Println("flag 'group' is required")
-				return
-			}
-			query["group"] = group
+			query["type"] = "rack-pdu"
 			hosts, err := getHosts(query)
 			if err != nil {
 				fmt.Println(err)
@@ -1148,28 +1143,8 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	url := Conf.APIServer.URL + "/datacenter"
 	pPDUName := cmd.Flag("primary").Value.String()
 	sPDUName := cmd.Flag("secondary").Value.String()
-	/*
-		dcName := cmd.Flag("dc").Value.String()
-		floorName := cmd.Flag("floor").Value.String()
-		hallName := cmd.Flag("hall").Value.String()
-		rowName := cmd.Flag("row").Value.String()
-		rackName := cmd.Flag("rack").Value.String()
-	*/
 	location := cmd.Flag("location").Value.String()
 	groupName := cmd.Flag("group").Value.String()
-
-	/*
-		// get rack
-		rack := new(model.Rack)
-		racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": rackName})
-		if err != nil {
-			return err
-		}
-		for _, r := range *racks {
-			rack = &r
-			break
-		}
-	*/
 	locSlice := strings.Split(location, "/")
 	if len(locSlice) != 5 {
 		return fmt.Errorf("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
@@ -1258,7 +1233,7 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	fmt.Println(resMsg.Message)
 
 	// create host
-	reqHost := model.Host{Name: args[0], RackID: rack.ID, GroupID: group.ID}
+	reqHost := model.Host{Name: args[0], RackID: rack.ID, GroupID: group.ID, Type: "rack-pdu"}
 	reqJSON, _ = json.Marshal(reqHost)
 	body, err = sendRequest("POST", Conf.APIServer.URL+"/host", reqJSON)
 	if err != nil {

@@ -38,10 +38,14 @@ func GetHosts(c echo.Context) error {
 	hostName := c.QueryParam("name")
 	groupName := c.QueryParam("group")
 	location := c.QueryParam("location")
+	typeName := c.QueryParam("type")
 
 	hosts := new(model.Hosts)
-	if hostName == "" && groupName == "" && location == "" {
-		return c.JSON(http.StatusBadRequest, returnError("query 'name', 'group' or 'location' is required"))
+	if hostName == "" && groupName == "" && location == "" && typeName == "" {
+		return c.JSON(http.StatusBadRequest, returnError("query 'name', 'group', 'location' or 'type' is required"))
+	}
+	if hostName == "" && groupName == "" && location == "" && typeName != "" {
+		return c.JSON(http.StatusBadRequest, returnError("can not use only 'type' query"))
 	}
 	if hostName != "" {
 		db.Find(hosts, "name=?", hostName)
@@ -93,11 +97,23 @@ func GetHosts(c echo.Context) error {
 		}
 	}
 	if group.ID != 0 && rack.ID != 0 {
-		db.Find(hosts, "group_id=? AND rack_id=?", group.ID, rack.ID)
+		if typeName != "" {
+			db.Find(hosts, "group_id=? AND rack_id=? AND type=?", group.ID, rack.ID, typeName)
+		} else {
+			db.Find(hosts, "group_id=? AND rack_id=?", group.ID, rack.ID)
+		}
 	} else if group.ID != 0 && rack.ID == 0 {
-		db.Find(hosts, "group_id=?", group.ID)
+		if typeName != "" {
+			db.Find(hosts, "group_id=? AND type=?", group.ID, typeName)
+		} else {
+			db.Find(hosts, "group_id=?", group.ID)
+		}
 	} else if group.ID == 0 && rack.ID != 0 {
-		db.Find(hosts, "rack_id=?", rack.ID)
+		if typeName != "" {
+			db.Find(hosts, "rack_id=? AND type=?", rack.ID, typeName)
+		} else {
+			db.Find(hosts, "rack_id=?", rack.ID)
+		}
 	}
 
 	return c.JSON(http.StatusOK, hosts)

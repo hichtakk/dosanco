@@ -33,6 +33,7 @@ func (h Host) Write(output string) {
 		fmt.Printf(" ID:             %d\n", h.ID)
 		fmt.Printf(" Name:           %v\n", h.Name)
 		fmt.Printf(" Group:          %v\n", h.Group.Name)
+		fmt.Printf(" Type:           %v\n", h.Type)
 		fmt.Printf(" RackLocation:   %v\n", h.Rack.GetLocationPath())
 		fmt.Printf(" Description:    %v\n\n", h.Description)
 		fmt.Println("# IP Allocations")
