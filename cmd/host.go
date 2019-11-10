@@ -85,6 +85,7 @@ func showHost(cmd *cobra.Command, args []string) {
 	} else {
 		location := cmd.Flag("location").Value.String()
 		group := cmd.Flag("group").Value.String()
+		typeName := cmd.Flag("type").Value.String()
 		query := map[string]string{}
 		if location != "" {
 			query["location"] = url.QueryEscape(location)
@@ -92,8 +93,11 @@ func showHost(cmd *cobra.Command, args []string) {
 		if group != "" {
 			query["group"] = group
 		}
+		if typeName != "" {
+			query["type"] = typeName
+		}
 		if len(query) == 0 {
-			fmt.Println("flag 'group' or 'location' is required")
+			fmt.Println("flag 'group', 'location' or 'type' is required")
 			return
 		}
 		hosts, err := getHosts(query)

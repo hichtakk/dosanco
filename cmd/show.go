@@ -89,17 +89,18 @@ func NewCmdShowVlan() *cobra.Command {
 func NewCmdShowHost() *cobra.Command {
 	var group string
 	var location string
+	var hostType string
 	var hostCmd = &cobra.Command{
 		Use:     "host [NAME]",
 		Aliases: []string{"server"},
 		Short:   "show host",
 		Args: func(cmd *cobra.Command, args []string) error {
 			if len(args) < 1 {
-				group := cmd.Flag("group").Value.String()
-				location := cmd.Flag("location").Value.String()
-				if group == "" && location == "" {
+				//group := cmd.Flag("group").Value.String()
+				//location := cmd.Flag("location").Value.String()
+				if group == "" && location == "" && hostType == "" {
 					cmd.Help()
-					return fmt.Errorf("'group' or 'location' flag is required to show hosts without specifing hostname")
+					return fmt.Errorf("'group', 'location' or 'type' flag is required to show hosts without specifing hostname")
 				}
 			}
 			return nil
@@ -108,6 +109,7 @@ func NewCmdShowHost() *cobra.Command {
 	}
 	hostCmd.Flags().StringVarP(&group, "group", "g", "", "specify host group")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "", "specify host installed location. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
+	hostCmd.Flags().StringVarP(&hostType, "type", "t", "", "specify host type")
 
 	return hostCmd
 }
@@ -276,7 +278,6 @@ func NewCmdShowRackPDU() *cobra.Command {
 	var ups string
 	var pdu string
 	var location string
-	//var group string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu [RACK_PDU_NAME]",
 		Short: "show rack-pdu",
@@ -287,7 +288,6 @@ func NewCmdShowRackPDU() *cobra.Command {
 	pduCmd.Flags().StringVarP(&ups, "ups", "", "", "specify ups name")
 	pduCmd.Flags().StringVarP(&pdu, "pdu", "", "", "specify datacenter pdu name")
 	pduCmd.Flags().StringVarP(&location, "location", "l", "", "specify rack-pdu location. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
-	//pduCmd.Flags().StringVarP(&group, "group", "g", "", "specify host group")
 
 	return pduCmd
 }

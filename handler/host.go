@@ -56,63 +56,238 @@ func GetHosts(c echo.Context) error {
 			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("group '%v' not found", groupName)))
 		}
 	}
-	rack := new(model.Rack)
+	//rack := new(model.Rack)
 	if location != "" {
 		location, err := url.QueryUnescape(location)
 		if err != nil {
 			return c.JSON(http.StatusBadRequest, returnError(err.Error()))
 		}
-		locSlice := strings.Split(location, "/")
-		if len(locSlice) != 5 {
-			return c.JSON(http.StatusBadRequest, returnError("invalid location format. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'"))
-		}
-		dcName := locSlice[0]
-		floorName := locSlice[1]
-		hallName := locSlice[2]
-		rowName := locSlice[3]
-		rackName := locSlice[4]
+		loc := parseLocation(location)
 		// datacenter
 		dc := new(model.DataCenter)
-		if result := db.Take(dc, "name=?", dcName); result.RecordNotFound() == true {
-			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+		if result := db.Take(dc, "name=?", loc[0]); result.RecordNotFound() == true {
+			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", loc[0])))
 		}
 		// floor
-		floor := new(model.Floor)
-		if result := db.Take(floor, "name=? AND data_center_id=?", floorName, dc.ID); result.RecordNotFound() == true {
-			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", floorName)))
-		}
-		// hall
-		hall := new(model.Hall)
-		if result := db.Take(hall, "name=? AND floor_id=?", hallName, floor.ID); result.RecordNotFound() == true {
-			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", hallName)))
-		}
-		// row
-		row := new(model.RackRow)
-		if result := db.Take(row, "name=? AND hall_id=?", rowName, hall.ID); result.RecordNotFound() == true {
-			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("row '%v' not found", rowName)))
-		}
-		// rack
-		if result := db.Take(rack, "name=? AND row_id=?", rackName, row.ID); result.RecordNotFound() == true {
-			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack '%v' not found", rackName)))
-		}
-	}
-	if group.ID != 0 && rack.ID != 0 {
-		if typeName != "" {
-			db.Find(hosts, "group_id=? AND rack_id=? AND type=?", group.ID, rack.ID, typeName)
+		/*
+			floor := new(model.Floor)
+			if result := db.Take(floor, "name=? AND data_center_id=?", floorName, dc.ID); result.RecordNotFound() == true {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", floorName)))
+			}
+			// hall
+			hall := new(model.Hall)
+			if result := db.Take(hall, "name=? AND floor_id=?", hallName, floor.ID); result.RecordNotFound() == true {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", hallName)))
+			}
+			// row
+			row := new(model.RackRow)
+			if result := db.Take(row, "name=? AND hall_id=?", rowName, hall.ID); result.RecordNotFound() == true {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("row '%v' not found", rowName)))
+			}
+			// rack
+			if result := db.Take(rack, "name=? AND row_id=?", rackName, row.ID); result.RecordNotFound() == true {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack '%v' not found", rackName)))
+			}
+		*/
+		// floor
+		if loc[1] != "" {
+			floor := new(model.Floor)
+			if result := db.Take(floor, "name=? AND data_center_id=?", loc[1], dc.ID); result.RecordNotFound() == true {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor '%v' not found", loc[1])))
+			}
+			// hall
+			if loc[2] != "" {
+				hall := new(model.Hall)
+				if result := db.Take(hall, "name=? AND floor_id=?", loc[2], floor.ID); result.RecordNotFound() == true {
+					return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("hall '%v' not found", loc[2])))
+				}
+				// row
+				if loc[3] != "" {
+					row := new(model.RackRow)
+					if result := db.Take(row, "name=? AND hall_id=?", loc[3], hall.ID); result.RecordNotFound() == true {
+						return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("row '%v' not found", loc[3])))
+					}
+					// rack
+					if loc[4] != "" {
+						rack := new(model.Rack)
+						if result := db.Take(rack, "name=? AND row_id=?", loc[4], row.ID); result.RecordNotFound() == true {
+							return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack '%v' not found", loc[4])))
+						}
+						// host
+						if group.ID != 0 {
+							if typeName != "" {
+								db.Find(hosts, "group_id=? AND type=? AND rack_id=?", group.ID, typeName, rack.ID)
+							} else {
+								db.Find(hosts, "group_id=? AND rack_id=?", group.ID, rack.ID)
+							}
+						} else {
+							if typeName != "" {
+								db.Find(hosts, "type=? AND rack_id=?", typeName, rack.ID)
+							} else {
+								db.Find(hosts, "rack_id=?", rack.ID)
+							}
+						}
+					} else {
+						// rack
+						racks := new(model.Racks)
+						db.Find(racks, "row_id=?", row.ID)
+						for _, rck := range *racks {
+							hsts := new(model.Hosts)
+							if group.ID != 0 {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND group_id=? AND type=?", rck.ID, group.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=? AND group_id=?", rck.ID, group.ID)
+								}
+							} else {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND type=?", rck.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=?", rck.ID)
+								}
+							}
+							for _, h := range *hsts {
+								*hosts = append(*hosts, h)
+							}
+						}
+					}
+				} else {
+					// row
+					rows := new(model.RackRows)
+					db.Find(rows, "hall_id=?", hall.ID)
+					for _, rw := range *rows {
+						// rack
+						racks := new(model.Racks)
+						db.Find(racks, "row_id=?", rw.ID)
+						for _, rck := range *racks {
+							hsts := new(model.Hosts)
+							if group.ID != 0 {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND group_id=? AND type=?", rck.ID, group.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=? AND group_id=?", rck.ID, group.ID)
+								}
+							} else {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND type=?", rck.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=?", rck.ID)
+								}
+							}
+							for _, h := range *hsts {
+								*hosts = append(*hosts, h)
+							}
+						}
+					}
+				}
+			} else {
+				halls := new(model.Halls)
+				db.Find(halls, "floor_id=?", floor.ID)
+				for _, hll := range *halls {
+					// row
+					rows := new(model.RackRows)
+					db.Find(rows, "hall_id=?", hll.ID)
+					for _, rw := range *rows {
+						// rack
+						racks := new(model.Racks)
+						db.Find(racks, "row_id=?", rw.ID)
+						for _, rck := range *racks {
+							hsts := new(model.Hosts)
+							if group.ID != 0 {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND group_id=? AND type=?", rck.ID, group.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=? AND group_id=?", rck.ID, group.ID)
+								}
+							} else {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND type=?", rck.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=?", rck.ID)
+								}
+							}
+							for _, h := range *hsts {
+								*hosts = append(*hosts, h)
+							}
+						}
+					}
+				}
+			}
 		} else {
-			db.Find(hosts, "group_id=? AND rack_id=?", group.ID, rack.ID)
+			// floor
+			floors := new(model.Floors)
+			if result := db.Find(floors, "data_center_id=?", dc.ID); result.RecordNotFound() == true {
+				return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("floor not found for dc '%v'", loc[0])))
+			}
+			for _, f := range *floors {
+				// hall
+				halls := new(model.Halls)
+				db.Find(halls, "floor_id=?", f.ID)
+				for _, hll := range *halls {
+					// row
+					rows := new(model.RackRows)
+					db.Find(rows, "hall_id=?", hll.ID)
+					for _, rw := range *rows {
+						// rack
+						racks := new(model.Racks)
+						db.Find(racks, "row_id=?", rw.ID)
+						for _, rck := range *racks {
+							hsts := new(model.Hosts)
+							if group.ID != 0 {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND group_id=? AND type=?", rck.ID, group.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=? AND group_id=?", rck.ID, group.ID)
+								}
+							} else {
+								if typeName != "" {
+									db.Find(hsts, "rack_id=? AND type=?", rck.ID, typeName)
+								} else {
+									db.Find(hsts, "rack_id=?", rck.ID)
+								}
+							}
+							for _, h := range *hsts {
+								*hosts = append(*hosts, h)
+							}
+						}
+					}
+				}
+			}
 		}
-	} else if group.ID != 0 && rack.ID == 0 {
-		if typeName != "" {
-			db.Find(hosts, "group_id=? AND type=?", group.ID, typeName)
+	} else {
+		/*
+			if group.ID != 0 && rack.ID != 0 {
+				if typeName != "" {
+					db.Find(hosts, "group_id=? AND rack_id=? AND type=?", group.ID, rack.ID, typeName)
+				} else {
+					db.Find(hosts, "group_id=? AND rack_id=?", group.ID, rack.ID)
+				}
+			} else if group.ID != 0 && rack.ID == 0 {
+				if typeName != "" {
+					db.Find(hosts, "group_id=? AND type=?", group.ID, typeName)
+				} else {
+					db.Find(hosts, "group_id=?", group.ID)
+				}
+			} else if group.ID == 0 && rack.ID != 0 {
+				if typeName != "" {
+					db.Find(hosts, "rack_id=? AND type=?", rack.ID, typeName)
+				} else {
+					db.Find(hosts, "rack_id=?", rack.ID)
+				}
+			}
+		*/
+		if group.ID != 0 {
+			if typeName != "" {
+				db.Find(hosts, "group_id=? AND type=?", group.ID, typeName)
+			} else {
+				db.Find(hosts, "group_id=?", group.ID)
+			}
 		} else {
-			db.Find(hosts, "group_id=?", group.ID)
-		}
-	} else if group.ID == 0 && rack.ID != 0 {
-		if typeName != "" {
-			db.Find(hosts, "rack_id=? AND type=?", rack.ID, typeName)
-		} else {
-			db.Find(hosts, "rack_id=?", rack.ID)
+			if typeName != "" {
+				db.Find(hosts, "type=?", typeName)
+			} else {
+				db.Find(hosts)
+			}
 		}
 	}
 
@@ -284,4 +459,44 @@ func DeleteHostGroup(c echo.Context) error {
 	}
 
 	return c.JSON(http.StatusOK, returnMessage(fmt.Sprintf("host group %d is deleted", group.ID)))
+}
+
+func parseLocation(location string) []string {
+	locSlice := strings.Split(location, "/")
+	loc := make([]string, 5)
+
+	switch len(locSlice) {
+	case 1:
+		loc[0] = locSlice[0]
+		loc[1] = ""
+		loc[2] = ""
+		loc[3] = ""
+		loc[4] = ""
+	case 2:
+		loc[0] = locSlice[0]
+		loc[1] = locSlice[1]
+		loc[2] = ""
+		loc[3] = ""
+		loc[4] = ""
+	case 3:
+		loc[0] = locSlice[0]
+		loc[1] = locSlice[1]
+		loc[2] = locSlice[2]
+		loc[3] = ""
+		loc[4] = ""
+	case 4:
+		loc[0] = locSlice[0]
+		loc[1] = locSlice[1]
+		loc[2] = locSlice[2]
+		loc[3] = locSlice[3]
+		loc[4] = ""
+	case 5:
+		loc[0] = locSlice[0]
+		loc[1] = locSlice[1]
+		loc[2] = locSlice[2]
+		loc[3] = locSlice[3]
+		loc[4] = locSlice[4]
+	}
+
+	return loc
 }
