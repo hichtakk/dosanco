@@ -289,9 +289,7 @@ func GetHosts(c echo.Context) error {
 				if typeName != "" {
 					db.Find(hosts, "name=? AND type=?", hostName, typeName)
 				} else {
-					fmt.Println("here", hostName)
 					db.Find(hosts, "name=?", hostName)
-					fmt.Println(hosts)
 				}
 			}
 		} else {

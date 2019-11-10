@@ -1548,6 +1548,27 @@ func updateRackPDU(cmd *cobra.Command, args []string) error {
 		pdu = &p
 		break
 	}
+
+	if pduName != "-" {
+		if exist, _ := getHosts(map[string]string{"name": pduName}); len(*exist) > 0 {
+			return fmt.Errorf("new name '%v' is already exist", pduName)
+		}
+		pduHost := new(model.Host)
+		pduHosts, _ := getHosts(map[string]string{"name": pdu.Name})
+		for _, h := range *pduHosts {
+			pduHost = &h
+			break
+		}
+		pduHost.Name = pduName
+		hostReqJSON, _ := json.Marshal(pduHost)
+		hostID := strconv.Itoa(int(pduHost.ID))
+		body, _ := sendRequest("PUT", Conf.APIServer.URL+"/host/"+hostID, hostReqJSON)
+		var hostReqMsg responseMessage
+		if err := json.Unmarshal(body, &hostReqMsg); err != nil {
+			return err
+		}
+	}
+
 	pdu.Name = pduName
 	reqJSON, _ := json.Marshal(pdu)
 	pduID := strconv.Itoa(int(pdu.ID))
