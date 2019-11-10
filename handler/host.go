@@ -47,9 +47,11 @@ func GetHosts(c echo.Context) error {
 	if hostName == "" && groupName == "" && location == "" && typeName != "" {
 		return c.JSON(http.StatusBadRequest, returnError("can not use only 'type' query"))
 	}
-	if hostName != "" {
-		db.Find(hosts, "name=?", hostName)
-	}
+	/*
+		if hostName != "" {
+			db.Find(hosts, "name=?", hostName)
+		}
+	*/
 	group := new(model.HostGroup)
 	if groupName != "" {
 		if result := db.Take(group, "name=?", groupName); result.RecordNotFound() == true {
@@ -276,17 +278,35 @@ func GetHosts(c echo.Context) error {
 				}
 			}
 		*/
-		if group.ID != 0 {
-			if typeName != "" {
-				db.Find(hosts, "group_id=? AND type=?", group.ID, typeName)
+		if hostName != "" {
+			if group.ID != 0 {
+				if typeName != "" {
+					db.Find(hosts, "name=? AND group_id=? AND type=?", hostName, group.ID, typeName)
+				} else {
+					db.Find(hosts, "name=? AND group_id=?", hostName, group.ID)
+				}
 			} else {
-				db.Find(hosts, "group_id=?", group.ID)
+				if typeName != "" {
+					db.Find(hosts, "name=? AND type=?", hostName, typeName)
+				} else {
+					fmt.Println("here", hostName)
+					db.Find(hosts, "name=?", hostName)
+					fmt.Println(hosts)
+				}
 			}
 		} else {
-			if typeName != "" {
-				db.Find(hosts, "type=?", typeName)
+			if group.ID != 0 {
+				if typeName != "" {
+					db.Find(hosts, "group_id=? AND type=?", group.ID, typeName)
+				} else {
+					db.Find(hosts, "group_id=?", group.ID)
+				}
 			} else {
-				db.Find(hosts)
+				if typeName != "" {
+					db.Find(hosts, "type=?", typeName)
+				} else {
+					db.Find(hosts)
+				}
 			}
 		}
 	}
