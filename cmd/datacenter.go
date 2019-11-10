@@ -797,7 +797,8 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 				pdus, _ := getRackPDUs(map[string]string{"name": h.Name})
 				for _, p := range *pdus {
 					pdu := p
-					pdu.Host = &h
+					pduHost := h
+					pdu.Host = &pduHost
 					rowPDU, _ := getRowPDU(pdu.PrimaryPDUID)
 					pdu.PrimaryPDU = *rowPDU
 					if pdu.SecondaryPDUID != 0 {
