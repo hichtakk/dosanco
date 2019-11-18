@@ -33,7 +33,7 @@ func (d DataCenters) WriteTree(output string) {
 	} else {
 		for _, dc := range d {
 			fmt.Println(dc.Name)
-			for _, floor := range dc.Floors {
+			for _, floor := range *dc.Floors {
 				fmt.Printf("  %-v\n", floor.Name)
 				for _, hall := range floor.Halls {
 					fmt.Printf("    %-v\n", hall.Name)
@@ -67,7 +67,7 @@ type DataCenter struct {
 	Model
 	Name    string `gorm:"type:varchar(10);unique_index" json:"name"`
 	Address string `gorm:"type:varchar(255)" json:"address"`
-	Floors  Floors `json:"floors,omitempty"`
+	Floors  *Floors `json:"floors,omitempty"`
 }
 
 // Write outputs DC to standard output.
@@ -82,7 +82,7 @@ func (d DataCenter) Write(output string) {
 		fmt.Printf(" Address:    %v\n", d.Address)
 		if d.Floors.Len() > 0 {
 			fmt.Println("\n# Floors")
-			for _, f := range d.Floors {
+			for _, f := range *d.Floors {
 				fmt.Printf(" %v\n", f.Name)
 			}
 		}
@@ -96,7 +96,7 @@ func (d DataCenter) WriteTree(output string) {
 		fmt.Println(string(jsonBytes))
 	} else {
 		fmt.Println(d.Name)
-		for _, floor := range d.Floors {
+		for _, floor := range *d.Floors {
 			fmt.Printf("  %-v\n", floor.Name)
 			for _, hall := range floor.Halls {
 				fmt.Printf("    %-v\n", hall.Name)

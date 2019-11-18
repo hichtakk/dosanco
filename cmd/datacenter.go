@@ -50,7 +50,7 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 				dcFloor.Halls = *halls
 				*floors = append(*floors, dcFloor)
 			}
-			dc.Floors = *floors
+			dc.Floors = floors
 			dc.WriteTree(cmd.Flag("output").Value.String())
 		} else {
 			dc.Write(cmd.Flag("output").Value.String())
@@ -93,7 +93,7 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 					dcFloor.Halls = *halls
 					*floors = append(*floors, dcFloor)
 				}
-				dc.Floors = *floors
+				dc.Floors = floors
 				*output = append(*output, dc)
 			}
 			output.WriteTree(cmd.Flag("output").Value.String())

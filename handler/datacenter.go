@@ -41,9 +41,9 @@ func GetDataCenter(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
 	}
 
-	flr := new([]model.Floor)
+	flr := new(model.Floors)
 	db.Find(&flr, "data_center_id=?", dc.ID)
-	dc.Floors = *flr
+	dc.Floors = flr
 
 	return c.JSON(http.StatusOK, dc)
 }
