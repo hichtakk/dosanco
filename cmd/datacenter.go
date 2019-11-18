@@ -1529,7 +1529,9 @@ func updatePDU(cmd *cobra.Command, args []string) error {
 func updateRackPDU(cmd *cobra.Command, args []string) error {
 	pduName := cmd.Flag("name").Value.String()
 	dcName := cmd.Flag("dc").Value.String()
-	if pduName == "-" {
+	primary := cmd.Flag("primary").Value.String()
+	secondary := cmd.Flag("secondary").Value.String()
+	if pduName == "-" && primary == "-" && secondary == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
 	url := Conf.APIServer.URL + "/datacenter/rack-pdu?dc=" + dcName + "&name=" + args[0]
@@ -1568,9 +1570,37 @@ func updateRackPDU(cmd *cobra.Command, args []string) error {
 		if err := json.Unmarshal(body, &hostReqMsg); err != nil {
 			return err
 		}
+		pdu.Name = pduName
+	}
+	if primary != "-" {
+		rowPDUs, _ := getRowPDUs(map[string]string{"name": primary})
+		if len(*rowPDUs) == 0 {
+			return fmt.Errorf("row-pdu '%v' not found", primary)
+		}
+		if len(*rowPDUs) > 1 {
+			return fmt.Errorf("multiple row-pdu found")
+		}
+		for _, rp := range *rowPDUs {
+			pdu.PrimaryPDUID = rp.ID
+			break
+		}
+	}
+	if secondary != "-" && secondary != "" {
+		rowPDUs, _ := getRowPDUs(map[string]string{"name": secondary})
+		if len(*rowPDUs) == 0 {
+			return fmt.Errorf("row-pdu '%v' not found", primary)
+		}
+		if len(*rowPDUs) > 1 {
+			return fmt.Errorf("multiple row-pdu found")
+		}
+		for _, rp := range *rowPDUs {
+			pdu.SecondaryPDUID = rp.ID
+			break
+		}
+	} else if secondary == "" {
+		pdu.SecondaryPDUID = 0
 	}
 
-	pdu.Name = pduName
 	reqJSON, _ := json.Marshal(pdu)
 	pduID := strconv.Itoa(int(pdu.ID))
 	url = Conf.APIServer.URL + "/datacenter/rack-pdu/" + pduID

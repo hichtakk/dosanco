@@ -977,7 +977,7 @@ func UpdateRackPDU(c echo.Context) error {
 	if result := db.Take(&p, "id=?", pduID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("rack pdu not found on database."))
 	}
-	if result := db.Model(&p).Update("name", pdu.Name); result.Error != nil {
+	if result := db.Model(&p).Update("name", pdu.Name).Update("primary_pdu_id", pdu.PrimaryPDUID).Update("secondary_pdu_id", pdu.SecondaryPDUID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database write error."))
 	}
 
