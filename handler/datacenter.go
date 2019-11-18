@@ -41,10 +41,6 @@ func GetDataCenter(c echo.Context) error {
 		return c.JSON(http.StatusBadRequest, returnError("dc not found"))
 	}
 
-	flr := new(model.Floors)
-	db.Find(&flr, "data_center_id=?", dc.ID)
-	dc.Floors = flr
-
 	return c.JSON(http.StatusOK, dc)
 }
 
@@ -134,11 +130,6 @@ func GetDataCenterFloor(c echo.Context) error {
 	db := db.GetDB()
 	if result := db.Take(&flr, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("floor not found"))
-	}
-
-	halls := new([]model.Hall)
-	if db.Find(&halls, "floor_id=?", flr.ID).RecordNotFound() == false {
-		flr.Halls = *halls
 	}
 
 	return c.JSON(http.StatusOK, flr)
