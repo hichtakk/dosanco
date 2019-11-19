@@ -1749,12 +1749,12 @@ func deleteRack(cmd *cobra.Command, args []string) error {
 	rackID := strconv.Itoa(int(rack.ID))
 	url = Conf.APIServer.URL + "/datacenter/rack/" + rackID
 	body, reqErr := sendRequest("DELETE", url, []byte{})
+	if reqErr != nil {
+		return reqErr
+	}
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
 		return err
-	}
-	if reqErr != nil {
-		return reqErr
 	}
 	fmt.Println(resMsg.Message)
 

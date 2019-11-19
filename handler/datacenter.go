@@ -880,6 +880,13 @@ func DeleteRack(c echo.Context) error {
 	if result := db.Take(&rack, "id=?", id); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack '%v' not found", id)))
 	}
+
+	hosts := new(model.Hosts)
+	db.Find(hosts, "rack_id=?", rack.ID)
+	if len(*hosts) > 0 {
+		return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack is not empty. '%v' hosts are found in the rack", len(*hosts))))
+	}
+
 	if result := db.Delete(&rack); result.Error != nil {
 		return c.JSON(http.StatusInternalServerError, returnError("database error"))
 	}
