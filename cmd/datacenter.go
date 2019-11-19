@@ -1729,14 +1729,9 @@ func deleteRack(cmd *cobra.Command, args []string) error {
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
 
-	url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&row=" + rowName + "&name=" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
+	racks, err := getRacks(map[string]string{"dc": dcName, "floor": floorName, "hall": hallName, "row": rowName, "name": args[0]})
 	if err != nil {
 		return err
-	}
-	racks := new(model.Racks)
-	if err := json.Unmarshal(body, racks); err != nil {
-		return fmt.Errorf("response parse error" + err.Error())
 	}
 	if len(*racks) > 1 {
 		return fmt.Errorf("multiple rack found")
@@ -1747,7 +1742,7 @@ func deleteRack(cmd *cobra.Command, args []string) error {
 		break
 	}
 	rackID := strconv.Itoa(int(rack.ID))
-	url = Conf.APIServer.URL + "/datacenter/rack/" + rackID
+	url := Conf.APIServer.URL + "/datacenter/rack/" + rackID
 	body, reqErr := sendRequest("DELETE", url, []byte{})
 	if reqErr != nil {
 		return reqErr
