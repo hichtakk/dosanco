@@ -53,6 +53,8 @@ func showDataCenter(cmd *cobra.Command, args []string) {
 			dc.Floors = floors
 			dc.WriteTree(cmd.Flag("output").Value.String())
 		} else {
+			floors, _ := getFloors(map[string]string{"dc": dc.Name})
+			dc.Floors = floors
 			dc.Write(cmd.Flag("output").Value.String())
 		}
 	} else {
