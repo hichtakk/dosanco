@@ -52,7 +52,8 @@ type Hosts []Host
 
 func (h Hosts) Write(output string) {
 	if output == "json" {
-
+		jsonBytes, _ := json.MarshalIndent(h, "", "    ")
+		fmt.Println(string(jsonBytes))
 	} else {
 		fmt.Printf("%-30v   %-30v\n", "Name", "Description")
 		for _, host := range h {
