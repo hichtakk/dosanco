@@ -51,12 +51,18 @@ func NewCmdShowNetwork() *cobra.Command {
 
 // NewCmdShowIPAM is subcommand represents show ip allocation resource.
 func NewCmdShowIPAM() *cobra.Command {
-	//var host bool
+	var host bool
 	var ipCmd = &cobra.Command{
 		Use:     "ip [CIDR]",
 		Aliases: []string{"ip-alloc"},
 		Short:   "show ip allocation",
 		Args: func(cmd *cobra.Command, args []string) error {
+			if host == true {
+				if len(args) < 1 {
+					cmd.Help()
+					return errors.New("hostname is required to use '--host' flag.")
+				}
+			}
 			if len(args) < 1 {
 				cmd.Help()
 				return errors.New("network cidr is required")
@@ -65,7 +71,7 @@ func NewCmdShowIPAM() *cobra.Command {
 		},
 		Run: showIPAllocation,
 	}
-	//ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
+	ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
 
 	return ipCmd
 }

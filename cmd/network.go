@@ -252,24 +252,24 @@ func deleteVlan(cmd *cobra.Command, args []string) error {
 }
 
 func showIPAllocation(cmd *cobra.Command, args []string) {
-	// get network
-	query := map[string]string{"cidr": args[0]}
-	networks, err := getNetworks(query)
-	if err != nil {
-		fmt.Println(err.Error())
-		return
+	query := map[string]string{}
+	hostFlag := cmd.Flag("host").Value.String()
+	if hostFlag == "true" {
+		query["name"] = args[0]
+	} else {
+		// get network
+		query["cidr"] = args[0]
 	}
-	network := new(model.IPv4Network)
-	for _, nw := range *networks {
-		network = &nw
-	}
-	allocQuery := map[string]string{}
-	allocQuery["cidr"] = network.CIDR
-
-	allocs, _ := getIPv4Allocations(allocQuery)
+	networks := map[uint]model.IPv4Network{}
+	allocs, _ := getIPv4Allocations(query)
 	output := model.IPv4Allocations{}
 	for _, alloc := range *allocs {
-		alloc.IPv4Network = network
+		if _, ok := networks[alloc.IPv4NetworkID]; ok != true {
+			nw, _ := getNetwork(alloc.IPv4NetworkID)
+			networks[alloc.IPv4NetworkID] = *nw
+		}
+		n := networks[alloc.IPv4NetworkID]
+		alloc.IPv4Network = &n
 		output = append(output, alloc)
 	}
 
