@@ -1,19 +1,16 @@
 NAME := dosanco
-
-RELEASE_DIR=build
-GOVERSION=$(shell go version)
-THIS_GOOS=$(word 1,$(subst /, ,$(lastword $(GOVERSION))))
-THIS_GOARCH=$(word 2,$(subst /, ,$(lastword $(GOVERSION))))
-GOOS=$(THIS_GOOS)
-GOARCH=$(THIS_GOARCH)
-VERSION=$(patsubst "%",%,$(lastword $(shell grep 'const version' main.go)))
-REVISION=$(shell git rev-parse HEAD)
-
 .DEFAULT_GOAL := help
-BUILD_TARGETS= \
-	build-linux-amd64 \
-	build-linux-arm \
-	build-darwin-amd64
+
+RELEASE_DIR := build
+BUILD_TARGETS := build-linux-amd64 build-linux-arm64 build-darwin-amd64
+
+GOVERSION = $(shell go version)
+THIS_GOOS = $(word 1,$(subst /, ,$(lastword $(GOVERSION))))
+THIS_GOARCH = $(word 2,$(subst /, ,$(lastword $(GOVERSION))))
+GOOS = $(THIS_GOOS)
+GOARCH = $(THIS_GOARCH)
+VERSION = $(patsubst "%",%,$(lastword $(shell grep 'const version' main.go)))
+REVISION = $(shell git rev-parse HEAD)
 
 .PHONY: help clean update-package docker-linux-amd64 build all fmt lint $(BUILD_TARGETS)
 
@@ -24,7 +21,7 @@ lint: ## Examine source code and lint
 	go vet ./...
 	golint -set_exit_status ./...
 
-all: $(BUILD_TARGETS)
+all: $(BUILD_TARGETS) ## build for all platform
 
 build: $(RELEASE_DIR)/dosanco_$(GOOS)_$(GOARCH) $(RELEASE_DIR)/dosanco-apiserver_$(GOOS)_$(GOARCH) ## build dosanco and dosanco-apiserver
 
@@ -64,8 +61,16 @@ update-package: ## Update dependency packages
 clean: ## Clean up built files
 	@printf "\e[32m"
 	@echo '==> Remove built files ./build/...'
-	@printf "\e[m"
+	@printf "\e[90m"
+	@ls -1 ./build
 	@rm -rf build/*
+	@printf "\e[m"
 
 help: ## Makefile
 	@grep -E '^[a-zA-Z_-]+:.*?## .*$$' $(MAKEFILE_LIST) | sort
+
+echo:
+	@#@grep -E '^[a-zA-Z_-]+:.*##' $(MAKEFILE_LIST)
+	@grep -E '^.+:.* +##' $(MAKEFILE_LIST) | sed -e 's/\(##.*\)$$/"\x1b[31m" \1 "\x1b[0m"/g'
+	echo $(BUILD_TARGETS)
+
