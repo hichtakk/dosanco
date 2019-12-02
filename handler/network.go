@@ -60,10 +60,7 @@ func GetIPv4Network(c echo.Context) error {
 	if len(*subnets) > 0 {
 		network.Subnetworks = *subnets
 	}
-	allocs := getIPAllocations(network.ID)
-	if len(*allocs) > 0 {
-		network.Allocations = *allocs
-	}
+
 	return c.JSON(http.StatusOK, network)
 }
 
