@@ -34,5 +34,5 @@ jobs:
       run: make build
     - uses: actions/upload-artifact@master
       with:
-        name: dosanco-${{GITHUB_SHA}}
+        name: dosanco-${{ github.sha }}
         path: build
