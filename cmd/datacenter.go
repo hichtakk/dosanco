@@ -802,7 +802,7 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 					pduHost := h
 					pdu.Host = &pduHost
 					rowPDU, _ := getRowPDU(pdu.PrimaryPDUID)
-					pdu.PrimaryPDU = *rowPDU
+					pdu.PrimaryPDU = rowPDU
 					if pdu.SecondaryPDUID != 0 {
 						srowPDU, _ := getRowPDU(pdu.SecondaryPDUID)
 						pdu.SecondaryPDU = srowPDU
@@ -852,7 +852,7 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 				pdcpdu, err := dcPDUs.Take(p.PrimaryPDUID)
 				if err != nil {
 				}
-				p.PrimaryPDU = *pdcpdu
+				p.PrimaryPDU = pdcpdu
 				sdcpdu, err := dcPDUs.Take(p.SecondaryPDUID)
 				if err != nil {
 				}
@@ -1168,21 +1168,23 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	}
 
 	// get primary pdu
-	body, err := sendRequest("GET", url+"/row-pdu?dc="+dcName+"&name="+pPDUName, []byte{})
-	if err != nil {
-		return err
-	}
-	pdus := new(model.RowPDUs)
-	if err = json.Unmarshal(body, pdus); err != nil {
-		return fmt.Errorf("response parse error")
-	}
 	pPDU := model.RowPDU{}
-	for _, p := range *pdus {
-		pPDU = p
-		break
-	}
-	if pPDU.ID == 0 {
-		return fmt.Errorf("primary pdu not found")
+	if pPDUName != "" {
+		body, err := sendRequest("GET", url+"/row-pdu?dc="+dcName+"&name="+pPDUName, []byte{})
+		if err != nil {
+			return err
+		}
+		pdus := new(model.RowPDUs)
+		if err = json.Unmarshal(body, pdus); err != nil {
+			return fmt.Errorf("response parse error")
+		}
+		for _, p := range *pdus {
+			pPDU = p
+			break
+		}
+		if pPDU.ID == 0 {
+			return fmt.Errorf("primary pdu not found")
+		}
 	}
 
 	// get secondary pdu
@@ -1217,7 +1219,10 @@ func createRackPDU(cmd *cobra.Command, args []string) error {
 	}
 
 	// prepare request rack-pdu model
-	reqModel := model.RackPDU{Name: args[0], PrimaryPDUID: pPDU.ID}
+	reqModel := model.RackPDU{Name: args[0]}
+	if pPDU.ID != 0 {
+		reqModel.PrimaryPDUID = pPDU.ID
+	}
 	if sPDU.ID != 0 {
 		reqModel.SecondaryPDUID = sPDU.ID
 	}

@@ -383,6 +383,7 @@ func NewCmdCreateRackPDU() *cobra.Command {
 	var primary string
 	var secondary string
 	var group string
+	var description string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu ${RACK_PDU_NAME} --location ${LOCATION_PATH} --group ${GROUP_NAME} --primary ${ROW_PDU_NAME} [--secondary ${ROW_PDU_NAME}]",
 		Short: "create new rack-pdu",
@@ -400,25 +401,17 @@ func NewCmdCreateRackPDU() *cobra.Command {
 				cmd.Help()
 				return fmt.Errorf("group name is required")
 			}
-			if primary == "" {
-				cmd.Help()
-				return fmt.Errorf("primary row-pdu name is required")
-			}
 			return nil
 		},
 		RunE: createRackPDU,
 	}
 	pduCmd.Flags().StringVarP(&location, "location", "l", "", "location of host installed. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
-	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source [REQUIRED]")
+	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")
 	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "", "name of secondary power source")
-	pduCmd.Flags().StringVarP(&group, "group", "", "", "name of host group [REQUIRED]")
-	pduCmd.MarkFlagRequired("dc")
-	pduCmd.MarkFlagRequired("floor")
-	pduCmd.MarkFlagRequired("hall")
-	pduCmd.MarkFlagRequired("row")
-	pduCmd.MarkFlagRequired("rack")
+	pduCmd.Flags().StringVarP(&group, "group", "", "g", "name of host group [REQUIRED]")
+	pduCmd.Flags().StringVarP(&description, "description", "d", "", "description of the rack-pdu")
+	pduCmd.MarkFlagRequired("location")
 	pduCmd.MarkFlagRequired("group")
-	pduCmd.MarkFlagRequired("primary")
 
 	return pduCmd
 }

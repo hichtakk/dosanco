@@ -65,8 +65,8 @@ func (d DataCenters) Take(id uint) (*DataCenter, error) {
 // DataCenter represents datacenter building data.
 type DataCenter struct {
 	Model
-	Name    string `gorm:"type:varchar(10);unique_index" json:"name"`
-	Address string `gorm:"type:varchar(255)" json:"address"`
+	Name    string  `gorm:"type:varchar(10);unique_index" json:"name"`
+	Address string  `gorm:"type:varchar(255)" json:"address"`
 	Floors  *Floors `json:"floors,omitempty"`
 }
 
@@ -441,7 +441,7 @@ type RackPDU struct {
 	Description    string  `gorm:"type:varchar(255)" json:"description"`
 	PrimaryPDUID   uint    `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
 	SecondaryPDUID uint    `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
-	PrimaryPDU     RowPDU  `json:"primary_pdu"`
+	PrimaryPDU     *RowPDU `json:"primary_pdu"`
 	SecondaryPDU   *RowPDU `json:"secondary_pdu"`
 	Host           *Host   `json:"host,omitempty"`
 }
