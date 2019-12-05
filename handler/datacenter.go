@@ -445,7 +445,7 @@ func GetRackPDUs(c echo.Context) error {
 				}
 			} else {
 				if result := db.Find(&rowPDUs, "primary_ups_id=?", ups.ID); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError("row-pdu not found"))
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu not found for specified ups '%v'", upsName)))
 				}
 			}
 			for _, rowPDU := range rowPDUs {
@@ -462,19 +462,21 @@ func GetRackPDUs(c echo.Context) error {
 				if result := db.Find(&rowPDUs, "name=?", rowPduName); result.Error != nil {
 					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found", rowPduName)))
 				}
+				for _, rowPDU := range rowPDUs {
+					p := model.RackPDUs{}
+					if name != "" {
+						db.Find(&p, "primary_pdu_id=? AND name=?", rowPDU.ID, name)
+					} else {
+						db.Find(&p, "primary_pdu_id=?", rowPDU.ID)
+					}
+					pdu = append(pdu, p...)
+				}
 			} else {
-				if result := db.Find(&rowPDUs); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError("row-pdu not found"))
-				}
-			}
-			for _, rowPDU := range rowPDUs {
-				p := model.RackPDUs{}
 				if name != "" {
-					db.Find(&p, "primary_pdu_id=? AND name=?", rowPDU.ID, name)
+					db.Find(&pdu, "name=?", name)
 				} else {
-					db.Find(&p, "primary_pdu_id=?", rowPDU.ID)
+					db.Find(&pdu)
 				}
-				pdu = append(pdu, p...)
 			}
 		}
 	}

@@ -439,10 +439,10 @@ type RackPDU struct {
 	Model
 	Name           string  `gorm:"type:varchar(64)" json:"name"`
 	Description    string  `gorm:"type:varchar(255)" json:"description"`
-	PrimaryPDUID   uint    `gorm:"column:primary_pdu_id" json:"primary_pdu_id,omitempty"`
-	SecondaryPDUID uint    `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id,omitempty"`
-	PrimaryPDU     *RowPDU `json:"primary_pdu"`
-	SecondaryPDU   *RowPDU `json:"secondary_pdu"`
+	PrimaryPDUID   uint    `gorm:"column:primary_pdu_id" json:"primary_pdu_id"`
+	SecondaryPDUID uint    `gorm:"column:secondary_pdu_id" json:"secondary_pdu_id"`
+	PrimaryPDU     *RowPDU `json:"primary_pdu,omitempty"`
+	SecondaryPDU   *RowPDU `json:"secondary_pdu,omitempty"`
 	Host           *Host   `json:"host,omitempty"`
 }
 
@@ -454,8 +454,12 @@ func (p RackPDU) Write(output string) {
 		fmt.Printf("# Rack PDU\n")
 		fmt.Printf(" ID:          %d\n", p.ID)
 		fmt.Printf(" Name:        %v\n", p.Name)
-		fmt.Printf(" Input#1:     %v\n", p.PrimaryPDU.Name)
-		if p.SecondaryPDU != nil {
+		if p.PrimaryPDUID != 0 {
+			fmt.Printf(" Input#1:     %v\n", p.PrimaryPDU.Name)
+		} else {
+			fmt.Printf(" Input#1:     %v\n", "-")
+		}
+		if p.SecondaryPDUID != 0 {
 			fmt.Printf(" Input#2:     %v\n", p.SecondaryPDU.Name)
 		} else {
 			fmt.Printf(" Input#2:     %v\n", "-")
@@ -489,11 +493,15 @@ func (p RackPDUs) Write(output string) {
 			if pdu.Host.ID != 0 {
 				location = pdu.Host.Rack.GetLocationPath()
 			}
-			secondRowPDU := "-"
-			if pdu.SecondaryPDU != nil {
-				secondRowPDU = pdu.SecondaryPDU.Name
+			primaryRowPDU := "-"
+			if pdu.PrimaryPDUID != 0 {
+				primaryRowPDU = pdu.PrimaryPDU.Name
 			}
-			fmt.Printf("%32s   %12s   %12s   %10s\n", pdu.Name, pdu.PrimaryPDU.Name, secondRowPDU, location)
+			secondaryRowPDU := "-"
+			if pdu.SecondaryPDUID != 0 {
+				secondaryRowPDU = pdu.SecondaryPDU.Name
+			}
+			fmt.Printf("%32s   %12s   %12s   %10s\n", pdu.Name, primaryRowPDU, secondaryRowPDU, location)
 		}
 	}
 }

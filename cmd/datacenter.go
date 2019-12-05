@@ -725,47 +725,27 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 	pduName := cmd.Flag("pdu").Value.String()
 	location := cmd.Flag("location").Value.String()
 	if len(args) > 0 {
-		// show specified rack pdu
-		url := Conf.APIServer.URL + "/datacenter/rack-pdu?name=" + args[0]
-		body, err := sendRequest("GET", url, []byte{})
+		pdus, err := getRackPDUs(map[string]string{"name": args[0]})
 		if err != nil {
 			fmt.Println(err.Error())
 			return
 		}
-		data := new(model.RackPDUs)
-		if err := json.Unmarshal(body, data); err != nil {
-			fmt.Println("parse response error")
-			return
-		}
-		if len(*data) > 1 {
-			fmt.Println("multiple rack-pdu found")
-		}
-		for _, p := range *data {
-			pPDUID := strconv.Itoa(int(p.PrimaryPDUID))
-			url = Conf.APIServer.URL + "/datacenter/row-pdu/" + pPDUID
-			body, err := sendRequest("GET", url, []byte{})
-			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			if err := json.Unmarshal(body, &p.PrimaryPDU); err != nil {
-				fmt.Println("parse response error")
-				return
-			}
-			if p.SecondaryPDUID != 0 {
-				sPDUID := strconv.Itoa(int(p.SecondaryPDUID))
-				url = Conf.APIServer.URL + "/datacenter/row-pdu/" + sPDUID
-				body, err := sendRequest("GET", url, []byte{})
+		for _, p := range *pdus {
+			if p.PrimaryPDUID != 0 {
+				pPDU, err := getRowPDU(p.PrimaryPDUID)
 				if err != nil {
 					fmt.Println(err.Error())
 					return
 				}
-				if err := json.Unmarshal(body, &p.SecondaryPDU); err != nil {
-					fmt.Println("parse response error")
+				p.PrimaryPDU = pPDU
+			}
+			if p.SecondaryPDUID != 0 {
+				sPDU, err := getRowPDU(p.SecondaryPDUID)
+				if err != nil {
+					fmt.Println(err.Error())
 					return
 				}
-			} else {
-				p.SecondaryPDU = nil
+				p.SecondaryPDU = sPDU
 			}
 			hosts, _ := getHosts(map[string]string{"name": p.Name})
 			for _, h := range *hosts {
@@ -777,7 +757,6 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 				p.Host = &h
 				break
 			}
-
 			p.Write(cmd.Flag("output").Value.String())
 		}
 	} else {
@@ -832,31 +811,21 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 				fmt.Println("parse response error")
 				return
 			}
-			// get row pdu
-			rowPduURL := Conf.APIServer.URL + "/datacenter/row-pdu"
-			if dcName != "" {
-				rowPduURL = rowPduURL + "?dc=" + dcName
-			}
-			body, err = sendRequest("GET", rowPduURL, []byte{})
+			dcPDUs, err := getRowPDUs(map[string]string{"dc": dcName})
 			if err != nil {
-				fmt.Println(err.Error())
-				return
-			}
-			dcPDUs := new(model.RowPDUs)
-			if err := json.Unmarshal(body, dcPDUs); err != nil {
-				fmt.Println("parse response error")
+				fmt.Printf("getting row-pdu error\n")
 				return
 			}
 			outputModel := model.RackPDUs{}
 			for _, p := range *data {
-				pdcpdu, err := dcPDUs.Take(p.PrimaryPDUID)
-				if err != nil {
+				if p.PrimaryPDUID != 0 {
+					pdcpdu, _ := dcPDUs.Take(p.PrimaryPDUID)
+					p.PrimaryPDU = pdcpdu
+				} else {
+					p.PrimaryPDU = nil
 				}
-				p.PrimaryPDU = pdcpdu
-				sdcpdu, err := dcPDUs.Take(p.SecondaryPDUID)
-				if err != nil {
-				}
-				if sdcpdu.ID != 0 {
+				if p.SecondaryPDUID != 0 {
+					sdcpdu, _ := dcPDUs.Take(p.SecondaryPDUID)
 					p.SecondaryPDU = sdcpdu
 				} else {
 					p.SecondaryPDU = nil
