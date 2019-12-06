@@ -2,7 +2,7 @@ Dosanco
 =======
 
 [![Build Status](https://github.com/hichikaw/dosanco/workflows/Build/badge.svg)](https://github.com/hichikaw/dosanco/actions?workflow=Build)
-[![container repository](https://img.shields.io/badge/docker-v0.2.1-blue)](https://hub.docker.com/r/hichtakk/dosanco/tags)
+[![container repository](https://img.shields.io/badge/docker-v0.3.0-blue)](https://hub.docker.com/r/hichtakk/dosanco/tags)
 
 **Dosanco**: Simple DataCenter infrastructure database.
 
