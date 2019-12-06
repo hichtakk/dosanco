@@ -487,7 +487,7 @@ func (p RackPDUs) Write(output string) {
 			fmt.Printf("%3d   %32s   %12s   %12s\n", pdu.ID, pdu.Name, pdu.PrimaryPDU.Name, pdu.SecondaryPDU.Name)
 		}
 	} else {
-		fmt.Printf("%-32s   %-12s   %-12s   %-10s\n", "Name", "Input#1", "Input#2", "Rack")
+		fmt.Printf("%-32s   %-12s   %-12s   %-10s   %-32s\n", "Name", "Input#1", "Input#2", "Rack", "Description")
 		for _, pdu := range p {
 			location := "-"
 			if pdu.Host.ID != 0 {
@@ -501,7 +501,7 @@ func (p RackPDUs) Write(output string) {
 			if pdu.SecondaryPDUID != 0 {
 				secondaryRowPDU = pdu.SecondaryPDU.Name
 			}
-			fmt.Printf("%32s   %12s   %12s   %10s\n", pdu.Name, primaryRowPDU, secondaryRowPDU, location)
+			fmt.Printf("%32s   %12s   %12s   %10s   %32s\n", pdu.Name, primaryRowPDU, secondaryRowPDU, location, pdu.Description)
 		}
 	}
 }

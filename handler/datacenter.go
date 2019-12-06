@@ -391,7 +391,7 @@ func GetRackPDUs(c echo.Context) error {
 	pdu := model.RackPDUs{}
 	dcName := c.QueryParam("dc")
 	upsName := c.QueryParam("ups")
-	rowPduName := c.QueryParam("row-pdu")
+	rowPDUName := c.QueryParam("row-pdu")
 	name := c.QueryParam("name")
 	if dcName != "" {
 		// get dc
@@ -399,37 +399,94 @@ func GetRackPDUs(c echo.Context) error {
 		if result := db.Take(&dc, "name=?", dcName); result.Error != nil {
 			return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
 		}
-		// get ups
-		ups := model.UPSs{}
 		if upsName != "" {
-			if result := db.Find(&ups, "name=? AND data_center_id=?", upsName, dc.ID); result.Error != nil {
+			ups := new(model.UPS)
+			if result := db.Take(ups, "name=? AND data_center_id=?", upsName, dc.ID); result.Error != nil {
 				return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups '%v' not found for dc '%v'", upsName, dcName)))
 			}
-		} else {
-			if result := db.Find(&ups, "data_center_id=?", dc.ID); result.Error != nil {
+			if rowPDUName != "" {
+				rowPDU := new(model.RowPDU)
+				if result := db.Take(rowPDU, "name=? AND primary_ups_id=?", rowPDUName, dc.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups '%v' not found for dc '%v'", upsName, dcName)))
+				}
+			}
+		} else if rowPDUName != "" {
+			upss := new(model.UPSs)
+			if result := db.Take(upss, "data_center_id=?", dc.ID); result.Error != nil {
 				return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups not found for dc '%v'", dcName)))
 			}
-		}
-		// get dc pdu
-		for _, u := range ups {
-			dcPDUs := []model.RowPDU{}
-			if rowPduName != "" {
-				if result := db.Find(&dcPDUs, "name=? AND primary_ups_id=?", rowPduName, u.ID); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row pdu '%v' not found", rowPduName)))
+			for _, ups := range *upss {
+				rowPDU := new(model.RowPDU)
+				if result := db.Take(rowPDU, "name=? AND primary_ups_id=?", rowPDUName, ups.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("pdu '%v' not found for dc '%v'", rowPDUName, dcName)))
 				}
-			} else {
-				if result := db.Find(&dcPDUs, "primary_ups_id=?", u.ID); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("dc pdu not found")))
+				pdus := new(model.RackPDUs)
+				db.Find(pdus, "primary_pdu_id=?", rowPDU.ID)
+				for _, p := range *pdus {
+					pdu = append(pdu, p)
 				}
 			}
-			for _, dcPDU := range dcPDUs {
-				p := []model.RackPDU{}
-				if name != "" {
-					db.Find(&p, "name=? AND primary_pdu_id=?", name, dcPDU.ID)
-				} else {
-					db.Find(&p, "primary_pdu_id=?", dcPDU.ID)
+		} else {
+			if name != "" {
+				db.Find(&pdu, "name=?", name)
+				for _, p := range pdu {
+					host := new(model.Host)
+					if result := db.Take(host, "name=?", p.Name); result.Error != nil {
+						return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("host '%v' not found", p.Name)))
+					}
+					rack := new(model.Rack)
+					if result := db.Take(rack, "id=?", host.RackID); result.Error != nil {
+						return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("rack '%v' not found", host.RackID)))
+					}
+					row := new(model.RackRow)
+					if result := db.Take(row, "id=?", rack.RowID); result.Error != nil {
+						return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row '%v' not found", rack.RowID)))
+					}
+					hall := new(model.Hall)
+					if result := db.Take(hall, "id=?", row.HallID); result.Error != nil {
+						return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("hall '%v' not found", row.HallID)))
+					}
+					floor := new(model.Floor)
+					if result := db.Take(floor, "id=?", hall.FloorID); result.Error != nil {
+						return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("floor '%v' not found", hall.FloorID)))
+					}
+					dc := new(model.DataCenter)
+					if result := db.Take(dc, "id=?", floor.DataCenterID); result.Error != nil {
+						return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("datacenter '%v' not found", floor.DataCenterID)))
+					}
+					if dc.Name != dcName {
+						return c.JSON(http.StatusBadRequest, returnError(fmt.Sprintf("rack-pdu '%v' not found in DC '%v'", name, dcName)))
+					}
 				}
-				pdu = append(pdu, p...)
+			} else {
+				// find rack-pdu from host in DC
+				dc := new(model.DataCenter)
+				if result := db.Take(dc, "name=?", dcName); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("datacenter '%v' not found", dcName)))
+				}
+				floors := new(model.Floors)
+				db.Find(floors, "data_center_id=?", dc.ID)
+				for _, floor := range *floors {
+					halls := new(model.Halls)
+					db.Find(halls, "floor_id=?", floor.ID)
+					for _, hall := range *halls {
+						rows := new(model.RackRows)
+						db.Find(rows, "hall_id=?", hall.ID)
+						for _, row := range *rows {
+							racks := new(model.Racks)
+							db.Find(racks, "row_id=?", row.ID)
+							for _, rack := range *racks {
+								pduHosts := new(model.Hosts)
+								db.Find(pduHosts, "type=? AND rack_id=?", "rack-pdu", rack.ID)
+								for _, host := range *pduHosts {
+									p := new(model.RackPDU)
+									db.Take(p, "name=?", host.Name)
+									pdu = append(pdu, *p)
+								}
+							}
+						}
+					}
+				}
 			}
 		}
 	} else {
@@ -439,9 +496,9 @@ func GetRackPDUs(c echo.Context) error {
 			if result := db.Take(&ups, "name=?", upsName); result.Error != nil {
 				return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("ups '%v' not found", upsName)))
 			}
-			if rowPduName != "" {
-				if result := db.Find(&rowPDUs, "name=? AND primary_ups_id=?", rowPduName, ups.ID); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found under UPS '%v'", rowPduName, upsName)))
+			if rowPDUName != "" {
+				if result := db.Find(&rowPDUs, "name=? AND primary_ups_id=?", rowPDUName, ups.ID); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found under UPS '%v'", rowPDUName, upsName)))
 				}
 			} else {
 				if result := db.Find(&rowPDUs, "primary_ups_id=?", ups.ID); result.Error != nil {
@@ -458,9 +515,9 @@ func GetRackPDUs(c echo.Context) error {
 				pdu = append(pdu, p...)
 			}
 		} else {
-			if rowPduName != "" {
-				if result := db.Find(&rowPDUs, "name=?", rowPduName); result.Error != nil {
-					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found", rowPduName)))
+			if rowPDUName != "" {
+				if result := db.Find(&rowPDUs, "name=?", rowPDUName); result.Error != nil {
+					return c.JSON(http.StatusNotFound, returnError(fmt.Sprintf("row-pdu '%v' not found", rowPDUName)))
 				}
 				for _, rowPDU := range rowPDUs {
 					p := model.RackPDUs{}
@@ -977,7 +1034,7 @@ func UpdateRackPDU(c echo.Context) error {
 	if result := db.Take(&p, "id=?", pduID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("rack pdu not found on database."))
 	}
-	if result := db.Model(&p).Update("name", pdu.Name).Update("primary_pdu_id", pdu.PrimaryPDUID).Update("secondary_pdu_id", pdu.SecondaryPDUID); result.Error != nil {
+	if result := db.Model(&p).Update("name", pdu.Name).Update("primary_pdu_id", pdu.PrimaryPDUID).Update("secondary_pdu_id", pdu.SecondaryPDUID).Update("description", pdu.Description); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database write error."))
 	}
 

@@ -390,6 +390,7 @@ func NewCmdUpdateRackPDU() *cobra.Command {
 	var name string
 	var primary string
 	var secondary string
+	var description string
 	var pduCmd = &cobra.Command{
 		Use:   "rack-pdu [RACK_PDU_NAME]",
 		Short: "update rack-pdu name",
@@ -398,22 +399,6 @@ func NewCmdUpdateRackPDU() *cobra.Command {
 				cmd.Help()
 				return fmt.Errorf("target rack-pdu name is required")
 			}
-			/*
-				if location == "" {
-					cmd.Help()
-					return fmt.Errorf("location path is required")
-				}
-				if group == "" {
-					cmd.Help()
-					return fmt.Errorf("group name is required")
-				}
-			*/
-			/*
-				if primary == "" {
-					cmd.Help()
-					return fmt.Errorf("primary row-pdu name is required")
-				}
-			*/
 			return nil
 		},
 		RunE: updateRackPDU,
@@ -422,6 +407,7 @@ func NewCmdUpdateRackPDU() *cobra.Command {
 	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
 	pduCmd.Flags().StringVarP(&primary, "primary", "", "-", "new primary row-pdu name")
 	pduCmd.Flags().StringVarP(&secondary, "secondary", "", "-", "new secondary row-pdu name")
+	pduCmd.Flags().StringVarP(&description, "description", "d", "-", "new description")
 	pduCmd.MarkFlagRequired("dc")
 
 	return pduCmd

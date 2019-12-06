@@ -1507,22 +1507,29 @@ func updateRackPDU(cmd *cobra.Command, args []string) error {
 	dcName := cmd.Flag("dc").Value.String()
 	primary := cmd.Flag("primary").Value.String()
 	secondary := cmd.Flag("secondary").Value.String()
-	if pduName == "-" && primary == "-" && secondary == "-" {
+	description := cmd.Flag("description").Value.String()
+	if pduName == "-" && primary == "-" && secondary == "-" && description == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
-	url := Conf.APIServer.URL + "/datacenter/rack-pdu?dc=" + dcName + "&name=" + args[0]
-	body, err := sendRequest("GET", url, []byte{})
+	/*
+		url := Conf.APIServer.URL + "/datacenter/rack-pdu?dc=" + dcName + "&name=" + args[0]
+		body, err := sendRequest("GET", url, []byte{})
+		if err != nil {
+			return err
+		}
+		pdus := new(model.RackPDUs)
+		if err := json.Unmarshal(body, pdus); err != nil {
+			return fmt.Errorf("response parse error" + err.Error())
+		}
+		if len(*pdus) > 1 {
+			return fmt.Errorf("multiple pdu found")
+		}
+	*/
+	pdu := new(model.RackPDU)
+	pdus, err := getRackPDUs(map[string]string{"name": args[0], "dc": dcName})
 	if err != nil {
 		return err
 	}
-	pdus := new(model.RackPDUs)
-	if err := json.Unmarshal(body, pdus); err != nil {
-		return fmt.Errorf("response parse error" + err.Error())
-	}
-	if len(*pdus) > 1 {
-		return fmt.Errorf("multiple pdu found")
-	}
-	pdu := new(model.RackPDU)
 	for _, p := range *pdus {
 		pdu = &p
 		break
@@ -1576,10 +1583,13 @@ func updateRackPDU(cmd *cobra.Command, args []string) error {
 	} else if secondary == "" {
 		pdu.SecondaryPDUID = 0
 	}
+	if description != "-" {
+		pdu.Description = description
+	}
 
 	reqJSON, _ := json.Marshal(pdu)
 	pduID := strconv.Itoa(int(pdu.ID))
-	url = Conf.APIServer.URL + "/datacenter/rack-pdu/" + pduID
+	url := Conf.APIServer.URL + "/datacenter/rack-pdu/" + pduID
 	body, reqErr := sendRequest("PUT", url, reqJSON)
 	var resMsg responseMessage
 	if err := json.Unmarshal(body, &resMsg); err != nil {
