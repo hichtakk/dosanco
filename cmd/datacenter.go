@@ -754,6 +754,13 @@ func showRackPDU(cmd *cobra.Command, args []string) {
 				rck, _ := getRack(h.RackID)
 				loadRackLocation(rck)
 				h.Rack = *rck
+				allocs, _ := getIPv4Allocations(map[string]string{"name": p.Name})
+				for _, alloc := range *allocs {
+					nw, _ := getNetwork(alloc.IPv4NetworkID)
+					network := *nw
+					alloc.IPv4Network = &network
+					h.IPv4Allocations = append(h.IPv4Allocations, alloc)
+				}
 				p.Host = &h
 				break
 			}
