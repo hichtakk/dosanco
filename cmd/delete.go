@@ -44,7 +44,8 @@ func NewCmdDeleteNetwork() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteNetwork,
+		RunE:    deleteNetwork,
+		PreRunE: checkServerVersion,
 	}
 
 	return networkCmd
@@ -63,7 +64,8 @@ func NewCmdDeleteIPAllocation() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteIPAllocation,
+		RunE:    deleteIPAllocation,
+		PreRunE: checkServerVersion,
 	}
 
 	return ipCmd
@@ -82,7 +84,8 @@ func NewCmdDeleteVlan() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteVlan,
+		RunE:    deleteVlan,
+		PreRunE: checkServerVersion,
 	}
 
 	return vlanCmd
@@ -101,7 +104,8 @@ func NewCmdDeleteHost() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteHost,
+		RunE:    deleteHost,
+		PreRunE: checkServerVersion,
 	}
 
 	return hostCmd
@@ -119,7 +123,8 @@ func NewCmdDeleteHostGroup() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteHostGroup,
+		RunE:    deleteHostGroup,
+		PreRunE: checkServerVersion,
 	}
 
 	return groupCmd
@@ -138,7 +143,8 @@ func NewCmdDeleteDataCenter() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteDataCenter,
+		RunE:    deleteDataCenter,
+		PreRunE: checkServerVersion,
 	}
 
 	return dcCmd
@@ -162,7 +168,8 @@ func NewCmdDeleteDataCenterFloor() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteDataCenterFloor,
+		RunE:    deleteDataCenterFloor,
+		PreRunE: checkServerVersion,
 	}
 	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	flrCmd.MarkFlagRequired("dc")
@@ -193,7 +200,8 @@ func NewCmdDeleteDataCenterHall() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteDataCenterHall,
+		RunE:    deleteDataCenterHall,
+		PreRunE: checkServerVersion,
 	}
 	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -231,7 +239,8 @@ func NewCmdDeleteRackRow() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteRackRow,
+		RunE:    deleteRackRow,
+		PreRunE: checkServerVersion,
 	}
 	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -276,7 +285,8 @@ func NewCmdDeleteRack() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteRack,
+		RunE:    deleteRack,
+		PreRunE: checkServerVersion,
 	}
 	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -307,7 +317,8 @@ func NewCmdDeleteUPS() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteUPS,
+		RunE:    deleteUPS,
+		PreRunE: checkServerVersion,
 	}
 	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	upsCmd.MarkFlagRequired("dc")
@@ -332,7 +343,8 @@ func NewCmdDeletePDU() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deletePDU,
+		RunE:    deletePDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.MarkFlagRequired("dc")
@@ -353,7 +365,8 @@ func NewCmdDeleteRackPDU() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: deleteRackPDU,
+		RunE:    deleteRackPDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.MarkFlagRequired("dc")

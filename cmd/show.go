@@ -42,6 +42,7 @@ func NewCmdShowNetwork() *cobra.Command {
 		Short:   "show network",
 		Args:    cobra.MaximumNArgs(1),
 		Run:     showNetwork,
+		PreRunE: checkServerVersion,
 	}
 	networkCmd.Flags().BoolVarP(&tree, "tree", "t", false, "get network tree")
 	networkCmd.Flags().IntVarP(&depth, "depth", "d", 0, "depth for network tree. this option only work with --tree,-t option")
@@ -69,7 +70,8 @@ func NewCmdShowIPAM() *cobra.Command {
 			}
 			return nil
 		},
-		Run: showIPAllocation,
+		Run:     showIPAllocation,
+		PreRunE: checkServerVersion,
 	}
 	ipCmd.Flags().BoolVarP(&host, "host", "", false, "use host name to get ip allocation")
 
@@ -86,6 +88,7 @@ func NewCmdShowVlan() *cobra.Command {
 			url := Conf.APIServer.URL + "/vlan"
 			getVlans(url)
 		},
+		PreRunE: checkServerVersion,
 	}
 
 	return vlanCmd
@@ -111,7 +114,8 @@ func NewCmdShowHost() *cobra.Command {
 			}
 			return nil
 		},
-		Run: showHost,
+		Run:     showHost,
+		PreRunE: checkServerVersion,
 	}
 	hostCmd.Flags().StringVarP(&group, "group", "g", "", "specify host group")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "", "specify host installed location. use '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
@@ -123,10 +127,11 @@ func NewCmdShowHost() *cobra.Command {
 // NewCmdShowHostGroup is subcommand represents show host resource.
 func NewCmdShowHostGroup() *cobra.Command {
 	var groupCmd = &cobra.Command{
-		Use:   "group [NAME]",
-		Short: "show group",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   showHostGroup,
+		Use:     "group [NAME]",
+		Short:   "show group",
+		Args:    cobra.MaximumNArgs(1),
+		Run:     showHostGroup,
+		PreRunE: checkServerVersion,
 	}
 
 	return groupCmd
@@ -148,7 +153,8 @@ func NewCmdShowDataCenter() *cobra.Command {
 			}
 			return nil
 		},
-		Run: showDataCenter,
+		Run:     showDataCenter,
+		PreRunE: checkServerVersion,
 	}
 	dcCmd.Flags().BoolVarP(&tree, "tree", "t", false, "display datacenter building resource recursively in tree style")
 
@@ -164,6 +170,7 @@ func NewCmdShowDataCenterFloor() *cobra.Command {
 		Short:   "show datacenter floor",
 		Args:    cobra.MaximumNArgs(1),
 		Run:     showDataCenterFloor,
+		PreRunE: checkServerVersion,
 	}
 	dcCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
 
@@ -180,6 +187,7 @@ func NewCmdShowDataCenterHall() *cobra.Command {
 		Short:   "show datacenter hall",
 		Args:    cobra.MaximumNArgs(1),
 		Run:     showDataCenterHall,
+		PreRunE: checkServerVersion,
 	}
 	dcCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
 	dcCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
@@ -206,7 +214,8 @@ func NewCmdShowRackRow() *cobra.Command {
 			}
 			return nil
 		},
-		Run: showRackRow,
+		Run:     showRackRow,
+		PreRunE: checkServerVersion,
 	}
 	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
@@ -236,7 +245,8 @@ func NewCmdShowRack() *cobra.Command {
 			}
 			return nil
 		},
-		Run: showRack,
+		Run:     showRack,
+		PreRunE: checkServerVersion,
 	}
 	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "specify datacenter floor")
@@ -252,10 +262,11 @@ func NewCmdShowRack() *cobra.Command {
 func NewCmdShowUPS() *cobra.Command {
 	var dc string
 	var upsCmd = &cobra.Command{
-		Use:   "ups [UPS_NAME]",
-		Short: "show ups",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   showUPS,
+		Use:     "ups [UPS_NAME]",
+		Short:   "show ups",
+		Args:    cobra.MaximumNArgs(1),
+		Run:     showUPS,
+		PreRunE: checkServerVersion,
 	}
 	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
 
@@ -267,10 +278,11 @@ func NewCmdShowRowPDU() *cobra.Command {
 	var dc string
 	var ups string
 	var pduCmd = &cobra.Command{
-		Use:   "row-pdu [PDU_NAME]",
-		Short: "show row-pdu",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   showRowPDU,
+		Use:     "row-pdu [PDU_NAME]",
+		Short:   "show row-pdu",
+		Args:    cobra.MaximumNArgs(1),
+		Run:     showRowPDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter")
 	pduCmd.Flags().StringVarP(&ups, "ups", "", "", "specify ups")
@@ -285,10 +297,11 @@ func NewCmdShowRackPDU() *cobra.Command {
 	var pdu string
 	var location string
 	var pduCmd = &cobra.Command{
-		Use:   "rack-pdu [RACK_PDU_NAME]",
-		Short: "show rack-pdu",
-		Args:  cobra.MaximumNArgs(1),
-		Run:   showRackPDU,
+		Use:     "rack-pdu [RACK_PDU_NAME]",
+		Short:   "show rack-pdu",
+		Args:    cobra.MaximumNArgs(1),
+		Run:     showRackPDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "specify datacenter name")
 	pduCmd.Flags().StringVarP(&ups, "ups", "", "", "specify ups name")

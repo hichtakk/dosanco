@@ -45,7 +45,8 @@ func NewCmdCreateNetwork() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createNetwork,
+		RunE:    createNetwork,
+		PreRunE: checkServerVersion,
 	}
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
 	networkCmd.Flags().BoolVarP(&init, "init", "", false, "initialize new network with network and broadcast address allocations")
@@ -69,7 +70,8 @@ func NewCmdCreateIPAllocation() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createIPAllocation,
+		RunE:    createIPAllocation,
+		PreRunE: checkServerVersion,
 	}
 	ipCmd.Flags().StringVarP(&description, "description", "d", "", "description for the requested ip allocation")
 	ipCmd.Flags().StringVarP(&name, "name", "", "", "hostname for the ip address. [REQUIRED] in case allocation type is generic.")
@@ -97,7 +99,8 @@ func NewCmdCreateVlan() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createVlan,
+		RunE:    createVlan,
+		PreRunE: checkServerVersion,
 	}
 	vlanCmd.Flags().StringVarP(&network, "network", "", "", "network cidr of the requested vlan [REQUIRED]")
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
@@ -121,7 +124,8 @@ func NewCmdCreateHost() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createHost,
+		RunE:    createHost,
+		PreRunE: checkServerVersion,
 	}
 	hostCmd.Flags().StringVarP(&location, "location", "l", "", "location of host installed. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
 	hostCmd.Flags().StringVarP(&description, "description", "d", "", "description of the host")
@@ -143,7 +147,8 @@ func NewCmdCreateHostGroup() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createHostGroup,
+		RunE:    createHostGroup,
+		PreRunE: checkServerVersion,
 	}
 	groupCmd.Flags().StringVarP(&description, "description", "d", "", "name of host group")
 
@@ -164,7 +169,8 @@ func NewCmdCreateDataCenter() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createDataCenter,
+		RunE:    createDataCenter,
+		PreRunE: checkServerVersion,
 	}
 	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of data center")
 	dcCmd.MarkFlagRequired("address")
@@ -190,7 +196,8 @@ func NewCmdCreateDataCenterFloor() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createDataCenterFloor,
+		RunE:    createDataCenterFloor,
+		PreRunE: checkServerVersion,
 	}
 	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	flrCmd.MarkFlagRequired("dc")
@@ -221,7 +228,8 @@ func NewCmdCreateDataCenterHall() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createDataCenterHall,
+		RunE:    createDataCenterHall,
+		PreRunE: checkServerVersion,
 	}
 	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -259,7 +267,8 @@ func NewCmdCreateRackRow() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createRackRow,
+		RunE:    createRackRow,
+		PreRunE: checkServerVersion,
 	}
 	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -304,7 +313,8 @@ func NewCmdCreateRack() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createRack,
+		RunE:    createRack,
+		PreRunE: checkServerVersion,
 	}
 	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -335,7 +345,8 @@ func NewCmdCreateUPS() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createUPS,
+		RunE:    createUPS,
+		PreRunE: checkServerVersion,
 	}
 	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	upsCmd.MarkFlagRequired("dc")
@@ -366,7 +377,8 @@ func NewCmdCreatePDU() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createPDU,
+		RunE:    createPDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source [REQUIRED]")
@@ -403,7 +415,8 @@ func NewCmdCreateRackPDU() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: createRackPDU,
+		RunE:    createRackPDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&location, "location", "l", "", "location of host installed. use format '{DC}/{FLOOR}/{HALL}/{ROW}/{RACK}'")
 	pduCmd.Flags().StringVarP(&primary, "primary", "", "", "name of primary power source")

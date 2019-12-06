@@ -44,7 +44,8 @@ func NewCmdUpdateNetwork() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateNetwork,
+		RunE:    updateNetwork,
+		PreRunE: checkServerVersion,
 	}
 	networkCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested network")
 
@@ -66,7 +67,8 @@ func NewCmdUpdateIPAllocation() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateIPAllocation,
+		RunE:    updateIPAllocation,
+		PreRunE: checkServerVersion,
 	}
 	ipCmd.Flags().StringVarP(&description, "description", "d", "-", "new description of the requested ip allocation")
 	ipCmd.Flags().StringVarP(&name, "name", "n", "-", "new hostname of the allocation")
@@ -86,7 +88,8 @@ func NewCmdUpdateVlan() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateVlan,
+		RunE:    updateVlan,
+		PreRunE: checkServerVersion,
 	}
 	vlanCmd.Flags().StringVarP(&description, "description", "d", "", "description of the requested vlan")
 
@@ -109,7 +112,8 @@ func NewCmdUpdateHost() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateHost,
+		RunE:    updateHost,
+		PreRunE: checkServerVersion,
 	}
 	hostCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host")
 	hostCmd.Flags().StringVarP(&location, "location", "l", "-", "location of the requested host")
@@ -133,7 +137,8 @@ func NewCmdUpdateHostGroup() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateHostGroup,
+		RunE:    updateHostGroup,
+		PreRunE: checkServerVersion,
 	}
 	groupCmd.Flags().StringVarP(&name, "name", "n", "-", "name of the requested host group")
 	groupCmd.Flags().StringVarP(&description, "description", "d", "-", "description of the requested host group")
@@ -155,7 +160,8 @@ func NewCmdUpdateDataCenter() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateDataCenter,
+		RunE:    updateDataCenter,
+		PreRunE: checkServerVersion,
 	}
 	dcCmd.Flags().StringVarP(&address, "address", "a", "", "address of the datacenter")
 	dcCmd.MarkFlagRequired("address")
@@ -182,7 +188,8 @@ func NewCmdUpdateDataCenterFloor() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateDataCenterFloor,
+		RunE:    updateDataCenterFloor,
+		PreRunE: checkServerVersion,
 	}
 	flrCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	flrCmd.Flags().StringVarP(&name, "name", "n", "-", "name of datacenter floor")
@@ -216,7 +223,8 @@ func NewCmdUpdateDataCenterHall() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateDataCenterHall,
+		RunE:    updateDataCenterHall,
+		PreRunE: checkServerVersion,
 	}
 	hallCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	hallCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -257,7 +265,8 @@ func NewCmdUpdateRackRow() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateRackRow,
+		RunE:    updateRackRow,
+		PreRunE: checkServerVersion,
 	}
 	rowCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rowCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -304,7 +313,8 @@ func NewCmdUpdateRack() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateRack,
+		RunE:    updateRack,
+		PreRunE: checkServerVersion,
 	}
 	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
@@ -339,7 +349,8 @@ func NewCmdUpdateUPS() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateUPS,
+		RunE:    updateUPS,
+		PreRunE: checkServerVersion,
 	}
 	upsCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	upsCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of ups")
@@ -374,7 +385,8 @@ func NewCmdUpdatePDU() *cobra.Command {
 			*/
 			return nil
 		},
-		RunE: updatePDU,
+		RunE:    updatePDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of row-pdu")
@@ -401,7 +413,8 @@ func NewCmdUpdateRackPDU() *cobra.Command {
 			}
 			return nil
 		},
-		RunE: updateRackPDU,
+		RunE:    updateRackPDU,
+		PreRunE: checkServerVersion,
 	}
 	pduCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	pduCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
