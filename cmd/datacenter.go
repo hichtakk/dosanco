@@ -988,6 +988,7 @@ func createRack(cmd *cobra.Command, args []string) error {
 	floorName := cmd.Flag("floor").Value.String()
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
+	description := cmd.Flag("description").Value.String()
 	url := Conf.APIServer.URL + "/datacenter/row?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&name=" + rowName
 	body, err := sendRequest("GET", url, []byte{})
 	if err != nil {
@@ -1008,7 +1009,7 @@ func createRack(cmd *cobra.Command, args []string) error {
 		break
 	}
 	// prepare request rack model
-	reqModel := model.Rack{Name: args[0], RowID: row.ID}
+	reqModel := model.Rack{Name: args[0], RowID: row.ID, Description: description}
 	reqJSON, err := json.Marshal(reqModel)
 	if err != nil {
 		return fmt.Errorf("json marshal error: %v", reqModel)

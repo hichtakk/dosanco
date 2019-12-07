@@ -286,6 +286,7 @@ func NewCmdCreateRack() *cobra.Command {
 	var floor string
 	var hall string
 	var row string
+	var description string
 	var rackCmd = &cobra.Command{
 		Use:     "rack ${RACK_NAME} --dc ${DC_NAME} --floor ${FLOOR_NAME} --hall ${HALL_NAME} --row ${ROW_NAME}",
 		Aliases: []string{""},
@@ -319,7 +320,8 @@ func NewCmdCreateRack() *cobra.Command {
 	rackCmd.Flags().StringVarP(&dc, "dc", "", "", "name of datacenter [REQUIRED]")
 	rackCmd.Flags().StringVarP(&floor, "floor", "", "", "name of datacenter floor [REQUIRED]")
 	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of data hall [REQUIRED]")
-	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of row [REQUIRED]")
+	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack [REQUIRED]")
+	rackCmd.Flags().StringVarP(&description, "description", "d", "", "description of new rack")
 	rackCmd.MarkFlagRequired("dc")
 	rackCmd.MarkFlagRequired("floor")
 	rackCmd.MarkFlagRequired("hall")
