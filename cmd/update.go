@@ -287,6 +287,7 @@ func NewCmdUpdateRack() *cobra.Command {
 	var hall string
 	var row string
 	var name string
+	var description string
 	var rackCmd = &cobra.Command{
 		Use:   "rack [RACK_NAME]",
 		Short: "update rack name",
@@ -321,11 +322,12 @@ func NewCmdUpdateRack() *cobra.Command {
 	rackCmd.Flags().StringVarP(&hall, "hall", "", "", "name of datacenter hall [REQUIRED]")
 	rackCmd.Flags().StringVarP(&row, "row", "", "", "name of rack row [REQUIRED]")
 	rackCmd.Flags().StringVarP(&name, "name", "n", "-", "new name of rack")
+	rackCmd.Flags().StringVarP(&description, "description", "d", "-", "new description of rack")
 	rackCmd.MarkFlagRequired("dc")
 	rackCmd.MarkFlagRequired("floor")
 	rackCmd.MarkFlagRequired("hall")
 	rackCmd.MarkFlagRequired("row")
-	rackCmd.MarkFlagRequired("name")
+	//rackCmd.MarkFlagRequired("name")
 
 	return rackCmd
 }

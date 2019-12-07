@@ -921,7 +921,7 @@ func UpdateRack(c echo.Context) error {
 	if result := db.Take(&r, "id=?", rackID); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("rack not found on database."))
 	}
-	if result := db.Model(&r).Update("name", rack.Name); result.Error != nil {
+	if result := db.Model(&r).Update("name", rack.Name).Update("description", rack.Description); result.Error != nil {
 		return c.JSON(http.StatusBadRequest, returnError("database write error."))
 	}
 

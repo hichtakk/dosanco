@@ -1383,7 +1383,8 @@ func updateRack(cmd *cobra.Command, args []string) error {
 	floorName := cmd.Flag("floor").Value.String()
 	hallName := cmd.Flag("hall").Value.String()
 	rowName := cmd.Flag("row").Value.String()
-	if rackName == "-" {
+	description := cmd.Flag("description").Value.String()
+	if rackName == "-" && description == "-" {
 		return fmt.Errorf("nothing to be updated")
 	}
 	url := Conf.APIServer.URL + "/datacenter/rack?dc=" + dcName + "&floor=" + floorName + "&hall=" + hallName + "&row=" + rowName + "&name=" + args[0]
@@ -1403,7 +1404,12 @@ func updateRack(cmd *cobra.Command, args []string) error {
 		rack = &r
 		break
 	}
-	rack.Name = rackName
+	if rackName != "-" {
+		rack.Name = rackName
+	}
+	if description != "-" {
+		rack.Description = description
+	}
 	reqJSON, _ := json.Marshal(rack)
 	rackID := strconv.Itoa(int(rack.ID))
 	url = Conf.APIServer.URL + "/datacenter/rack/" + rackID
