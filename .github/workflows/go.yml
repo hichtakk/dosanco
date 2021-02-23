@@ -1,0 +1,39 @@
+name: Build
+on: [push]
+jobs:
+
+  #lint:
+  #  name: Lint
+  #  runs-on: ubuntu-latest
+  #  steps:
+  #  - name: Set up Go 1.13
+  #    uses: actions/setup-go@v1
+  #    with:
+  #      go-version: 1.13
+  #    id: go
+  #  - uses: actions/checkout@v1
+  #  - name: lint
+  #    run: go get -u golang.org/x/lint/golint && make lint
+
+  build:
+    name: build
+    #needs: lint
+    runs-on: ${{ matrix.os }}
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macOS-10.14]
+    steps:
+    - name: Set up Go 1.13
+      uses: actions/setup-go@v1
+      with:
+        go-version: 1.13
+      id: go
+    - name: Check out code into the Go module directory
+      uses: actions/checkout@v1
+    - name: Build
+      run: make build
+    - uses: actions/upload-artifact@master
+      with:
+        name: dosanco-${{ github.sha }}
+        path: build
+      if: contains(github.ref, 'tags/v')

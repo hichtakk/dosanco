@@ -1,0 +1,8 @@
+[server]
+db_url = "sqlite://"
+#db_url = "mysql://${USER}:${PASSWORD}@(${HOST})/${DBNAME}"
+
+[feature]
+network = true
+host = true
+datacenter = true
